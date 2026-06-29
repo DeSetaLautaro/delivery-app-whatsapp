@@ -1,0 +1,12 @@
+# Secretos - NUNCA subir a GitHub
+backend/.env
+
+# Dependencias - se reinstalan con npm install
+backend/node_modules/
+
+# Archivos de menú subidos por usuarios
+backend/uploads/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db

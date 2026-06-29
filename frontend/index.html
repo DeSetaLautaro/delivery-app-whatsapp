@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Esquina 🍕🍔 | Menú Digital</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-logo" aria-hidden="true">🍕</span>
+          <div class="brand-text">
+            <h1 class="brand-name">La Esquina</h1>
+            <p class="brand-tagline">Pedí desde donde estés</p>
+          </div>
+        </div>
+        <div class="header-meta">
+          <span class="badge-open">● Abierto</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== HERO BANNER ===== -->
+    <section class="hero" aria-label="Bienvenida">
+      <p class="hero-subtitle">Elegí tus favoritos y envianos tu pedido por WhatsApp 🚀</p>
+    </section>
+
+        <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+      <!--
+        Este div es el único punto de entrada para el menú.
+        app.js llama a GET /menu, agrupa los platos por categoría
+        y genera todo el HTML internamente.
+        No hay categorías hardcodeadas: funciona para cualquier menú.
+      -->
+      <div id="menu-contenedor">
+        <p class="menu-cargando">Cargando menú...</p>
+      </div>
+
+    </main>
+
+    <!-- ===== CART TOAST NOTIFICATION ===== -->
+    <div class="cart-toast" id="cartToast" role="status" aria-live="polite"></div>
+
+    <!-- ===== FLOATING CART BUTTON ===== -->
+    <div class="fab-wrapper" id="fabWrapper" aria-live="polite">
+      <button
+        class="fab-btn"
+        id="fabBtn"
+        aria-label="Ver pedido y enviar por WhatsApp"
+        disabled
+      >
+        <span class="fab-icon" aria-hidden="true">🛒</span>
+        <span class="fab-label">Ver Pedido y Enviar a WhatsApp</span>
+        <span class="fab-badge" id="fabBadge" aria-hidden="true">0</span>
+        <span class="fab-total" id="fabTotal">$0</span>
+        <span class="fab-arrow" aria-hidden="true">🚀</span>
+      </button>
+    </div>
+
+    <!-- ===== CART MODAL ===== -->
+    <div
+      class="modal-overlay"
+      id="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      hidden
+    >
+      <div class="modal">
+        <header class="modal-header">
+          <h2 class="modal-title" id="modalTitle">🛒 Tu Pedido</h2>
+          <button class="modal-close" id="modalClose" aria-label="Cerrar carrito">✕</button>
+        </header>
+
+        <div class="modal-body">
+          <ul class="cart-list" id="cartList" aria-label="Ítems en el carrito">
+            <!-- Renderizado dinámicamente -->
+          </ul>
+          <p class="cart-empty-msg" id="cartEmptyMsg">Tu carrito está vacío 🛒</p>
+        </div>
+
+        <footer class="modal-footer">
+          <div class="cart-summary">
+            <span class="summary-label">Total</span>
+            <span class="summary-total" id="summaryTotal">$0</span>
+          </div>
+          <button class="btn-whatsapp" id="btnWhatsapp" disabled>
+            <span aria-hidden="true">💬</span> Enviar pedido por WhatsApp
+          </button>
+          <button class="btn-clear" id="btnClear">
+            🗑️ Vaciar carrito
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

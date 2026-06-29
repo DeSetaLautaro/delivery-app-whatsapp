@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Prueba - Subir Menu</title>
+    <style>
+        body           { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        button         { margin-top: 10px; padding: 10px 20px; cursor: pointer; font-size: 15px; }
+        button:disabled{ opacity: 0.6; cursor: not-allowed; }
+        #estado        { margin-top: 16px; padding: 12px; border-radius: 6px; display: none; font-weight: bold; }
+        #estado.ok     { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        #estado.err    { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        #resultado     { margin-top: 16px; background: #f4f4f4; padding: 16px; border-radius: 6px;
+                         white-space: pre-wrap; font-size: 13px; display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>Prueba — Subir imagen de menu a la IA</h2>
+    <p>Selecciona una foto del menu (JPG, PNG) y hace click en el boton.</p>
+
+    <form id="formMenu">
+        <!-- accept="image/*" limita el selector a solo imagenes -->
+        <input type="file" id="archivoInput" name="archivoMenu" accept="image/*" />
+        <br />
+        <button type="button" id="btnSubir" onclick="subirArchivo()">Subir al Backend</button>
+    </form>
+
+    <div id="estado"></div>
+    <pre id="resultado"></pre>
+
+    <script>
+        async function subirArchivo() {
+            const input      = document.getElementById('archivoInput');
+            const btnSubir   = document.getElementById('btnSubir');
+            const divEstado  = document.getElementById('estado');
+            const preRes     = document.getElementById('resultado');
+
+            // Validacion: debe haber un archivo seleccionado
+            if (input.files.length === 0) {
+                mostrarEstado('Primero selecciona una imagen del menu.', 'err');
+                return;
+            }
+
+            // Armar el FormData con la imagen
+            // El nombre 'archivoMenu' debe coincidir exactamente con upload.single('archivoMenu') en el backend
+            const formData = new FormData();
+            formData.append('archivoMenu', input.files[0]);
+
+            // Feedback visual mientras espera la respuesta de la IA
+            btnSubir.disabled    = true;
+            btnSubir.textContent = 'Procesando con IA...';
+            divEstado.style.display = 'none';
+            preRes.style.display    = 'none';
+
+            try {
+                // Enviar la imagen al backend sin navegar a otra pagina
+                const respuesta = await fetch('http://localhost:3000/subir-menu', {
+                    method: 'POST',
+                    body:   formData  // No poner Content-Type manualmente, fetch lo setea solo con el boundary correcto
+                });
+
+                const datos = await respuesta.json();
+
+                if (respuesta.ok) {
+                    mostrarEstado('Menu analizado con exito! (' + datos.datos.length + ' platos encontrados)', 'ok');
+                    preRes.style.display = 'block';
+                    preRes.textContent   = JSON.stringify(datos.datos, null, 2);
+                } else {
+                    mostrarEstado('Error: ' + datos.error, 'err');
+                }
+
+            } catch (error) {
+                mostrarEstado('No se pudo conectar al servidor. Asegurate de correr: node index.js', 'err');
+                console.error('Error de red:', error);
+            }
+
+            // Restaurar el boton
+            btnSubir.disabled    = false;
+            btnSubir.textContent = 'Subir al Backend';
+        }
+
+        function mostrarEstado(mensaje, tipo) {
+            const div       = document.getElementById('estado');
+            div.textContent = mensaje;
+            div.className   = tipo;
+            div.style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+[
+  {
+    "plato": "Burger Clásica",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Burgers"
+  },
+  {
+    "plato": "Burger Doble",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Burgers"
+  },
+  {
+    "plato": "Burger con Queso",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Burgers"
+  },
+  {
+    "plato": "Burger Especial",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Burgers"
+  },
+  {
+    "plato": "Alitas",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Appetizers"
+  },
+  {
+    "plato": "Papas Fritas",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Appetizers"
+  },
+  {
+    "plato": "Aros de Cebolla",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Appetizers"
+  },
+  {
+    "plato": "Nuggets",
+    "descripcion": "",
+    "precio": 0,
+    "categoria": "Appetizers"
+  }
+]
