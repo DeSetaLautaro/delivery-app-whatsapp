@@ -4,16 +4,55 @@ const multer    = require('multer');
 const Anthropic = require('@anthropic-ai/sdk');
 const fs        = require('fs');
 const path      = require('path');
+const mongoose  = require('mongoose');
+
+// 1. Traemos el enrutador de autenticación
+const authRouter = require('./routes/auth'); 
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
 
+// 2. FUNDAMENTAL: Primero el "traductor" de JSON
 app.use(express.json());
+
+// 3. DESPUÉS conectamos las rutas (así ya pueden leer el JSON)
+app.use('/api', authRouter);
+
+// 4. Conexión a la Base de Datos
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('¡Conectado a MongoDB con éxito!'))
+  .catch((err) => console.error('Error al conectar:', err));
+
+
 
 // Sirve los archivos del frontend (HTML, CSS, JS) como archivos estaticos.
 // Esto permite abrirlos desde http://localhost:3000/ en vez de file://
 // que bloquea el fetch() por politica de seguridad del navegador (CORS).
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../frontend/cliente')));
+
+app.use('/admin', express.static(path.join(__dirname, '../frontend/admin')));
+
+
+// Muestra la pantalla de login para el admin.
+app.get('/login', (req, res) => {
+    // Acá no hay clave todavía, cualquiera puede ver el formulario de login
+    const archivoLogin = path.join(__dirname, '../frontend/admin/login.html');
+    res.sendFile(archivoLogin);
+});
+
+
+
+// 4. LA VENTANILLA DEL DUEÑO SECRETA (El Panel)
+app.get('/admin', (req, res) => {
+    // ¡ACÁ ESTÁ LA MAGIA! 
+    // En el futuro, acá pondremos un código que diga:
+    // if (usuarioNoPusoClave) { return res.redirect('/login'); }
+
+    // Si puso la clave, le damos el archivo en la mano:
+    const archivoPanel = path.join(__dirname, '../frontend/admin/admin.html');
+    res.sendFile(archivoPanel);
+});
+
 
 // Multer: guarda los archivos recibidos en la carpeta /uploads
 const upload = multer({ dest: 'uploads/' });
