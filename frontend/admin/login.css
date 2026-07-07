@@ -73,3 +73,13 @@ button[type="submit"] {
 
 button[type="submit"]:hover  { background: #e55a26; }
 button[type="submit"]:active { transform: scale(0.98); }
+
+.link-login {
+    color: #ff5722; 
+    text-decoration: none; 
+    font-weight: bold;
+}
+
+.link-login:hover {
+    text-decoration: underline; 
+}

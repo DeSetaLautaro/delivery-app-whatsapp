@@ -41,6 +41,12 @@ app.get('/login', (req, res) => {
 });
 
 
+app.get('/registro', (req, res)=>{
+    const archivoRegsitro = path.join(__dirname, '../frontend/admin/registro.html');
+    res.sendFile(archivoRegsitro);
+});
+
+
 
 // 4. LA VENTANILLA DEL DUEÑO SECRETA (El Panel)
 app.get('/admin', (req, res) => {

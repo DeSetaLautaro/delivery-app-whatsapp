@@ -1,0 +1,98 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f5f5f5;
+    font-family: 'Inter', sans-serif;
+}
+
+
+.form-registro {
+    background: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 90%;
+    max-width: 400px;
+}
+
+
+/* Header */
+.registro-header  { text-align: center; }
+.registro-emoji   { font-size: 2.4rem; }
+.registro-title   { font-size: 1.4rem; font-weight: 800; color: #1a1a1a; margin-top: 6px; }
+.registro-subtitle{ font-size: 0.82rem; color: #888; margin-top: 4px; }
+
+/* Campos */
+.registro-field { display: flex; flex-direction: column; gap: 6px; }
+
+.registro-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #444;
+}
+
+.registro-field input {
+    padding: 11px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+#registroField{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Botón */
+button[type="submit"] {
+    background: #ff6b35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 4px;
+}
+
+/* ESTILOS PARA CELULARES (Pantallas menores a 600px de ancho) */
+@media (max-width: 600px) {
+    
+    body {
+        margin: 0; /* Sacamos cualquier margen del body */
+        padding: 0;
+    }
+
+    .form-registro {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    height: 100vh;        /* Ocupa el 100% del alto visible de la pantalla */
+    margin: 0;            /* Sacamos los márgenes que lo centraban en PC */
+    border-radius: 0;     /* Le sacamos los bordes redondeados para que quede plano */
+    box-shadow: none;     /* Si le habías puesto sombra, se la sacamos */
+    justify-content: center; 
+    padding: 20px;        /* Un poco de espacio para que el texto no toque los bordes del celu */
+    box-sizing: border-box; /* Asegura que el padding no agrande la caja más del 100% */
+
+}
+
+}

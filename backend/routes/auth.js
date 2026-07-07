@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
  *   - 500: Error interno
  */
 router.post('/registro', async (req, res) => {
-    const { nombreLocal, email, password } = req.body;
+    const { nombre, email, password } = req.body;
 
     try {
         // Verificar si el email ya existe
@@ -90,7 +90,7 @@ router.post('/registro', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         // Guardar el usuario nuevo
-        await Usuario.create({ nombreLocal, email, password: hash });
+        await Usuario.create({ nombre, email, password: hash });
 
         res.status(201).json({ message: 'Usuario creado con exito' });
 

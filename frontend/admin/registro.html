@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Menú Digital</title>
+    <link rel="stylesheet" href="/admin/registro.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+ 
+  <body>
+    <form class="form-registro" id="formRegistro">
+        
+        <div class="registro-header">
+            <span class="registro-emoji"></span>
+            <h1 class="registro-title">Creá tu cuenta</h1>
+            <!--<p class="login-subtitle">Creá tu cuenta</p> -->
+        </div>
+        
+        <div class="registro-field">
+            <label>Nombre de Usuario</label>
+            <input type="text" id="nombreDeUsuario" name="usuario" placeholder="tu usuario" required />
+
+        </div>
+
+        <div class="registro-field">
+            <label>Email</label>
+            <input type="text" id="Email" name="usuario" placeholder="tu usuario" required />
+
+        </div>
+
+        <div class="registro-field">
+            <label>Contraseña</label>
+            <input type="password"  id="Contraseña"  name="usuario" placeholder="Contraseña" required />
+        </div>
+
+        <p class="registro-error" id="registroError"></p>
+
+        <button type="submit">Registrarse</button>
+        <div class="registro-field" id="registroField">
+            <p><a href="/admin/login.html" class="link-login">ya estoy registrado</a></p>
+        </div>
+
+
+    </form>
+    <script src="/admin/registro.js"></script>
+  </body>
