@@ -28,9 +28,17 @@ mongoose.connect(process.env.MONGODB_URI)
 // Sirve los archivos del frontend (HTML, CSS, JS) como archivos estaticos.
 // Esto permite abrirlos desde http://localhost:3000/ en vez de file://
 // que bloquea el fetch() por politica de seguridad del navegador (CORS).
+
+// 1. Archivos globales compartidos (ej. features.css, logos) en la raíz "/"
+app.use(express.static(path.join(__dirname, '../frontend/publico')));
+
+// 2. La app del cliente (ej. index.html de los menús) también en la raíz "/"
 app.use(express.static(path.join(__dirname, '../frontend/cliente')));
 
+// 3. ¡EL CAMBIO CLAVE! Ponemos todo lo del admin detrás de la puerta "/admin"
 app.use('/admin', express.static(path.join(__dirname, '../frontend/admin')));
+
+
 
 
 // Muestra la pantalla de login para el admin.
@@ -49,13 +57,13 @@ app.get('/registro', (req, res)=>{
 
 
 // 4. LA VENTANILLA DEL DUEÑO SECRETA (El Panel)
-app.get('/admin', (req, res) => {
+app.get('/admin/dashboard', (req, res) => {
     // ¡ACÁ ESTÁ LA MAGIA! 
     // En el futuro, acá pondremos un código que diga:
     // if (usuarioNoPusoClave) { return res.redirect('/login'); }
 
     // Si puso la clave, le damos el archivo en la mano:
-    const archivoPanel = path.join(__dirname, '../frontend/admin/admin.html');
+    const archivoPanel = path.join(__dirname, '../frontend/admin_privado/dashboard.html');
     res.sendFile(archivoPanel);
 });
 

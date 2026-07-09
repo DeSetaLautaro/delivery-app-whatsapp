@@ -8,7 +8,7 @@ loginForm.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     // Enviamos los datos al backend
-    const respuesta = await fetch('http://localhost:3000/api/login', {
+    const respuesta = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -17,8 +17,16 @@ loginForm.addEventListener('submit', async (e) => {
     const resultado = await respuesta.json();
     
     if (respuesta.ok) {
-        alert('¡Bienvenido!');
-        // Acá guardarías el token (la "pulserita VIP")
+        // Opcional: podés dejar el alert o sacarlo para que entre más rápido
+        // alert('¡Bienvenido!'); 
+
+        // 1. Guardamos la pulserita VIP (el token) en el bolsillo del navegador
+        // Asumimos que tu backend te manda el token dentro de "resultado.token"
+        localStorage.setItem('token', resultado.token);
+        
+        // 2. Le decimos al usuario: "Levantate de la mesa y andá al panel VIP"
+        window.location.href = '/admin/dashboard';
+
     } else {
         alert('Error: ' + resultado.message);
     }

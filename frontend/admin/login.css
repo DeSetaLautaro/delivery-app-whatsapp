@@ -48,6 +48,15 @@ body {
 
 .login-field input:focus { border-color: #ff6b35; }
 
+#loginField {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
 /* Error */
 .login-error {
     font-size: 0.82rem;
@@ -56,30 +65,3 @@ body {
     text-align: center;
 }
 
-/* Botón */
-button[type="submit"] {
-    background: #ff6b35;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 13px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: background 0.2s, transform 0.1s;
-    margin-top: 4px;
-}
-
-button[type="submit"]:hover  { background: #e55a26; }
-button[type="submit"]:active { transform: scale(0.98); }
-
-.link-login {
-    color: #ff5722; 
-    text-decoration: none; 
-    font-weight: bold;
-}
-
-.link-login:hover {
-    text-decoration: underline; 
-}

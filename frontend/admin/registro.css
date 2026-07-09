@@ -23,6 +23,7 @@ body {
 }
 
 
+
 /* Header */
 .registro-header  { text-align: center; }
 .registro-emoji   { font-size: 2.4rem; }
@@ -54,20 +55,6 @@ body {
     align-items: center;
 }
 
-/* Botón */
-button[type="submit"] {
-    background: #ff6b35;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 13px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: background 0.2s, transform 0.1s;
-    margin-top: 4px;
-}
 
 /* ESTILOS PARA CELULARES (Pantallas menores a 600px de ancho) */
 @media (max-width: 600px) {

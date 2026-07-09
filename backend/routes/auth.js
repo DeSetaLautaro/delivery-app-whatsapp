@@ -29,14 +29,12 @@ router.post('/login', async (req, res) => {
     try {
         // Paso 1: Buscar el usuario por email
         const usuario = await Usuario.findOne({ email });
-        if (!usuario) {
-            return res.status(400).json({ message: 'Email o contraseña incorrectos' });
-        }
+        
 
         // Paso 2: Comparar la contraseña con el hash guardado en la DB
         // bcrypt.compare nunca expone el hash, solo devuelve true/false
         const esValida = await bcrypt.compare(password, usuario.password);
-        if (!esValida) {
+        if (!esValida || !usuario) {
             return res.status(400).json({ message: 'Email o contraseña incorrectos' });
         }
 

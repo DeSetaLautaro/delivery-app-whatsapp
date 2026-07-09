@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/admin/dashboard.css">
+    <link rel="stylesheet" href="/features.css">
+    <title>Document</title>
+</head>
+<body>
+    <!-- ===HEADER===== -->
+    <header class="site-header">
+        <div>
+            <p>hola</p>
+
+        </div>
+
+        <div>
+            <p>cerrar cesión</p>
+
+        </div>
+
+    </header>
+
+    <main>
+        <section class="bienvenida">
+            <h1>¡Hola, Admin! 👋</h1>
+            <p>Elegí cómo querés actualizar tu catálogo hoy:</p>
+        </section>
+
+        <section class="tarjetas-container">
+            <div class="tarjeta">
+                <h3>✨ Usar la IA</h3>
+                <p>Procesar fotos o menús escritos a mano.</p>
+                <button class="btn-accion">Subir Foto</button>
+            </div>
+            <div class="tarjeta">
+                <h3>📝 Carga Manual</h3>
+                <p>Modificar precios o agregar platos uno a uno.</p>
+                <button class="btn-accion">Crear Plato</button>
+            </div>
+            <div class="tarjeta">
+                <h3>📊 Subir Excel</h3>
+                <p>Carga masiva desde archivo .csv o Excel.</p>
+                <button class="btn-accion">Subir Archivo</button>
+            </div>
+        </section>
+
+        <section class="tabla-container">
+            <h2>📋 Tus Platos Actuales</h2>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plato</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-platos">
+                        <!-- Acá inyectaremos los datos con JS después -->
+                        <tr>
+                            <td>Pizza Muzza</td>
+                            <td>$ 5.000</td>
+                            <td><button>Editar</button> <button>Borrar</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+
+    <script src="/admin/dashbord.js"> </script>
+</body>
+</html>
