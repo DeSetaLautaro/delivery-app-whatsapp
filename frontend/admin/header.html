@@ -1,0 +1,24 @@
+<!-- ===HEADER===== -->
+<header class="site-header">
+    <div class="header-brand">
+        <span>🍕</span>
+        <span class="brand-name">Menu Digital</span>
+    </div>
+
+    <!-- Dropdown de usuario -->
+    <div class="user-menu" id="userMenu">
+        <!-- Le sacamos el onclick -->
+        <button class="user-btn" id="userBtn">
+            <div class="user-avatar">A</div>
+            <span class="user-nombre" id="userNombre">Admin</span>
+            <span class="user-chevron">▾</span>
+        </button>
+        <div class="dropdown" id="dropdown" hidden>
+            <a href="#" class="dropdown-item">👤 Ver perfil</a>
+            <a href="#" class="dropdown-item">⚙️ Configuración</a>
+            <hr class="dropdown-divider" />
+            <!-- Cambiamos el href y le sacamos el onclick -->
+            <a href="#" class="dropdown-item dropdown-logout" id="btnCerrarSesion">🚪 Cerrar sesión</a>
+        </div>
+    </div>
+</header>

@@ -25,3 +25,5 @@ button[type="submit"]:active { transform: scale(0.98); }
 .link-log-reg:hover {
     text-decoration: underline; 
 }
+
+.btn-accion { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }

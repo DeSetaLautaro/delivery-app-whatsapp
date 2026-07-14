@@ -8,24 +8,18 @@
     <title>Document</title>
 </head>
 <body>
-    <!-- ===HEADER===== -->
-    <header class="site-header">
-        <div>
-            <p>hola</p>
-
-        </div>
-
-        <div>
-            <p>cerrar cesión</p>
-
-        </div>
-
-    </header>
+       
+    <div id="contenedor-header"></div>
 
     <main>
         <section class="bienvenida">
-            <h1>¡Hola, Admin! 👋</h1>
-            <p>Elegí cómo querés actualizar tu catálogo hoy:</p>
+            <div class="bienvenida-inner">
+                <div>
+                    <h1>¡Bienvenido, <span id="welcomeNombre">Admin</span>! 👋</h1>
+                    <p>Elegí cómo querés actualizar tu catálogo hoy:</p>
+                </div>
+                <div class="bienvenida-badge">🟢 Local activo</div>
+            </div>
         </section>
 
         <section class="tarjetas-container">
@@ -37,7 +31,7 @@
             <div class="tarjeta">
                 <h3>📝 Carga Manual</h3>
                 <p>Modificar precios o agregar platos uno a uno.</p>
-                <button class="btn-accion">Crear Plato</button>
+                <button class="btn-accion" id="btnCargaManual">Crear Plato</button>
             </div>
             <div class="tarjeta">
                 <h3>📊 Subir Excel</h3>
@@ -58,11 +52,11 @@
                         </tr>
                     </thead>
                     <tbody id="lista-platos">
-                        <!-- Acá inyectaremos los datos con JS después -->
+                        <!-- Acá se inyectan los datos con JS  -->
                         <tr>
                             <td>Pizza Muzza</td>
                             <td>$ 5.000</td>
-                            <td><button>Editar</button> <button>Borrar</button></td>
+                            <td><button class="btn-accion" id="btnEditarPlato">Editar</button> <button class="btn-accion">Borrar</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -71,6 +65,37 @@
     </main>
 
 
-    <script src="/admin/dashbord.js"> </script>
+    
+    
+    <!--===== MODAL ===== -->
+    <!-- === MODAL CREAR PLATO === -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+    
+    <!-- La cajita blanca TIENE que estar adentro del overlay -->
+    <div class="modal-plato">
+        
+        <div class="modal-header">
+            <h2 id="tituloModal">Crear Nuevo Plato</h2>
+            <!-- Fijate que acá le puse la clase modal-close de tu CSS -->
+            <button class="modal-close" id="btnCerrarModal">✖</button>
+        </div>
+        
+        <form id="formCrearPlato">
+            <label>Nombre del Plato:</label>
+            <input type="text" name="nombre" placeholder="Ej: Pizza Muzza" required>
+
+            <label>Precio:</label>
+            <input type="number" name="precio" placeholder="Ej: 5000" required>
+            <input type="hidden" id="platoId" name="id" value="">
+
+            <button type="submit" id="btnGuardarPlato">Guardar Plato</button>
+        </form>
+
+    </div>
+    
+</div>
+<script src="/api.js"></script>
+<script src="/ui.js"></script>
+<script src="/admin/dashbord.js"></script>
 </body>
 </html>

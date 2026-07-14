@@ -8,6 +8,7 @@ const mongoose  = require('mongoose');
 
 // 1. Traemos el enrutador de autenticación
 const authRouter = require('./routes/auth'); 
+const adminPlatos = require('./routes/platos');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -16,6 +17,7 @@ const PUERTO = process.env.PUERTO || 3000;
 app.use(express.json());
 
 // 3. DESPUÉS conectamos las rutas (así ya pueden leer el JSON)
+app.use('/api/platos', adminPlatos);
 app.use('/api', authRouter);
 
 // 4. Conexión a la Base de Datos
@@ -30,7 +32,9 @@ mongoose.connect(process.env.MONGODB_URI)
 // que bloquea el fetch() por politica de seguridad del navegador (CORS).
 
 // 1. Archivos globales compartidos (ej. features.css, logos) en la raíz "/"
+app.use(express.static(path.join(__dirname, '../frontend/api')));
 app.use(express.static(path.join(__dirname, '../frontend/publico')));
+
 
 // 2. La app del cliente (ej. index.html de los menús) también en la raíz "/"
 app.use(express.static(path.join(__dirname, '../frontend/cliente')));

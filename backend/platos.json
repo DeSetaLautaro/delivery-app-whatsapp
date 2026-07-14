@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1783898697501,
+    "nombre": "locro",
+    "precio": 7000
+  },
+  {
+    "id": 1783921287680,
+    "nombre": "guiso",
+    "precio": 1001
+  },
+  {
+    "id": 1783978870705,
+    "nombre": "guiso",
+    "precio": 1002
+  },
+  {
+    "id": 1783978896237,
+    "nombre": "pancho",
+    "precio": 200
+  },
+  {
+    "id": 1783979176944,
+    "nombre": "papa",
+    "precio": 6700
+  },
+  {
+    "id": 1783979350537,
+    "nombre": "papa",
+    "precio": 6700
+  },
+  {
+    "id": 1783979903140,
+    "nombre": "pancho",
+    "precio": 250
+  },
+  {
+    "id": 1783981267560,
+    "nombre": "papa",
+    "precio": 400
+  },
+  {
+    "id": 1783981284091,
+    "nombre": "locro",
+    "precio": 9999
+  },
+  {
+    "id": 1783981417566,
+    "nombre": "guiso",
+    "precio": 66000
+  },
+  {
+    "id": 1783981914362,
+    "nombre": "guiso",
+    "precio": 1001
+  },
+  {
+    "id": 1783982150567,
+    "nombre": "guiso",
+    "precio": 1000222
+  }
+]

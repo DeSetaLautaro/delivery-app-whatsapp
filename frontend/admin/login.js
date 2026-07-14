@@ -23,6 +23,7 @@ loginForm.addEventListener('submit', async (e) => {
         // 1. Guardamos la pulserita VIP (el token) en el bolsillo del navegador
         // Asumimos que tu backend te manda el token dentro de "resultado.token"
         localStorage.setItem('token', resultado.token);
+        localStorage.setItem('user', JSON.stringify(resultado.user))
         
         // 2. Le decimos al usuario: "Levantate de la mesa y andá al panel VIP"
         window.location.href = '/admin/dashboard';

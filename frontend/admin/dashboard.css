@@ -12,6 +12,7 @@ body {
     padding-bottom: 120px; /* espacio para el botón flotante */
     display: flex;
     flex-direction: column;
+    
 }
 
 /* ============================================================
@@ -24,12 +25,200 @@ body {
     top: 0;
     z-index: 100;
     display: flex;
-    flex-direction: row; /* Cambiado a row para que se vean lado a lado */
     justify-content: space-between;
-    align-items: center; /* Esto alinea el texto verticalmente */
-    padding: 10px 20px;
+    align-items: center;
+    padding: 12px 24px;
 }
 
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+/* --- Dropdown de usuario --- */
+.user-menu { position: relative; }
+
+.user-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 999px;
+    padding: 6px 14px 6px 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: border-color 0.2s;
+}
+.user-btn:hover { border-color: #ff6b35; }
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ff6b35;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-chevron { font-size: 0.7rem; color: #888; }
+
+.dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    min-width: 180px;
+    overflow: hidden;
+    z-index: 200;
+}
+.dropdown[hidden] { display: none; }
+
+.dropdown-item {
+    display: block;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.dropdown-item:hover    { background: #f5f5f5; }
+.dropdown-divider       { border: none; border-top: 1px solid #f0f0f0; margin: 4px 0; }
+.dropdown-logout        { color: #dc2626; }
+.dropdown-logout:hover  { background: #fff5f5; }
+
+/* --- Bienvenida --- */
+.bienvenida {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: #fff;
+    padding: 28px 24px;
+    margin-bottom: 24px;
+}
+.bienvenida-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.bienvenida h1 { font-size: 1.4rem; font-weight: 800; }
+.bienvenida p  { font-size: 0.88rem; opacity: 0.9; margin-top: 4px; }
+.bienvenida-badge {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+
+/* Fondo oscuro y borroso que cubre toda la pantalla */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);       /* el efecto vidrio esmerilado */
+    display: flex;
+    flex-direction: row;
+    align-items: center;              /* centra verticalmente */
+    justify-content: center;          /* centra horizontalmente */
+    z-index: 500;
+    
+}
+.modal-overlay[hidden] { 
+    display: none !important; 
+}
+
+.modal-plato {
+    background: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 28px 32px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+
+.modal-close {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+.modal-close:hover { background: #e0e0e0; }
+
+.modal-plato label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.modal-plato input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+}
+.modal-plato input:focus { border-color: #ff6b35; }
+
+.modal-plato button[type="submit"] {
+    background: #ff6b35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+    margin-top: 4px;
+}
+.modal-plato button[type="submit"]:hover { background: #e55a26; }
+
+/* ============================================================
+   TARJETAS
+   ============================================================ */
 .tarjetas-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -42,7 +231,6 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;
 }
 
-.btn-accion { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
 
 .tabla-container { background: white; padding: 20px; border-radius: 8px; }
 
