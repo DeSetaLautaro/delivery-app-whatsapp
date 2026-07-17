@@ -1,62 +1,152 @@
 [
   {
-    "id": 1783898697501,
-    "nombre": "locro",
-    "precio": 7000
+    "nombre": "Espresso",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783921287680,
-    "nombre": "guiso",
-    "precio": 1001
+    "nombre": "Double Espresso",
+    "descripcion": "",
+    "precio": 5,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783978870705,
-    "nombre": "guiso",
-    "precio": 1002
+    "nombre": "Cappuccino",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783978896237,
-    "nombre": "pancho",
-    "precio": 200
+    "nombre": "Latte",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783979176944,
-    "nombre": "papa",
-    "precio": 6700
+    "nombre": "Americano",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783979350537,
-    "nombre": "papa",
-    "precio": 6700
+    "nombre": "Mocha",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783979903140,
-    "nombre": "pancho",
-    "precio": 250
+    "nombre": "Flat White",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783981267560,
-    "nombre": "papa",
-    "precio": 400
+    "nombre": "Short Black",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783981284091,
-    "nombre": "locro",
-    "precio": 9999
+    "nombre": "Long Black",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Coffee"
   },
   {
-    "id": 1783981417566,
-    "nombre": "guiso",
-    "precio": 66000
+    "nombre": "White",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Teas"
   },
   {
-    "id": 1783981914362,
-    "nombre": "guiso",
-    "precio": 1001
+    "nombre": "Green",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Teas"
   },
   {
-    "id": 1783982150567,
-    "nombre": "guiso",
-    "precio": 1000222
+    "nombre": "Black",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Teas"
+  },
+  {
+    "nombre": "Oolong",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Teas"
+  },
+  {
+    "nombre": "Puer",
+    "descripcion": "",
+    "precio": 2,
+    "categoria": "Teas"
+  },
+  {
+    "nombre": "Lemon Meringue Pie",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Bakery"
+  },
+  {
+    "nombre": "Oatmeal Cookie",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Bakery"
+  },
+  {
+    "nombre": "Chocolate Cupcake",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Bakery"
+  },
+  {
+    "nombre": "English Scone",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Bakery"
+  },
+  {
+    "nombre": "Apple Turnover",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Bakery"
+  },
+  {
+    "nombre": "Cinnamon Roll",
+    "descripcion": "",
+    "precio": 3,
+    "categoria": "Bakery"
+  },
+  {
+    "nombre": "Cheese Salad",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Sandwiches"
+  },
+  {
+    "nombre": "Tuna Salad",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Sandwiches"
+  },
+  {
+    "nombre": "Hummus",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Sandwiches"
+  },
+  {
+    "nombre": "Brie Cheese",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Sandwiches"
+  },
+  {
+    "nombre": "Egg Mayo",
+    "descripcion": "",
+    "precio": 4,
+    "categoria": "Sandwiches"
   }
 ]

@@ -1,6 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router(); 
 const fs = require('fs');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+const Anthropic = require('@anthropic-ai/sdk');
+const path      = require('path');
+const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+
 
 
 /*
@@ -88,6 +96,7 @@ router.put('/:id', (req, res) => {
         // 4. Modificamos únicamente los datos de ESE renglón específico
         listaDePlatos[indice].nombre = datosNuevos.nombre;
         listaDePlatos[indice].precio = datosNuevos.precio;
+        listaDePlatos[indeice].categoria = datosNuevos.categoria;
 
         // 5. Volvemos a convertir todo a texto y lo guardamos aplastando el archivo anterior
         fs.writeFileSync('platos.json', JSON.stringify(listaDePlatos, null, 2));
@@ -127,6 +136,107 @@ router.delete('/:id', (req, res) => {
     } catch (error) {
         console.error("Error al borrar el plato:", error);
         res.status(500).json({ error: "No se pudo borrar el plato" });
+    }
+});
+
+
+
+
+
+router.post('/bulk', (req, res) => {
+    // 1. Recibimos los platos del Excel
+    const platosDelExcel = req.body; 
+
+    try {
+        // ¡OJO ACÁ!: Como el Excel no tiene las columnas de "ID" internas, 
+        // le inyectamos un ID único a cada plato antes de guardarlo, 
+        // para que tus botones de Borrar y Editar sigan funcionando después.
+        const platosListosParaGuardar = platosDelExcel.map((plato, index) => {
+            return {
+                id: Date.now().toString() + index, // Generamos un ID rápido
+                ...plato // Le pegamos todos los datos del Excel (nombre, precio, etc)
+            };
+        });
+
+        // 2. EL REEMPLAZO TOTAL: Aplastamos el platos.json anterior con la nueva lista
+        fs.writeFileSync(rutaPlatosJSON, JSON.stringify(platosListosParaGuardar, null, 2), 'utf-8');
+
+        // 3. Avisamos que todo salió de 10
+        res.status(200).json({ mensaje: 'Menú actualizado por completo (Reemplazo total)' });
+
+    } catch (error) {
+        console.error("Error en carga masiva:", error);
+        res.status(500).json({ error: 'Error al procesar el archivo' });
+    }
+});
+
+
+
+
+async function procesarConIA(fotos)
+{
+    // Paso 1: Convertir todas las fotos a Base64
+const bloquesDeImagen = fotos.map(file => ({
+    type: 'image',
+    source: {
+        type: 'base64',
+        media_type: file.mimetype,
+        data: file.buffer.toString('base64') // Si usas memoryStorage, el archivo está en file.buffer
+    }
+}));
+ const respuesta = await claude.messages.create({
+    model: 'claude-haiku-4-5-20251001', // Usá un modelo estable y económico
+    max_tokens: 2048,
+    // System message: Esto es lo más importante. Le define su "personalidad"
+    system: "Sos un asistente experto en extracción de datos. Tu única tarea es convertir imágenes de menús en un array JSON estricto. No respondas nada más, no uses markdown, solo el JSON.",
+    messages: [
+        {
+            role: 'user',
+            content: [
+                // Acá agregamos tantas imágenes como quieras, una por una
+                ...bloquesDeImagen, 
+                {
+                    type: 'text',
+                    text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
+                    { "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
+                    Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
+                    Solo responde con el JSON.`
+                }
+            ]
+        }
+    ]
+});
+        // Paso 3: Limpiar la respuesta y convertirla a JSON real
+        let respuestaTexto = respuesta.content[0].text;
+    respuestaTexto = respuestaTexto.replace(/```json|```/g, '').trim();
+    return JSON.parse(respuestaTexto);
+};
+
+
+// La constante la dejamos afuera, arribita de todo, para que sea más ordenado
+const MENU_PATH = path.join(__dirname, '../platos.json');
+
+// 1. Agregamos "async" acá
+router.post('/procesar-ia', upload.any(), async (req, res) => { 
+    try {
+        const fotos = req.files;
+        
+        // 2. Agregamos "await" y usamos un solo nombre de variable (menuJSON)
+        const menuJSON = await procesarConIA(fotos); 
+        
+        // 3. ¡EL GUARDADO FÍSICO! 
+        fs.writeFileSync(MENU_PATH, JSON.stringify(menuJSON, null, 2), 'utf8');
+        console.log(`[ÉXITO] Archivo creado/actualizado en: ${MENU_PATH}`);
+
+        // 4. Le avisamos al Frontend (Una sola respuesta definitiva)
+        res.status(200).json({ 
+            mensaje: 'Menú analizado y guardado con éxito',
+            platos: menuJSON 
+        });
+        
+    } catch (error) {
+        console.error("Error en la ruta procesar-ia:", error); // Siempre es bueno imprimir el error exacto en consola
+        res.status(500).json({ error: "No pude procesar las fotos" });
     }
 });
 
