@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/admin/configuracion.css">
+    <link rel="stylesheet" href="/features.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="contenedor-header"></div>
+    
+    <section id="contenedorTarjetas">
+        <div id="tarjetaMensaje"><h3>Mensaje de WhatsApp</h3>
+                <p class="texto-ayuda">Armá el mensaje que enviará el cliente. Usá los botones para insertar los datos automáticos:</p>
+
+            <!-- Botones de variables -->
+            <div class="contenedorVariables">
+                <button type="button" class="btn-var" data-var="{pedido}">🍕 El Pedido</button>
+                <button type="button" class="btn-var" data-var="{total}">💰 Total</button>
+                <button type="button" class="btn-var" data-var="{direccion}">📍 Dirección</button>
+                <button type="button" class="btn-var" data-var="{pago}">💵 Forma de pago</button>
+            </div>
+        
+            <!-- El cuadro de texto -->
+            <textarea id="configMensaje" rows="11">👋 ¡Hola! Te escribo para confirmar mi pedido.
+            
+            🛍️ *Detalle:*
+            {pedido}
+            
+            💰 *Total a pagar:* {total}
+            💵 *Abono con:* {pago}
+            
+            📍 *Dirección de entrega:*
+            {direccion}
+            
+            🛵 Por favor, avisame la demora aproximada. ¡Muchas gracias!</textarea>
+        </div>
+        
+<div></div>
+        <div id="tercerTarjeta"></div>
+    </section>
+
+
+    
+
+<script src="/admin/configuracion.js"></script>
+<script src="/ui.js"></script>
+<script src="/api.js"></script>
+
+
+</body>
+</html>

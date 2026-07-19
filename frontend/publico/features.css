@@ -27,3 +27,211 @@ button[type="submit"]:active { transform: scale(0.98); }
 }
 
 .btn-accion { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+
+
+/* El estilo para el link de descarga */
+.link-descarga {
+    color: #007bff; /* Un azul clásico de link, podés cambiarlo al color de tu marca */
+    text-decoration: none; /* Le saca el subrayado feo por defecto */
+    font-weight: 600; /* Lo hace un poquito más gordito para que se lea bien */
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+/* Efecto cuando le pasan el mouse por arriba */
+.link-descarga:hover {
+    text-decoration: underline; /* Le vuelve a poner la línea para indicar que es clickeable */
+    color: #0056b3; /* Un azul un poco más oscuro */
+}
+
+
+/* El contenedor que envuelve a la foto y a la X */
+.miniatura-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* El botón de la X (arranca invisible) */
+.btn-borrar-foto {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #dc3545; /* Rojo peligro */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none; /* Lo ocultamos por defecto */
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* La magia del Hover: Cuando el mouse pasa por el contenedor, mostramos la X */
+.miniatura-wrapper:hover .btn-borrar-foto {
+    display: flex;
+}
+
+
+/* ============================================================
+   BOTONES ACCIONES (Desktop / Mobile)
+   ============================================================ */
+.btn-tres-puntos {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: background 0.2s;
+}
+.btn-tres-puntos:hover { background: #e0e0e0; }
+
+.menu-tres-puntos {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    min-width: 140px;
+    z-index: 50;
+    overflow: hidden;
+}
+.menu-tres-puntos[hidden] { display: none; }
+
+.menu-tres-puntos .btn-accion {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    color: #1a1a1a;
+    cursor: pointer;
+}
+.menu-tres-puntos .btn-accion:hover { background: #f5f5f5; }
+.menu-tres-puntos .btn-borrar       { color: #dc2626; }
+.menu-tres-puntos .btn-borrar:hover { background: #fff5 }
+
+    
+    
+/* ============================================================
+   HEADER
+   ============================================================ */
+.site-header {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+/* --- Dropdown de usuario --- */
+.user-menu { position: relative; }
+
+.user-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 999px;
+    padding: 6px 14px 6px 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: border-color 0.2s;
+}
+.user-btn:hover { border-color: #ff6b35; }
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ff6b35;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-chevron { font-size: 0.7rem; color: #888; }
+
+.dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    min-width: 180px;
+    overflow: hidden;
+    z-index: 200;
+}
+.dropdown[hidden] { display: none; }
+
+.dropdown-item {
+    display: block;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.dropdown-item:hover    { background: #f5f5f5; }
+.dropdown-divider       { border: none; border-top: 1px solid #f0f0f0; margin: 4px 0; }
+.dropdown-logout        { color: #dc2626; }
+.dropdown-logout:hover  { background: #fff5f5; }
+
+
+
+/*======== letra de los párrafos ===========*/
+p{
+    /* 1. Tipografía moderna y limpia */
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    
+    /* 2. Color: Un gris oscuro (#4b5563) cansa menos la vista que el negro puro (#000) */
+    color: #4b5563; 
+    
+    /* 3. Tamaño y peso estándar */
+    font-size: 0.95rem; /* Un pelito más chico que el texto normal, ideal para descripciones */
+    font-weight: 400;
+    
+    /* 4. LA MAGIA: El interlineado. 1.6 deja "respirar" al texto entre renglón y renglón */
+    line-height: 1.6; 
+    
+    /* 5. Separación sutil entre las letras */
+    letter-spacing: 0.3px;
+    
+    /* 6. Espacio hacia abajo para que no se pegue con los botones o inputs */
+    margin-bottom: 16px;
+    margin-top: 0;
+}

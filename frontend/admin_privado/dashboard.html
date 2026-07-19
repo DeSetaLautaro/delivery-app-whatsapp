@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/admin/dashboard.css">
     <link rel="stylesheet" href="/features.css">
+    <link rel="stylesheet" href="/styles.css">
     <title>Document</title>
 </head>
 <body>
@@ -26,7 +27,7 @@
             <div class="tarjeta">
                 <h3>✨ Usar la IA</h3>
                 <p>Procesar fotos o menús escritos a mano.</p>
-                <button class="btn-accion">Subir Foto</button>
+                <button class="btn-accion" id="btnSubirConIA">Subir Foto</button>
             </div>
             <div class="tarjeta">
                 <h3>📝 Carga Manual</h3>
@@ -36,19 +37,53 @@
             <div class="tarjeta">
                 <h3>📊 Subir Excel</h3>
                 <p>Carga masiva desde archivo .csv o Excel.</p>
-                <button class="btn-accion">Subir Archivo</button>
+                <button class="btn-accion" id="btnSubirArchivo">Subir Archivo</button>
             </div>
         </section>
 
         <section class="tabla-container">
             <h2>📋 Tus Platos Actuales</h2>
+            <!-- Barra de búsqueda + botón filtros -->
+            <div class="tabla-toolbar">
+                <input
+                    type="text"
+                    id="inputBusqueda"
+                    class="tabla-search"
+                    placeholder="🔍  Buscar plato..."
+                    oninput="filtrarTabla()"
+                />
+                <button class="btn-filtros" id="btnFiltros" onclick="toggleFiltros()">
+                    ⚙️ Filtros
+                </button>
+            </div>
+
+            <!-- Panel de filtros (oculto por defecto) -->
+            <div class="filtros-panel" id="filtrosPanel" hidden>
+                <div class="filtro-grupo">
+                    <label>Categoría</label>
+                    <select id="filtroCat" onchange="filtrarTabla()">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label>Precio mínimo</label>
+                    <input type="number" id="filtroPrecioMin" placeholder="0" oninput="filtrarTabla()" />
+                </div>
+                <div class="filtro-grupo">
+                    <label>Precio máximo</label>
+                    <input type="number" id="filtroPrecioMax" placeholder="999999" oninput="filtrarTabla()" />
+                </div>
+                <button class="btn-limpiar" onclick="limpiarFiltros()">✕ Limpiar</button>
+            </div>
             <div class="tabla-scroll">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Plato</th>
-                            <th>Precio</th>
-                            <th>Acciones</th>
+                         <tr>
+                            <!-- data-col indica qué campo ordenar, data-tipo indica si es texto o número -->
+                            <th class="th-sort" data-col="plato" data-tipo="str" onclick="ordenarPor(this)">Plato <span class="sort-icon">↕</span></th>
+                            <th class="th-sort" data-col="precio" data-tipo="num" onclick="ordenarPor(this)">Precio <span class="sort-icon">↕</span></th>
+                            <th class="th-sort" data-col="categoria" data-tipo="str" onclick="ordenarPor(this)">Categoría <span class="sort-icon">↕</span></th>
+                            <th><span id="spanAccionesDesk">Acciones</span><span id ="spanAccionesMobile"></span></th>
                         </tr>
                     </thead>
                     <tbody id="lista-platos">
@@ -56,6 +91,7 @@
                         <tr>
                             <td>Pizza Muzza</td>
                             <td>$ 5.000</td>
+                            <td>Pizzas</td>
                             <td><button class="btn-accion" id="btnEditarPlato">Editar</button> <button class="btn-accion">Borrar</button></td>
                         </tr>
                     </tbody>
@@ -65,9 +101,181 @@
     </main>
 
 
+    <script>
+            // ── Estado del ordenamiento ──────────────────────────────
+            let sortCol = null;   // columna activa
+            let sortAsc = true;   // true = ascendente
+
+            // ── Ordenar por columna ──────────────────────────────────
+            function ordenarPor(th) {
+                const col  = th.dataset.col;
+                const tipo = th.dataset.tipo;
+
+                // Si clickeamos la misma columna, invertimos el orden
+                sortAsc = (sortCol === col) ? !sortAsc : true;
+                sortCol = col;
+
+                // Actualizar íconos de todas las columnas
+                document.querySelectorAll('.th-sort').forEach(h => {
+                    h.querySelector('.sort-icon').textContent = '↕';
+                    h.classList.remove('activo');
+                });
+                th.querySelector('.sort-icon').textContent = sortAsc ? '↑' : '↓';
+                th.classList.add('activo');
+
+                const tbody = document.getElementById('lista-platos');
+                const filas = Array.from(tbody.querySelectorAll('tr'));
+
+                filas.sort((a, b) => {
+                    // Buscamos el índice de la columna usando el th
+                    const idx   = th.cellIndex;
+                    const valA  = a.cells[idx]?.textContent.trim() || '';
+                    const valB  = b.cells[idx]?.textContent.trim() || '';
+
+                    if (tipo === 'num') {
+                        // Sacar el $ y los puntos para convertir a número
+                        const nA = parseFloat(valA.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+                        const nB = parseFloat(valB.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+                        return sortAsc ? nA - nB : nB - nA;
+                    } else {
+                        return sortAsc
+                            ? valA.localeCompare(valB, 'es')
+                            : valB.localeCompare(valA, 'es');
+                    }
+                });
+
+                filas.forEach(f => tbody.appendChild(f));
+            }
+
+            // ── Filtrar tabla ────────────────────────────────────────
+            function filtrarTabla() {
+                const texto    = document.getElementById('inputBusqueda').value.toLowerCase();
+                const cat      = document.getElementById('filtroCat').value.toLowerCase();
+                const precMin  = parseFloat(document.getElementById('filtroPrecioMin').value) || 0;
+                const precMax  = parseFloat(document.getElementById('filtroPrecioMax').value) || Infinity;
+
+                document.querySelectorAll('#lista-platos tr').forEach(fila => {
+                    const nombre   = fila.cells[0]?.textContent.toLowerCase().trim() || '';
+                    const precFila = parseFloat(
+                        fila.cells[1]?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+                    const catFila  = fila.cells[2]?.textContent.toLowerCase().trim() || '';
+
+                    const okTexto = nombre.includes(texto);
+                    const okCat   = cat ? catFila.includes(cat) : true;
+                    const okPrec  = precFila >= precMin && precFila <= precMax;
+
+                    fila.style.display = (okTexto && okCat && okPrec) ? '' : 'none';
+                });
+            }
+
+            // ── Toggle panel filtros ─────────────────────────────────
+            function toggleFiltros() {
+                const panel = document.getElementById('filtrosPanel');
+                panel.hidden ? panel.removeAttribute('hidden') : panel.setAttribute('hidden', '');
+            }
+
+            // ── Limpiar filtros ──────────────────────────────────────
+            function limpiarFiltros() {
+                document.getElementById('inputBusqueda').value    = '';
+                document.getElementById('filtroCat').value        = '';
+                document.getElementById('filtroPrecioMin').value  = '';
+                document.getElementById('filtroPrecioMax').value  = '';
+                filtrarTabla();
+            }
+
+            // ── Poblar select de categorías ──────────────────────────
+            // Se llama desde dashbord.js cuando se cargan los platos
+            function poblarCategorias() {
+                const cats = new Set();
+                document.querySelectorAll('#lista-platos tr').forEach(fila => {
+                    const c = fila.cells[1]?.textContent.trim();
+                    if (c) cats.add(c);
+                });
+                const select = document.getElementById('filtroCat');
+                select.innerHTML = '<option value="">Todas</option>';
+                cats.forEach(c => {
+                    const op = document.createElement('option');
+                    op.value = c; op.textContent = c;
+                    select.appendChild(op);
+                });
+            }
+        </script>
+
     
     
-    <!--===== MODAL ===== -->
+ 
+
+<!-- =============== MODAL PARA SUBIR =============================
+     ===============       EXCEL     =====================
+ =======================================================================
+ -->
+<div class="modal-overlay" id="modalExcel" hidden>
+     
+     <div class="modal-archivos">
+        
+        <div class="modal-header">
+            <h2>Subir archivos</h2>
+            <button class="modal-close">✖</button>
+        </div>
+        
+        <div>
+
+        </div>
+
+        <div class="planillaBox">
+                <div class="opcion-descargar">
+                    <p>¿Primera vez que vas a </p>
+                    <p>subir un archivo?</p>
+                    <a href="#" id="btnDescargarPlantilla" class="link-descarga">Descargar planilla de ejemplo</a>
+                </div>
+                <div class="opcion-subir">
+                    <p>Ya tengo mi planilla lista</p>
+                    <input type="file" id="inputArchivo" accept=".xlsx, .xls .csv" style="display: none;">
+                    <a id="btnSubirExcel" class="link-descarga">Subir Archivo</a>
+                </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- =============== MODAL PARA PROCESAR =============================
+     ===============     MENÚ CON IA     =====================
+ =======================================================================
+ -->
+
+<div class="modal-overlay" id="modalIA" hidden>
+    <div class="modal-archivos">
+        
+        <div class="modal-header">
+            <h2>Escanear Menú con IA 🪄</h2>
+            <button class="modal-close btn-cerrar-modal">✖</button>
+        </div>
+
+        <div class="ia-instrucciones">
+            <p>Subí fotos de tu menú impreso, folleto o pizarra. La IA lo leerá por vos.</p>
+            <ul>
+                <li>📸 <strong>Máximo 3 fotos</strong> por vez.</li>
+                <li>💡 Asegurate de que la foto tenga buena luz y no esté borrosa.</li>
+            </ul>
+        </div>
+
+        <div class="ia-upload-box">
+            <input type="file" id="inputFotosIA" accept="image/*" multiple style="display: none;">
+            <button id="btnElegirFotos" class="btn-secundario">Elegir Fotos</button>
+        </div>
+
+        <div id="contenedorMiniaturas" class="ia-preview-container">
+            </div>
+
+        <div class="modal-footer" style="text-align: right; margin-top: 20px;">
+            <button id="btnProcesarIA" class="btn-principal">Procesar con IA</button>
+        </div>
+
+    </div>
+</div>
+
+
+   <!--===== MODAL ===== -->
     <!-- === MODAL CREAR PLATO === -->
 <div class="modal-overlay" id="modalOverlay" hidden>
     
@@ -86,6 +294,9 @@
 
             <label>Precio:</label>
             <input type="number" name="precio" placeholder="Ej: 5000" required>
+            
+            <label for="categoria">Categoria</label>
+            <input type="text" name="categoria" placeholder="Ej: Pizas">
             <input type="hidden" id="platoId" name="id" value="">
 
             <button type="submit" id="btnGuardarPlato">Guardar Plato</button>
@@ -94,6 +305,11 @@
     </div>
     
 </div>
+
+
+<div id="previsualizadorDePlatos" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="/api.js"></script>
 <script src="/ui.js"></script>
 <script src="/admin/dashbord.js"></script>

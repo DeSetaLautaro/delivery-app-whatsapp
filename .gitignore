@@ -4,6 +4,7 @@ backend/.env
 # Dependencias - se reinstalan con npm install
 backend/node_modules/
 
+backup-ia/
 # Archivos de menú subidos por usuarios
 backend/uploads/
 

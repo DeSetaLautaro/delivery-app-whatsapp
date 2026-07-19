@@ -25,7 +25,6 @@ loginForm.addEventListener('submit', async (e) => {
         localStorage.setItem('token', resultado.token);
         localStorage.setItem('user', JSON.stringify(resultado.user))
         
-        // 2. Le decimos al usuario: "Levantate de la mesa y andá al panel VIP"
         window.location.href = '/admin/dashboard';
 
     } else {

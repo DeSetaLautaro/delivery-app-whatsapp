@@ -71,6 +71,11 @@ app.get('/admin/dashboard', (req, res) => {
     res.sendFile(archivoPanel);
 });
 
+app.get('/admin/configuracion', (req,res) =>{
+
+    const archivoConfig = path.join(__dirname, '../frontend/admin_privado/configuracion.html');
+    res.sendFile(archivoConfig);
+});
 
 // Multer: guarda los archivos recibidos en la carpeta /uploads
 const upload = multer({ dest: 'uploads/' });

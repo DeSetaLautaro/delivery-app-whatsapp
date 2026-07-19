@@ -1,0 +1,91 @@
+/* ============================================================
+   RESET Y BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding-bottom: 120px; /* espacio para el botón flotante */
+    display: flex;
+    flex-direction: column;
+    
+}
+
+#contenedorTarjetas {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px;
+    width: 100%; /* Le decimos que ocupe de punta a punta */
+    padding: 10px; /* Le dejamos un poquito de aire en los bordes para que no se pegue al marco del monitor */
+}
+
+/* La regla para que en el celular no se aplasten y pasen a 1 sola columna */
+@media (max-width: 768px) {
+    #contenedorTarjetas {
+        grid-template-columns: 1fr; 
+    }
+}
+
+
+
+/* Seleccionamos todos los div que estén adentro de contenedorTarjetas */
+#contenedorTarjetas > div {
+    min-height: 200px; /* Forzamos a que midan al menos 200px de alto */
+    background-color: #f1f1f1; /* Un gris clarito para poder verlos */
+    border-radius: 8px; /* Bordes redondeados para que parezcan tarjetas */
+    border: 1px solid #ccc; /* Un bordecito sutil */
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+}
+#tarjetaMensaje {
+    /* "Span" significa abarcar o expandir. Le decimos que ocupe 2 filas. */
+    grid-row: span 2; 
+    
+    /* Opcional: Esto hace que ocupe el 100% de la altura disponible */
+    height: 100%; 
+}
+.contenedorVariables {
+    display: flex;
+    flex-wrap: wrap; /* Permite que bajen de renglón si no hay espacio */
+    gap: 8px; /* Deja 8px de separación perfecta entre todos los botones */
+    justify-content: flex-start; /* Alinea todo a la izquierda */
+    margin-bottom: 12px; /* Un poco de aire antes del cuadro de texto */
+}
+
+
+
+#configMensaje {
+    width: 100%; /* Que ocupe todo el ancho de su tarjeta */
+    height: 100%;
+    min-height: 100px; /* Alto mínimo para que se vea cómodo desde el principio */
+    /*max-height: 300px;  Un tope máximo para que no deforme toda la página */
+    resize: vertical; /* Solo deja que el usuario lo estire hacia abajo, no hacia los costados */
+    padding: 3px;
+    font-family: inherit; /* Para que use la misma letra que el resto de tu página */
+}
+
+
+/* Apuntamos SOLO a los botones que están adentro del contenedor de variables */
+.contenedorVariables button {
+    width: auto !important; /* El !important fuerza a anular el 100% que tenga de otro lado */
+    flex-grow: 0; /* Le prohibimos estirarse */
+    
+    padding: 6px 12px;
+    background-color: #f3f4f6; /* Un gris super clarito */
+    color: #4b5563; /* Texto gris oscuro */
+    border: 1px solid #d1d5db; /* Bordecito sutil */
+    border-radius: 20px; /* Bordes bien redondeados tipo píldora */
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease; /* Para que el cambio de color sea suave */
+}
+
+.contenedorVariables button:hover {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}

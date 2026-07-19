@@ -132,23 +132,27 @@ body {
    ============================================================ */
 
 /* Fondo oscuro y borroso que cubre toda la pantalla */
+/* 1. Al padre le sacamos el Flexbox */
 .modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(4px);       /* el efecto vidrio esmerilado */
-    display: flex;
-    flex-direction: row;
-    align-items: center;              /* centra verticalmente */
-    justify-content: center;          /* centra horizontalmente */
+    backdrop-filter: blur(4px);
     z-index: 500;
-    
+    display: block; /* Matamos el flexbox acá */
 }
+
 .modal-overlay[hidden] { 
     display: none !important; 
 }
 
+/* 2. Al hijo lo centramos a la fuerza con Absolute */
 .modal-plato {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Esto hace la magia del centrado perfecto */
+    
     background: #fff;
     border: none;
     border-radius: 16px;
@@ -159,6 +163,10 @@ body {
     display: flex;
     flex-direction: column;
     gap: 14px;
+    
+    margin: 0 !important; /* Pisamos cualquier margen que haya metido Claude */
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 .modal-header {
@@ -232,7 +240,190 @@ body {
 }
 
 
-.tabla-container { background: white; padding: 20px; border-radius: 8px; }
+.tabla-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
 
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+/* Barra búsqueda */
+.tabla-toolbar {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0 0;
+}
+.tabla-search {
+    flex: 1;
+    padding: 9px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.tabla-search:focus { border-color: #ff6b35; }
+
+.btn-filtros {
+    padding: 9px 16px;
+    background: #f5f5f5;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.btn-filtros:hover { background: #ebebeb; }
+
+/* Panel filtros */
+.filtros-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 10px;
+}
+.filtros-panel[hidden] { display: none; }
+
+.filtro-grupo { display: flex; flex-direction: column; gap: 4px; }
+.filtro-grupo label { font-size: 0.78rem; font-weight: 600; color: #666; }
+.filtro-grupo select,
+.filtro-grupo input {
+    padding: 7px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+}
+.filtro-grupo select:focus,
+.filtro-grupo input:focus { border-color: #ff6b35; }
+
+.btn-limpiar {
+    padding: 7px 14px;
+    background: none;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #dc2626;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    align-self: flex-end;
+}
+.btn-limpiar:hover { background: #fff5f5; border-color: #dc2626; }
+
+/* Tabla */
+table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left; font-size: 0.9rem; }
+
+.th-sort { cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.15s; }
+.th-sort:hover { color: #ff6b35; }
+.th-sort.activo { color: #ff6b35; }
+.sort-icon { font-size: 0.75rem; margin-left: 4px; color: #aaa; }
+.th-sort.activo .sort-icon { color: #ff6b35; }
+
+/* ============================================================
+   BOTONES ACCIONES (Desktop / Mobile)
+   ============================================================ */
+.acciones-desktop { display: flex; gap: 6px; }
+.acciones-mobile  { display: none; position: relative; }
+#spanAccionesMobile {display: none;}
+
+
+@media (max-width: 600px) {
+    .acciones-desktop { display: none; }
+    .acciones-mobile  { display: block; }
+     #spanAccionesDesk {display: none;}
+     #spanAccionesMobile {display: inline;}
+}
+
+
+.modal-archivos {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 600px; /* Más ancho */
+    max-width: 90%; 
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Esto hace la magia del centrado perfecto */
+}
+
+/* Un extra para que las dos opciones queden una al lado de la otra */
+.planillaBox {
+    display: flex;
+    justify-content: space-around; /* Separa las opciones a los costados */
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+}
+
+
+
+/* --- ESTILOS DEL MODAL IA --- */
+
+.ia-instrucciones {
+    background-color: #f4f6f8;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #8a2be2; /* Un toque violeta/magia para la IA */
+    font-size: 0.9rem;
+}
+
+.ia-instrucciones ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.ia-upload-box {
+    text-align: center;
+    padding: 30px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    margin-top: 15px;
+    background-color: #fafafa;
+}
+
+.btn-secundario {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* La caja donde viven las fotitos */
+.ia-preview-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap; /* Si son muchas, bajan a la otra línea */
+    margin-top: 15px;
+    min-height: 90px; /* Para que no colapse si está vacío */
+}
+
+/* El diseño de cada fotito */
+.miniatura {
+    width: 80px;
+    height: 80px;
+    object-fit: cover; /* Recorta la foto para que quede un cuadrado perfecto */
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
+.tdBotones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+

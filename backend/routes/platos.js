@@ -96,7 +96,7 @@ router.put('/:id', (req, res) => {
         // 4. Modificamos únicamente los datos de ESE renglón específico
         listaDePlatos[indice].nombre = datosNuevos.nombre;
         listaDePlatos[indice].precio = datosNuevos.precio;
-        listaDePlatos[indeice].categoria = datosNuevos.categoria;
+        listaDePlatos[indice].categoria = datosNuevos.categoria;
 
         // 5. Volvemos a convertir todo a texto y lo guardamos aplastando el archivo anterior
         fs.writeFileSync('platos.json', JSON.stringify(listaDePlatos, null, 2));
@@ -221,23 +221,40 @@ router.post('/procesar-ia', upload.any(), async (req, res) => {
     try {
         const fotos = req.files;
         
-        // 2. Agregamos "await" y usamos un solo nombre de variable (menuJSON)
-        const menuJSON = await procesarConIA(fotos); 
+        // 1. Recibimos los platos de la IA (vienen sin ID)
+        const platosDesdeIA = await procesarConIA(fotos); 
         
-        // 3. ¡EL GUARDADO FÍSICO! 
+        // 2. ¡LA MAGIA ACÁ! Recorremos el array y le inyectamos un ID único a cada uno
+        const menuJSON = platosDesdeIA.map(plato => {
+            return {
+                id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+                nombre: plato.nombre,
+                descripcion: plato.descripcion || '',
+                precio: Number(plato.precio) || 0, // Nos aseguramos de que sea número
+                categoria: plato.categoria || 'Varios'
+            };
+        });
+        
+        // 3. ¡EL GUARDADO FÍSICO! (Ahora sí se guardan con su ID)
         fs.writeFileSync(MENU_PATH, JSON.stringify(menuJSON, null, 2), 'utf8');
         console.log(`[ÉXITO] Archivo creado/actualizado en: ${MENU_PATH}`);
 
-        // 4. Le avisamos al Frontend (Una sola respuesta definitiva)
+        // 4. Le avisamos al Frontend
         res.status(200).json({ 
             mensaje: 'Menú analizado y guardado con éxito',
             platos: menuJSON 
         });
         
     } catch (error) {
-        console.error("Error en la ruta procesar-ia:", error); // Siempre es bueno imprimir el error exacto en consola
+        console.error("Error en la ruta procesar-ia:", error);
         res.status(500).json({ error: "No pude procesar las fotos" });
     }
 });
+
+/*router.post('/guardar-ia', upload.any(), async(req,res) =>{
+    
+    fs.writeFileSync(MENU_PATH, JSON.stringify(menuJSON, null, 2), 'utf8');
+
+});*/
 
 module.exports = router;
