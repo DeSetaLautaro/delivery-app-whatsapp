@@ -46,13 +46,14 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.telefono !== undefined) camposAActualizar.telefono = req.body.telefono;
         if (req.body.direccion !== undefined) camposAActualizar.direccion = req.body.direccion;
         if (req.body.horarios !== undefined) camposAActualizar.horarios = req.body.horarios;
-        if (req.body.abierto !== undefined) camposAActualizar.abierto = req.body.abierto; // Por si agregás el switch acá
+        if (req.body.abierto !== undefined) camposAActualizar.abierto = req.body.abierto; 
+        if (req.body.horariosEstructurados !== undefined) camposAActualizar.horariosEstructurados = req.body.horariosEstructurados;
 
         // 3. Magia de MongoDB: Usamos $set para decirle "cambiame SOLO estos campos específicos y no toques el resto"
         const usuarioActualizado = await Usuario.findByIdAndUpdate(
             idUser, 
             { $set: camposAActualizar }, 
-            { new: true } // Para que nos devuelva el usuario ya actualizado
+            { returnDocument: 'after' } // Para que nos devuelva el usuario ya actualizado
         );
 
         // 4. Devolvemos los datos nuevos al frontend para que actualice el localStorage
@@ -107,4 +108,24 @@ router.patch('/cambiarPassword', verificarToken, async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });
+
+
+// ==========================================
+// RUTA PARA LEER EL ESTADO ACTUAL DEL LOCAL
+// ==========================================
+router.get('/estadoLocal', verificarToken, async (req, res) => {
+    try {
+        const idUser = req.usuario.id;
+        // Buscamos al usuario, pero le decimos a Mongoose que SOLO nos traiga el campo "abierto" para que sea ultra rápido
+        const usuario = await Usuario.findById(idUser).select('abierto'); 
+        
+        if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        res.json({ abierto: usuario.abierto });
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener estado" });
+    }
+});
+
+
 module.exports = router;

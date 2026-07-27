@@ -5,6 +5,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const fs        = require('fs');
 const path      = require('path');
 const mongoose  = require('mongoose');
+const iniciarRobotHorarios = require('./cron/controlHorarios');
 
 // 1. Traemos el enrutador de autenticación
 const authRouter = require('./routes/auth'); 
@@ -259,7 +260,9 @@ app.get('/menu', (req, res) => {
 // ============================================================
 // Iniciar el servidor
 // ============================================================
+iniciarRobotHorarios();
 app.listen(PUERTO, () => {
     console.log(`[SERVER] Corriendo en http://localhost:${PUERTO}`);
+    // Encendemos el cron job para abrir/cerrar locales automáticamente
 });
 

@@ -11,7 +11,13 @@ const usuarioSchema = new mongoose.Schema({
     fechaRegistro: { type: Date, default: Date.now },
     
     // Datos del Perfil (Strings para que pueda escribir sin restricciones)
-    horarios: { type: String, default: "" }, 
+    horarios: { type: String, default: "" },
+    horariosEstructurados: [{
+        dia: { type: String },
+        apertura: { type: String },
+        cierre: { type: String }
+    }],
+
     telefono: { type: String, default: "" }, // String para permitir el +54
     direccion: { type: String, default: "" },
     
