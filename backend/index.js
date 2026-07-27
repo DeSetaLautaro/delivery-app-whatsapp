@@ -11,6 +11,7 @@ const iniciarRobotHorarios = require('./cron/controlHorarios');
 const authRouter = require('./routes/auth'); 
 const adminPlatos = require('./routes/platos');
 const usuariosRouter = require('./routes/usuariosRoutes');
+const publicoRoutes = require('./routes/publico');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -21,6 +22,7 @@ app.use(express.json());
 // 3. DESPUÉS conectamos las rutas (así ya pueden leer el JSON)
 app.use('/api/platos', adminPlatos);
 app.use('/api/usuarios', usuariosRouter);
+app.use('/api/publico', publicoRoutes);
 app.use('/api', authRouter);
 
 // 4. Conexión a la Base de Datos

@@ -22,7 +22,10 @@ const usuarioSchema = new mongoose.Schema({
     direccion: { type: String, default: "" },
     
     // Interruptor del local (Por defecto arranca abierto)
-    abierto: { type: Boolean, default: true }
+    abierto: { type: Boolean, default: true },
+
+    // Para la URL
+    slug: { type: String, unique: true }
 });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);
