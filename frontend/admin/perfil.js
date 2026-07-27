@@ -1,3 +1,29 @@
+const cartelitoEstado = document.getElementById('cartelEstado');
+
+// Función que solo LEE de la base de datos
+async function leerEstadoParaElPerfil() {
+    try {
+
+        // Le preguntamos a MongoDB cómo está el local
+        const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'GET');
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            // Cambiamos el texto y el color según lo que diga la base de datos
+            if (resultado.abierto) {
+                cartelitoEstado.innerText = "Local Abierto 🟢";
+                cartelitoEstado.style.color = "#16a34a"; 
+            } else {
+                cartelitoEstado.innerText = "Local Cerrado 🔴";
+                cartelitoEstado.style.color = "#dc2626"; 
+            }
+        }
+    } catch (error) {
+        console.error("Error al leer el estado:", error);
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', ()=>{
     const token = localStorage.getItem("token");
     const userDataJS = localStorage.getItem("user");
@@ -20,11 +46,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('direccion').value = userData.direccion || '';
     userData.direccion ? document.getElementById('direccion').placeholder = '' : document.getElementById('direccion').placeholder ='Agrega una dirección';
 
-
-
-
-
-
+    leerEstadoParaElPerfil();
+    setInterval(leerEstadoParaElPerfil, 60000);
 });
 
 // ===========================================
@@ -115,31 +138,3 @@ btnActualizarContraseña.addEventListener('click', async (e) => {
     btnActualizarContraseña.innerText = "Actualizar Contraseña";
 });
 
-//=====================================
-//      SWITCH ABIERTO/CERRADO
-//=====================================
-
-const switchAbierto = document.getElementById('switchLabel');
-
-switchAbierto.addEventListener('change', async (e) => {
-    const estaAbierto = e.target.checked; // true si está prendido, false si está apagado
-
-    // 1. Bloqueamos el switch un segundo para que no haga spam de clics
-    switchAbierto.disabled = true; 
-
-    // 2. Mandamos la actualización a la base de datos
-    const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'PATCH', {
-        abierto: estaAbierto
-    });
-
-    const resultado = await respuesta.json();
-
-    // 3. Volvemos a habilitar el switch
-    switchAbierto.disabled = false;
-
-    if (!respuesta.ok) {
-        alert("Error al cambiar el estado: " + resultado.error);
-        // Si falló, volvemos el switch a como estaba antes
-        e.target.checked = !estaAbierto; 
-    }
-});

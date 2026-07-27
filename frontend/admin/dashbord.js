@@ -1,3 +1,4 @@
+const switchAbierto = document.getElementById('toggleEstado'); 
 
 // ==========================================
 // 1. ZONA DE FUNCIONES
@@ -215,6 +216,48 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Función que va a buscar  a MongoDB el valor del switch Abierto/Cerrado
+async function sincronizarSwitch() {
+    try {
+        // Hacemos un GET a la ruta que acabamos de crear
+        const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'GET');
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            // Movemos el switch visualmente según lo que diga la base de datos
+            switchAbierto.checked = resultado.abierto;
+            
+            // Opcional: Cambiar algún texto visual (Ej: "Abierto" en verde o "Cerrado" en rojo)
+            const textoEstado = document.getElementById('textoEstadoLocal');
+            if (textoEstado) {
+                textoEstado.innerText = resultado.abierto ? "Recibiendo pedidos" : "Local cerrado";
+                textoEstado.style.color = resultado.abierto ? "green" : "red";
+            }
+        }
+    } catch (error) {
+        console.error("Error al sincronizar el switch:", error);
+    }
+}
+
+async function cargarEstadoDesdeMongoDB() {
+    try {
+        // Hacemos la consulta a tu nueva ruta GET
+        const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'GET');
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            // ¡ACÁ ESTÁ LA MAGIA! 
+            // Forzamos al switch a tomar el valor real de la base de datos
+            const switchAbierto = document.getElementById('switchLabel'); // (Poné tu ID real)
+            switchAbierto.checked = resultado.abierto; 
+            
+            
+        }
+    } catch (error) {
+        console.error("Error al traer el estado inicial:", error);
+    }
+}
+
 // ==========================================
 // 2. ZONA DE EJECUCIÓN 
 // ==========================================
@@ -240,6 +283,12 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarListaDePlatos();
 
     cargarCategorias();
+
+    cargarEstadoDesdeMongoDB(); 
+    setInterval(cargarEstadoDesdeMongoDB, 60000);
+
+    sincronizarSwitch();
+    setInterval(sincronizarSwitch, 60000);
     
 
 const modalOverlay = document.getElementById('modalOverlay');
@@ -615,6 +664,37 @@ btnProcesarIADef.addEventListener('click', async () => {
         btnProcesarIADef.textContent = textoOriginalBoton;
         btnProcesarIADef.disabled = false;
         modalIA.hidden = true;
+    }
+});
+
+
+
+// ==========================================
+// ACTUALIZAR LA BASE DE DATOS AL TOCAR EL SWITCH
+// ==========================================
+switchAbierto.addEventListener('change', async (e) => {
+    // 1. Vemos si el dueño lo dejó prendido (true) o apagado (false)
+    const nuevoEstado = e.target.checked; 
+
+
+    try {
+        // 3. ¡El disparo a MongoDB! Usamos la ruta inteligente que creaste
+        const respuesta = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', {
+            abierto: nuevoEstado
+        });
+
+        if (!respuesta.ok) {
+            throw new Error("El servidor rechazó el cambio");
+        }
+        
+        // Si todo salió bien, no hacemos nada más, ya está guardado y la luz está prendida/apagada.
+
+    } catch (error) {
+        console.error("Error al actualizar la BD:", error);
+        
+        // 4. Mecanismo de defensa: Si se cortó internet o falló el backend, revertimos el botón
+        switchAbierto.checked = !nuevoEstado; 
+        alert("Hubo un error de conexión y no se pudo cambiar el estado.");
     }
 });
 

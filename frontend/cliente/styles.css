@@ -392,3 +392,31 @@ body {
 }
 
 .btn-clear:hover { color: #dc2626; border-color: #dc2626; }
+
+
+/* ===== ESTILOS PARA LOCAL CERRADO ===== */
+
+.banner-cerrado {
+    background-color: #dc2626; /* Rojo intenso */
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+}
+
+.banner-cerrado small {
+    font-weight: normal;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+/* La clase mágica que bloquea todo */
+.menu-bloqueado {
+    opacity: 0.5; /* Pone la pantalla más oscura/transparente */
+    pointer-events: none; /* DESHABILITA TODOS LOS CLICS DENTRO DE ESTE DIV */
+    filter: grayscale(40%); /* Opcional: baja un poco los colores de las fotos */
+    transition: all 0.3s ease; /* Transición suave */
+}

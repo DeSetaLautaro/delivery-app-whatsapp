@@ -427,3 +427,37 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     align-items: center;
 }
 
+
+
+/* ── Toggle switch ─────────────────────────────────────── */
+.switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+.switch-label { font-size: 0.82rem; font-weight: 600; color: #555; }
+
+.toggle-switch { position: relative; width: 44px; height: 24px; }
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 999px;
+    transition: background 0.2s;
+}
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider            { background: #25d366; }
+.toggle-switch input:checked + .toggle-slider::before   { transform: translateX(20px); }

@@ -40,53 +40,118 @@ botonesVar.forEach(boton => {
     });
 });
 
-//=====================================
-//       BLUR HORARIOS
-//=====================================
+// =====================================================
+//             AUTOGUARDADO DE HORARIOS (CON DEBOUNCE)
+// =====================================================
 
-const inputHorarios = document.getElementById('tarjeta-horarios');
 const estadoHorarios = document.getElementById('estadoHorarios');
+let temporizadorGuardado; // <--- Acá guardamos el cronómetro del ascensor
 
-// El evento 'blur' se dispara EXACTAMENTE cuando el usuario hace clic afuera de la caja
-inputHorarios.addEventListener('blur', async (e) => {
-    const nuevosHorarios = e.target.value;
+// Función intermedia que frena el spam de clics
+function programarGuardado() {
+    // 1. Si había un cronómetro corriendo porque el usuario tocó algo hace medio segundo, lo cancelamos
+    clearTimeout(temporizadorGuardado);
+    
+    // Mostramos que estamos esperando a que termine de editar...
+    estadoHorarios.innerText = 'Esperando para guardar...';
+    estadoHorarios.style.color = '#888';
 
-    // 1. Le damos feedback al usuario para que no se ponga ansioso
-    estadoHorarios.innerText = "Guardando...";
-    estadoHorarios.style.color = "gray";
+    // 2. Arrancamos un cronómetro nuevo de 1 segundo (1000 milisegundos)
+    temporizadorGuardado = setTimeout(() => {
+        // Recién cuando el cronómetro llega a cero sin ser interrumpido, ejecutamos el fetch
+        guardarHorarios(); 
+    }, 1000);
+}
+
+// ── Paso 1: Habilitar/deshabilitar inputs al tildar checkbox ──────────
+document.querySelectorAll('.fila-dia input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        const fila    = checkbox.closest('.fila-dia');
+        const tiempos = fila.querySelectorAll('input[type="time"]');
+
+        tiempos.forEach(t => t.disabled = !checkbox.checked);
+
+        // En lugar de llamar a guardarHorarios() directo, llamamos a nuestro temporizador
+        programarGuardado();
+    });
+});
+
+// ── Paso 2: Escuchar blur (y ahora también change) en los inputs de tiempo ──
+document.querySelectorAll('.fila-dia input[type="time"]').forEach(inputTiempo => {
+    // Cuando sale de la cajita o cambia la hora
+    inputTiempo.addEventListener('blur', programarGuardado);
+    inputTiempo.addEventListener('change', programarGuardado);
+});
+
+// ... Acá sigue tu Paso 3 (recolectarHorarios) y Paso 4 (guardarHorarios) exactamente igual
+
+// ── Paso 3: Recolectar string (humanos) y array (computadora) ─────────
+function recolectarHorarios() {
+    const filas = document.querySelectorAll('.fila-dia');
+    const partesTexto = [];        // Acá guardamos "Lunes 20:00 a 23:30"
+    const arrayEstructurado = [];  // Acá guardamos objetos { dia: "Lunes", apertura: "20:00", ... }
+
+    filas.forEach(fila => {
+        const checkbox = fila.querySelector('input[type="checkbox"]');
+        if (!checkbox.checked) return; // Saltamos los días no seleccionados
+
+        const dia     = fila.querySelector('.dia-check span').innerText.trim();
+        const tiempos = fila.querySelectorAll('input[type="time"]');
+        const desde   = tiempos[0].value; // Ej: "20:00"
+        const hasta   = tiempos[1].value; // Ej: "23:30"
+
+        // 1. Armamos el texto para humanos
+        partesTexto.push(`${dia} ${desde} a ${hasta}`);
+
+        // 2. Armamos el objeto para la computadora
+        arrayEstructurado.push({
+            dia: dia,
+            apertura: desde,
+            cierre: hasta
+        });
+    });
+
+    // Devolvemos ambas cosas empaquetadas
+    return {
+        textoLegible: partesTexto.join(' | '),
+        datosParaNode: arrayEstructurado
+    };
+}
+
+// ── Paso 4: Enviar al backend ──────────────────────
+async function guardarHorarios() {
+    const paqueteHorarios = recolectarHorarios(); // Obtenemos el texto y el array
+
+    estadoHorarios.innerText   = 'Guardando...';
+    estadoHorarios.style.color = '#888';
 
     try {
-        // 2. Mandamos la petición al backend (usamos la misma ruta de modificarDatos que charlamos antes)
         const respuesta = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', {
-            horarios: nuevosHorarios
+            // Mandamos los dos datos al backend:
+            horarios: paqueteHorarios.textoLegible,               // El string de siempre
+            horariosEstructurados: paqueteHorarios.datosParaNode  // El nuevo array para el robot
         });
 
         const resultado = await respuesta.json();
 
-        // 3. Verificamos si todo salió bien
         if (respuesta.ok) {
-            estadoHorarios.innerText = "¡Guardado! ✅";
-            estadoHorarios.style.color = "green";
+            // Éxito: actualizamos localStorage (solo guardamos el texto para mostrarlo si hace falta)
+            const userGuardado = JSON.parse(localStorage.getItem('user'));
+            userGuardado.horarios = paqueteHorarios.textoLegible;
+            localStorage.setItem('user', JSON.stringify(userGuardado));
 
-            // Actualizamos el localStorage por las dudas
-            // (Asegurate de fusionar los datos nuevos con los viejos para no perder el resto)
-            const userGuardado = JSON.parse(localStorage.getItem("user"));
-            userGuardado.horarios = nuevosHorarios;
-            localStorage.setItem("user", JSON.stringify(userGuardado));
-
-            // Opcional: Borramos el cartelito de "Guardado" después de 3 segundos para que quede limpio
-            setTimeout(() => {
-                estadoHorarios.innerText = "";
-            }, 3000);
-
+            estadoHorarios.innerText   = '¡Guardado! ✅';
+            estadoHorarios.style.color = '#16a34a';
+            setTimeout(() => { estadoHorarios.innerText = ''; }, 3000);
         } else {
-            estadoHorarios.innerText = "Error al guardar ❌";
-            estadoHorarios.style.color = "red";
-            alert("Error: " + (resultado.error || resultado.mensaje));
+            estadoHorarios.innerText   = 'Error al guardar ❌';
+            estadoHorarios.style.color = '#dc2626';
+            console.error('Error backend:', resultado);
         }
+
     } catch (error) {
-        console.error("Error al guardar horarios:", error);
-        estadoHorarios.innerText = "Error de conexión ❌";
-        estadoHorarios.style.color = "red";
+        estadoHorarios.innerText   = 'Error de conexión ❌';
+        estadoHorarios.style.color = '#dc2626';
+        console.error('Error al guardar horarios:', error);
     }
-});
+}

@@ -351,8 +351,61 @@ document.getElementById('btnClear').addEventListener('click', () => {
     actualizarUI();
 });
 
+// ==============================================================
+// VERIFICAR SI EL LOCAL ESTÁ ABIERTO O NO
+// ==============================================================
+
+// Función para verificar si el local está abierto o cerrado
+async function verificarEstadoDelLocal() {
+    try {
+        // Hacemos la petición a la ruta pública que creaste en el backend
+        const respuesta = await fetch('/api/publico/estadoLocal');
+        
+        if (!respuesta.ok) {
+            console.error("No se pudo obtener el estado del local");
+            return;
+        }
+
+        const datos = await respuesta.json();
+
+        // Si la base de datos dice que está cerrado (abierto: false)
+        if (!datos.abierto) {
+            console.log("El local está cerrado. Bloqueando menú...");
+
+            // 1. Mostrar el cartel rojo
+            const banner = document.getElementById('bannerCerrado');
+            if (banner) banner.style.display = 'block';
+            
+            // 2. Oscurecer y bloquear los clics en el menú
+            const contenedorMenu = document.getElementById('menu-contenedor');
+            if (contenedorMenu) contenedorMenu.classList.add('menu-bloqueado');
+            
+            // 3. Esconder el botón flotante del carrito
+            const btnCarrito = document.getElementById('fabWrapper'); 
+            if (btnCarrito) btnCarrito.style.display = 'none';
+
+            // 4. Cambiar la "bolita" del Header de Verde a Rojo (Opcional, pero queda genial)
+            const badgeOpen = document.querySelector('.badge-open');
+            if (badgeOpen) {
+                badgeOpen.textContent = '● Cerrado';
+                badgeOpen.style.color = '#dc2626'; // Texto rojo
+                // O asegurate de tener un estilo en CSS para esto
+            }
+        }
+    } catch (error) {
+        console.error("Error al verificar el estado del local:", error);
+    }
+}
+
+
+
 
 // ============================================================
 // ARRANCAR LA APP
 // ============================================================
-cargarMenu();
+// Apenas carga la pantalla del cliente...
+document.addEventListener('DOMContentLoaded', () => {
+    
+    verificarEstadoDelLocal(); 
+    cargarMenu(); 
+});
