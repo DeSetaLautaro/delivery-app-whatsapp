@@ -5,11 +5,13 @@ registerForm.addEventListener('submit', async (e) =>
     const nombre = document.getElementById('nombreDeUsuario').value;
     const email = document.getElementById('Email').value;
     const password = document.getElementById('Contraseña').value;
+    const telefono = document.getElementById('Telefono').value;
+    const nombreDelLocal = document.getElementById('nombreDelLocal').value;
 
     const respuesta = await fetch("http://localhost:3000/api/registro", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({nombre, email, password })
+        body: JSON.stringify({nombre, email, password, telefono, nombreDelLocal})
     });
     
     const resultado = await respuesta.json();

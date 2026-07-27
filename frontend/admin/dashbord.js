@@ -297,19 +297,6 @@ botonesCerrar.forEach( boton => {
  */
 
 
-// 1. LA PUERTA DE CALLE (Se ejecuta sola al instante)
-function verificarAcceso() {
-    const token = localStorage.getItem('token');
-    
-    // Si directamente no hay token (entró escribiendo la URL a mano), lo pateamos
-    if (!token) {
-        window.location.href = '/admin/login.html';
-    }
-}
-
-
-
-
 
 // ============= BOTÓN GUARDAR PLATO ===============
 const btnGuardar = document.getElementById("btnGuardarPlato");

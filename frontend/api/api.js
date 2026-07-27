@@ -37,6 +37,18 @@ async function peticionAPI(ruta, metodo, datos = null) {
 }
 
 
+// 1. VERIFICAR TOKEN
+function verificarAcceso() {
+    const token = localStorage.getItem('token');
+    
+    // Si directamente no hay token (entró escribiendo la URL a mano), lo pateamos
+    if (!token) {
+        window.location.href = '/admin/login.html';
+    }
+}
+
+
+
 function cerrarSesion() {
     localStorage.removeItem('token');
     localStorage.removeItem('user'); // De yapa, borramos también los datos del usuario

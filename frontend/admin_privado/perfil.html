@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Perfil | Panel Admin</title>
+    <link rel="stylesheet" href="/admin/perfil.css" />
+    <link rel="stylesheet" href="/features.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+    <div id="contenedor-header"></div>
+
+    <main class="perfil-main">
+
+        <div class="perfil-page-header">
+            <h1>Mi Perfil</h1>
+            <p>Administrá la información de tu cuenta y tu local.</p>
+        </div>
+
+        <div class="perfil-grid">
+
+            <!-- ===== COLUMNA IZQUIERDA ===== -->
+            <div class="perfil-col-izq">
+
+                <!-- Tarjeta: Foto y datos básicos -->
+                <div class="perfil-card perfil-card-identidad">
+                    <div class="avatar-wrapper">
+                        <img src="https://placehold.co/100x100/ff6b35/ffffff?text=Logo" alt="Logo del local" class="avatar-img" id="avatarImg" />
+                        <button class="avatar-edit-btn" id="btnCambiarFoto" title="Cambiar foto">📷</button>
+                        <input type="file" id="inputFoto" accept="image/*" hidden />
+                    </div>
+                    <div class="identidad-info">
+                        <h2 id="nombreLocalDisplay">La Esquina</h2>
+                        <span class="badge-plan">Plan Pro ✨</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Seguridad -->
+                <div class="perfil-card">
+                    <h3 class="card-titulo">🔐 Seguridad</h3>
+
+                    <div class="campo-grupo">
+                        <label for="inputEmail">Email</label>
+                        <input type="email" id="inputEmail" value="admin@laesquina.com" disabled style="background-color: #e0e0e0; cursor: not-allowed;" />
+                    </div>
+
+                    <hr class="card-divider" />
+
+                    <p class="card-subtitulo">Cambiar contraseña</p>
+
+                    <div class="campo-grupo">
+                        <label for="passActual">Contraseña actual</label>
+                        <input type="password" id="passActual" placeholder="••••••••" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="passNueva">Nueva contraseña</label>
+                        <input type="password" id="passNueva" placeholder="••••••••" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="passConfirm">Confirmar nueva contraseña</label>
+                        <input type="password" id="passConfirm" placeholder="••••••••" />
+                    </div>
+
+                    <button class="btn-guardar" id="btnActualizarContraseña">Actualizar contraseña</button>
+                </div>
+
+                <!-- Tarjeta: Suscripción -->
+                <div class="perfil-card">
+                    <h3 class="card-titulo">💳 Suscripción</h3>
+
+                    <div class="suscripcion-estado">
+                        <div class="suscripcion-info">
+                            <span class="badge-activo">● Activa</span>
+                            <p class="suscripcion-plan">Plan Pro — $4.999/mes</p>
+                            <p class="suscripcion-renovacion">Próximo cobro: <strong>15 de agosto, 2025</strong></p>
+                        </div>
+                        <button class="btn-secundario">Gestionar plan</button>
+                    </div>
+
+                    <hr class="card-divider" />
+
+                    <p class="card-subtitulo">Historial de pagos</p>
+                    <div class="tabla-scroll">
+                        <table class="tabla-pagos">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Concepto</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>15/07/2025</td>
+                                    <td>Plan Pro</td>
+                                    <td>$4.999</td>
+                                    <td><span class="badge-pago ok">Pagado</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15/06/2025</td>
+                                    <td>Plan Pro</td>
+                                    <td>$4.999</td>
+                                    <td><span class="badge-pago ok">Pagado</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15/05/2025</td>
+                                    <td>Plan Pro</td>
+                                    <td>$4.999</td>
+                                    <td><span class="badge-pago fallo">Fallido</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ===== COLUMNA DERECHA ===== -->
+            <div class="perfil-col-der">
+
+                <!-- Tarjeta: Datos del local -->
+                <div class="perfil-card">
+                    <div class="card-titulo-row">
+                        <h3 class="card-titulo">🏪 Datos del Local</h3>
+                        <!-- Switch Abierto/Cerrado -->
+                        <label class="switch-wrapper" title="Forzar estado del local">
+                            <span class="switch-label" id="switchLabel">Abierto</span>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="toggleEstado" checked />
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="nombreLocal">Nombre de usuario</label>
+                        <input type="text" id="nombreUsuario" value="usuario" />
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="nombreLocal">Nombre del negocio</label>
+                        <input type="text" id="nombreLocal" value="La Esquina" />
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="whatsappNumero">WhatsApp para pedidos</label>
+                        <div class="input-con-prefijo">
+                            <span class="input-prefijo">+54</span>
+                            <input type="tel" id="whatsappNumero" placeholder="9 11 1234 5678" value="9 11 5678 1234" />
+                        </div>
+                        <small>Sin el 0 ni el 15. Formato: 9 11 1234 5678</small>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" id="direccion" placeholder="" value="" />
+                    </div>
+
+                    <hr class="card-divider" />
+
+                    
+
+                    <button class="btn-guardar" id="btnGuardarCambios" style="margin-top: 8px;">Guardar cambios</button>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="/admin/perfil.js"></script>
+    <script src="/ui.js"></script>
+    <script src="/api.js"></script>
+
+</body>
+</html>

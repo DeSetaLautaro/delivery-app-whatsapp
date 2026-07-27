@@ -2,6 +2,7 @@ const express  = require('express');
 const bcrypt   = require('bcrypt');
 const jwt      = require('jsonwebtoken');
 const Usuario  = require('../models/usuario');
+const fs = require('fs');
 
 const router = express.Router();
 
@@ -52,7 +53,9 @@ router.post('/login', async (req, res) => {
         res.status(200).json({ token,
             user: {nombre : usuario.nombre,
                     email : usuario.email,
-                    id : usuario.id
+                    id : usuario.id,
+                    telefono : usuario.telefono,
+                    nombreDelLocal: usuario.nombreDelLocal
             }
          });
 
@@ -82,7 +85,7 @@ router.post('/login', async (req, res) => {
  *   - 500: Error interno
  */
 router.post('/registro', async (req, res) => {
-    const { nombre, email, password } = req.body;
+    const { nombre, email, password, telefono, nombreDelLocal } = req.body;
 
     try {
         // Verificar si el email ya existe
@@ -95,7 +98,7 @@ router.post('/registro', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         // Guardar el usuario nuevo
-        await Usuario.create({ nombre, email, password: hash });
+        await Usuario.create({ nombre, email, password: hash, telefono, nombreDelLocal });
 
         res.status(201).json({ message: 'Usuario creado con exito' });
 
@@ -104,5 +107,7 @@ router.post('/registro', async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
+
 
 module.exports = router;

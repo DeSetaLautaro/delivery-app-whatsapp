@@ -37,8 +37,153 @@
             🛵 Por favor, avisame la demora aproximada. ¡Muchas gracias!</textarea>
         </div>
         
-<div></div>
-        <div id="tercerTarjeta"></div>
+        <div class="tarjeta" id="tarjeta-horarios">
+    <h3>⏰ Horarios de Atención</h3>
+    <p class="texto-descriptivo">Definí los días y horarios en los que tu local recibe pedidos.</p>
+
+    <div class="lista-dias">
+        
+        <!-- Fila Lunes -->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox" checked>
+                <span>Lunes</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00">
+                <span>a</span>
+                <input type="time" value="23:30">
+            </div>
+        </div>
+
+        <!-- Fila Martes-->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox">
+                <span>Martes</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00" disabled>
+                <span>a</span>
+                <input type="time" value="23:30" disabled>
+            </div>
+        </div>
+
+         <!-- Fila Miércoles-->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox">
+                <span>Miércoles</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00" disabled>
+                <span>a</span>
+                <input type="time" value="23:30" disabled>
+            </div>
+        </div>
+
+        <!-- Fila Jueves-->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox">
+                <span>Jueves</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00" disabled>
+                <span>a</span>
+                <input type="time" value="23:30" disabled>
+            </div>
+        </div>
+
+
+         <!-- Fila Viernes-->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox">
+                <span>Viernes</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00" disabled>
+                <span>a</span>
+                <input type="time" value="23:30" disabled>
+            </div>
+        </div>
+
+
+         <!-- Fila Sábado-->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox">
+                <span>Sábado</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00" disabled>
+                <span>a</span>
+                <input type="time" value="23:30" disabled>
+            </div>
+        </div>
+
+
+         <!-- Fila Domingo-->
+        <div class="fila-dia">
+            <label class="dia-check">
+                <input type="checkbox">
+                <span>Domingo</span>
+            </label>
+            <div class="dia-horas">
+                <input type="time" value="20:00" disabled>
+                <span>a</span>
+                <input type="time" value="23:30" disabled>
+            </div>
+        </div>
+
+        
+    </div>
+    <span id="estadoHorarios" style="font-size: 0.8rem; margin-top: 5px;"></span>
+</div>
+        
+        <div class="tarjeta" id="tarjeta-apariencia">
+    <h3>🎨 Apariencia del Catálogo</h3>
+    <p class="texto-descriptivo">Personalizá cómo se verá tu tienda para que coincida con tu marca.</p>
+
+    <div class="contenedor-opciones">
+        
+        <!-- Opción 1: Color Principal -->
+        <div class="opcion-diseno">
+            <div class="info-opcion">
+                <label for="color-marca">Color principal</label>
+                <span class="detalle-opcion">Botones y detalles</span>
+            </div>
+            <div class="control-color">
+                <input type="color" id="color-marca" value="#2563eb">
+                <span id="texto-color" class="codigo-hex">#2563eb</span>
+            </div>
+        </div>
+
+        <!-- Opción 2: Tipografía -->
+        <div class="opcion-diseno">
+            <div class="info-opcion">
+                <label for="fuente-marca">Estilo de letra</label>
+                <span class="detalle-opcion">Textos y títulos</span>
+            </div>
+            <select id="fuente-marca" class="select-diseno">
+                <option value="moderna">Moderna (Sin serifa)</option>
+                <option value="clasica">Clásica (Con serifa)</option>
+                <option value="amigable">Amigable (Redondeada)</option>
+            </select>
+        </div>
+
+        <!-- Opción 3: Subir Logo -->
+        <div class="opcion-diseno">
+            <div class="info-opcion">
+                <label>Logo del negocio</label>
+                <span class="detalle-opcion">Formato JPG o PNG</span>
+            </div>
+            <input type="file" accept="image/*" class="input-archivo">
+        </div>
+
+    </div>
+</div>
     </section>
 
 

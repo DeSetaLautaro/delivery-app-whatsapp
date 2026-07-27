@@ -14,12 +14,16 @@ body {
     
 }
 
+
+/* ============================================================
+    TARJETAS (ESTILO GENERAL) Y SU CONTENEDOR 
+============================================================ */
 #contenedorTarjetas {
     display: grid;
     grid-template-columns: 1fr 1fr; 
     gap: 12px;
-    width: 100%; /* Le decimos que ocupe de punta a punta */
-    padding: 10px; /* Le dejamos un poquito de aire en los bordes para que no se pegue al marco del monitor */
+    width: 100%; 
+    padding: 10px; 
 }
 
 /* La regla para que en el celular no se aplasten y pasen a 1 sola columna */
@@ -29,26 +33,34 @@ body {
     }
 }
 
-
-
-/* Seleccionamos todos los div que estén adentro de contenedorTarjetas */
 #contenedorTarjetas > div {
-    min-height: 200px; /* Forzamos a que midan al menos 200px de alto */
-    background-color: #f1f1f1; /* Un gris clarito para poder verlos */
-    border-radius: 8px; /* Bordes redondeados para que parezcan tarjetas */
-    border: 1px solid #ccc; /* Un bordecito sutil */
+    min-height: 200px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #ffe0d0;         /* borde suave en gama naranja */
+    box-shadow: 0 2px 12px rgba(255, 107, 53, 0.08);
     display: flex;
     flex-direction: column;
-    justify-content: left;
-    align-items: left;
+    padding: 20px;
+    gap: 12px;
 }
+
+
+/* ============================================================
+            TARJETA DE MENSAJE Y SU TEXTAREA
+   ============================================================ */
 #tarjetaMensaje {
-    /* "Span" significa abarcar o expandir. Le decimos que ocupe 2 filas. */
-    grid-row: span 2; 
-    
-    /* Opcional: Esto hace que ocupe el 100% de la altura disponible */
-    height: 100%; 
+    grid-row: span 1;
+    height: 100%;
+    border-top: 4px solid #ff6b35;     /* acento naranja arriba */
 }
+
+#tarjetaMensaje h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
 .contenedorVariables {
     display: flex;
     flex-wrap: wrap; /* Permite que bajen de renglón si no hay espacio */
@@ -57,35 +69,189 @@ body {
     margin-bottom: 12px; /* Un poco de aire antes del cuadro de texto */
 }
 
-
-
 #configMensaje {
-    width: 100%; /* Que ocupe todo el ancho de su tarjeta */
-    height: 100%;
-    min-height: 100px; /* Alto mínimo para que se vea cómodo desde el principio */
-    /*max-height: 300px;  Un tope máximo para que no deforme toda la página */
-    resize: vertical; /* Solo deja que el usuario lo estire hacia abajo, no hacia los costados */
-    padding: 3px;
-    font-family: inherit; /* Para que use la misma letra que el resto de tu página */
+    width: 100%;
+    flex: 1;                           /* ocupa el espacio restante de la tarjeta */
+    min-height: 180px;
+    resize: none;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fff8f5;               /* fondo levemente naranja */
+    border: 1.5px solid #ffd0b8;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+    overflow: hidden;
+}
+#configMensaje:focus {
+    border-color: #ff6b35;
+    background: #fff;
 }
 
 
-/* Apuntamos SOLO a los botones que están adentro del contenedor de variables */
 .contenedorVariables button {
-    width: auto !important; /* El !important fuerza a anular el 100% que tenga de otro lado */
-    flex-grow: 0; /* Le prohibimos estirarse */
-    
-    padding: 6px 12px;
-    background-color: #f3f4f6; /* Un gris super clarito */
-    color: #4b5563; /* Texto gris oscuro */
-    border: 1px solid #d1d5db; /* Bordecito sutil */
-    border-radius: 20px; /* Bordes bien redondeados tipo píldora */
-    font-size: 0.85rem;
+    width: auto !important;
+    flex-grow: 0;
+    padding: 6px 14px;
+    background: #fff3ee;
+    color: #c94e1a;
+    border: 1.5px solid #ffc5a8;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease; /* Para que el cambio de color sea suave */
+    transition: background 0.2s, border-color 0.2s;
+}
+.contenedorVariables button:hover {
+    background: #ff6b35;
+    color: #fff;
+    border-color: #ff6b35;
 }
 
-.contenedorVariables button:hover {
-    background-color: #e5e7eb;
-    border-color: #9ca3af;
+/* ============================================================
+                    TARJETA DE DÍAS Y HORARIOS
+   ============================================================ */
+
+   .lista-dias {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Separación entre cada día */
+    margin-top: 16px;
+}
+
+.fila-dia {
+    display: flex;
+    justify-content: space-between; /* Día a la izquierda, horas a la derecha */
+    align-items: center; /* Centra todo verticalmente */
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb; /* Una rayita sutil divisoria */
+}
+
+/* Para que la última fila no tenga rayita abajo */
+.fila-dia:last-child {
+    border-bottom: none;
+}
+
+.dia-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100px; /* Ancho fijo para que los inputs de hora queden todos alineados verticalmente */
+}
+
+.dia-horas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dia-horas input[type="time"] {
+    padding: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-family: inherit;
+    color: #4b5563;
+    background-color: #fff;
+}
+
+/* Estilo para cuando el día está cerrado y el input se desactiva */
+.dia-horas input[type="time"]:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+                   TARJETA MODIFICAR APARIENCIA
+   ============================================================ */
+   .contenedor-opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 16px;
+}
+
+.opcion-diseno {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.opcion-diseno:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Agrupamos el label y la descripción chiquita */
+.info-opcion {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-opcion label {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.detalle-opcion {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+/* --- ESTILOS DEL COLOR PICKER --- */
+.control-color {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.codigo-hex {
+    font-size: 0.9rem;
+    color: #4b5563;
+    font-family: monospace; /* Letra de código para el Hex */
+    text-transform: uppercase;
+}
+
+/* Truco para que el cuadradito de color se vea moderno */
+input[type="color"] {
+    -webkit-appearance: none;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+}
+
+/* --- ESTILOS DEL SELECT Y FILE --- */
+.select-diseno {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+    font-family: inherit;
+    color: #1a1a1a;
+    cursor: pointer;
+}
+
+.input-archivo {
+    font-size: 0.85rem;
+    color: #4b5563;
+    width: 200px;
 }

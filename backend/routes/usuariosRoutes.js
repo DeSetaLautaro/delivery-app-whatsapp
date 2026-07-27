@@ -1,0 +1,110 @@
+require('dotenv').config();
+const express  = require('express');
+const bcrypt   = require('bcrypt'); // Lo dejamos por si después querés cambiar la contraseña
+const jwt      = require('jsonwebtoken');
+const Usuario  = require('../models/usuario'); // Tu conexión a MongoDB
+
+const router = express.Router();
+
+// ==========================================
+// 1. EL PATOVICA DEL BACKEND (Middleware)
+// ==========================================
+function verificarToken(req, res, next) {
+    const headerAuth = req.header('Authorization');
+    
+    if (!headerAuth) {
+        return res.status(401).json({ error: 'Acceso denegado. Falla el token.' });
+    }
+
+    // El token llega como "Bearer eyJhbG...", lo separamos
+    const token = headerAuth.split(' ')[1];
+
+    try {
+        // Acá desencriptamos el token (Recordá poner tu misma clave secreta del login)
+        const decodificado = jwt.verify(token, process.env.JWT_SECRET); 
+        
+        // El patovica lee el ID oculto y se lo guarda a la petición
+        req.usuario = decodificado; 
+        next(); // Lo deja pasar
+    } catch (error) {
+        res.status(400).json({ error: 'El token no es válido' });
+    }
+}
+
+// ==========================================
+// 2. RUTA PARA MODIFICAR DATOS (INTELIGENTE)
+// ==========================================
+router.patch('/modificarDatos', verificarToken, async(req, res) => {
+    try {
+        const idUser = req.usuario.id; 
+        
+        // 1. Armamos un cajón vacío para poner solo lo que vamos a actualizar
+        const camposAActualizar = {};
+
+        // 2. Chequeamos qué nos mandó el Frontend. Si lo mandó, lo metemos al cajón.
+        if (req.body.nombre !== undefined) camposAActualizar.nombre = req.body.nombre;
+        if (req.body.telefono !== undefined) camposAActualizar.telefono = req.body.telefono;
+        if (req.body.direccion !== undefined) camposAActualizar.direccion = req.body.direccion;
+        if (req.body.horarios !== undefined) camposAActualizar.horarios = req.body.horarios;
+        if (req.body.abierto !== undefined) camposAActualizar.abierto = req.body.abierto; // Por si agregás el switch acá
+
+        // 3. Magia de MongoDB: Usamos $set para decirle "cambiame SOLO estos campos específicos y no toques el resto"
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            idUser, 
+            { $set: camposAActualizar }, 
+            { new: true } // Para que nos devuelva el usuario ya actualizado
+        );
+
+        // 4. Devolvemos los datos nuevos al frontend para que actualice el localStorage
+        res.json({ 
+            mensaje: "Datos actualizados correctamente",
+            usuario: {
+                nombre: usuarioActualizado.nombre,
+                email: usuarioActualizado.email,
+                telefono: usuarioActualizado.telefono,
+                direccion: usuarioActualizado.direccion,
+                horarios: usuarioActualizado.horarios,
+                abierto: usuarioActualizado.abierto
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al actualizar:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+
+
+router.patch('/cambiarPassword', verificarToken, async (req, res) => {
+    try {
+        const idUser = req.usuario.id; // Viene del token del patovica
+        const { passwordActual, passwordNueva } = req.body;
+
+        // A. Buscamos al usuario en la base de datos (necesitamos su contraseña actual hasheada)
+        const usuario = await Usuario.findById(idUser);
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // B. Verificamos que la contraseña actual que escribió sea correcta
+        const esCorrecta = await bcrypt.compare(passwordActual, usuario.password);
+        if (!esCorrecta) {
+            return res.status(400).json({ error: "La contraseña actual es incorrecta" });
+        }
+
+        // C. Si es correcta, hasheamos la nueva contraseña (nivel de complejidad 10)
+        const nuevoHash = await bcrypt.hash(passwordNueva, 10);
+
+        // D. Actualizamos en MongoDB
+        usuario.password = nuevoHash;
+        await usuario.save(); // O podés usar findByIdAndUpdate
+
+        res.json({ mensaje: "¡Contraseña actualizada con éxito!" });
+
+    } catch (error) {
+        console.error("Error al cambiar contraseña:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+module.exports = router;
