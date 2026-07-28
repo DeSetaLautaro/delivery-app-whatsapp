@@ -1,3 +1,13 @@
+const parametrosUrl = new URLSearchParams(window.location.search);
+const idLocal = parametrosUrl.get('local'); 
+
+
+if (!idLocal) {
+    document.getElementById('menu-contenedor').innerHTML = "<h1>Error: No se especificó el local</h1>";
+    // Frena todo si entran a /menu.html sin poner de quién es
+}
+
+
 // ============================================================
 // ESTADO GLOBAL DE LA APLICACION
 // Todos los datos que cambian en tiempo real viven acá.
@@ -30,8 +40,15 @@ async function cargarMenu() {
     const contenedor = document.getElementById('menu-contenedor');
 
     try {
-        // Pedirle al backend el menú guardado
-        const respuesta = await fetch('/menu');
+        
+        // Validamos si hay un ID real, lo usamos. Si no, mandamos la ruta limpia.
+        let urlPeticion = '/api/publico/menu';
+        if (idLocal && idLocal !== 'null' && idLocal !== 'undefined') {
+            urlPeticion = `/api/publico/menu?local=${idLocal}`;
+        }
+
+        // Hacemos el fetch de forma segura
+        const respuesta = await fetch(urlPeticion);
 
         if (!respuesta.ok) {
             contenedor.innerHTML = '<p class="menu-error">Menú no disponible por el momento. Volvé a intentarlo más tarde.</p>';
@@ -355,19 +372,20 @@ document.getElementById('btnClear').addEventListener('click', () => {
 // VERIFICAR SI EL LOCAL ESTÁ ABIERTO O NO
 // ==============================================================
 
-// Función para verificar si el local está abierto o cerrado
 async function verificarEstadoDelLocal() {
     try {
-        // Hacemos la petición a la ruta pública que creaste en el backend
-        const respuesta = await fetch('/api/publico/estadoLocal');
+        // Hacemos la petición a la ruta pública
+        const respuesta = await peticionAPI(`/api/publico/estadoLocal?local=${idLocal}`, 'GET');
         
+        // 1. PRIMERO comprobamos si el servidor tiró un error (ej. error 404 porque no encontró el local)
         if (!respuesta.ok) {
-            console.error("No se pudo obtener el estado del local");
-            return;
+            console.error("Error en el servidor o local no encontrado.");
+            return; // Acá sí cortamos, porque falló la conexión
         }
 
         const datos = await respuesta.json();
 
+        // 2. AHORA SÍ comprobamos el estado del switch (abierto/cerrado)
         // Si la base de datos dice que está cerrado (abierto: false)
         if (!datos.abierto) {
             console.log("El local está cerrado. Bloqueando menú...");
@@ -384,19 +402,17 @@ async function verificarEstadoDelLocal() {
             const btnCarrito = document.getElementById('fabWrapper'); 
             if (btnCarrito) btnCarrito.style.display = 'none';
 
-            // 4. Cambiar la "bolita" del Header de Verde a Rojo (Opcional, pero queda genial)
+            // 4. Cambiar la "bolita" del Header de Verde a Rojo
             const badgeOpen = document.querySelector('.badge-open');
             if (badgeOpen) {
                 badgeOpen.textContent = '● Cerrado';
                 badgeOpen.style.color = '#dc2626'; // Texto rojo
-                // O asegurate de tener un estilo en CSS para esto
             }
         }
     } catch (error) {
         console.error("Error al verificar el estado del local:", error);
     }
 }
-
 
 
 

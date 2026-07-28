@@ -221,11 +221,11 @@ async function sincronizarSwitch() {
     try {
         // Hacemos un GET a la ruta que acabamos de crear
         const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'GET');
-        const resultado = await respuesta.json();
+        if (!respuesta) return;
 
         if (respuesta.ok) {
             // Movemos el switch visualmente según lo que diga la base de datos
-            switchAbierto.checked = resultado.abierto;
+            switchAbierto.checked = respuesta.abierto;
             
             // Opcional: Cambiar algún texto visual (Ej: "Abierto" en verde o "Cerrado" en rojo)
             const textoEstado = document.getElementById('textoEstadoLocal');
@@ -243,13 +243,15 @@ async function cargarEstadoDesdeMongoDB() {
     try {
         // Hacemos la consulta a tu nueva ruta GET
         const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'GET');
-        const resultado = await respuesta.json();
+        if (!respuesta){
+            return;
+        }
 
         if (respuesta.ok) {
             // ¡ACÁ ESTÁ LA MAGIA! 
             // Forzamos al switch a tomar el valor real de la base de datos
             const switchAbierto = document.getElementById('switchLabel'); // (Poné tu ID real)
-            switchAbierto.checked = resultado.abierto; 
+            switchAbierto.checked = respuesta.abierto; 
             
             
         }
@@ -366,8 +368,8 @@ btnGuardar.addEventListener('click', async (e) => {
     const datosPlato = {
         nombre: datosForm.get('nombre'),
         precio: Number(datosForm.get('precio')),
-        id: datosForm.get('id'),
-        categoria : datosForm.get('categoria')
+        categoria : datosForm.get('categoria'),
+        descripcion: datosForm.get('descripcion')
     };
 
     const idOculto = datosPlato.id;

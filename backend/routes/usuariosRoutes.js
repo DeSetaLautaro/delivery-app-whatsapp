@@ -1,35 +1,12 @@
 require('dotenv').config();
 const express  = require('express');
-const bcrypt   = require('bcrypt'); // Lo dejamos por si después querés cambiar la contraseña
+const bcrypt   = require('bcrypt'); 
 const jwt      = require('jsonwebtoken');
-const Usuario  = require('../models/usuario'); // Tu conexión a MongoDB
+const Usuario  = require('../models/usuario'); 
+const verificarToken = require('../middleware/verificarToken');
 
 const router = express.Router();
 
-// ==========================================
-// 1. EL PATOVICA DEL BACKEND (Middleware)
-// ==========================================
-function verificarToken(req, res, next) {
-    const headerAuth = req.header('Authorization');
-    
-    if (!headerAuth) {
-        return res.status(401).json({ error: 'Acceso denegado. Falla el token.' });
-    }
-
-    // El token llega como "Bearer eyJhbG...", lo separamos
-    const token = headerAuth.split(' ')[1];
-
-    try {
-        // Acá desencriptamos el token (Recordá poner tu misma clave secreta del login)
-        const decodificado = jwt.verify(token, process.env.JWT_SECRET); 
-        
-        // El patovica lee el ID oculto y se lo guarda a la petición
-        req.usuario = decodificado; 
-        next(); // Lo deja pasar
-    } catch (error) {
-        res.status(400).json({ error: 'El token no es válido' });
-    }
-}
 
 // ==========================================
 // 2. RUTA PARA MODIFICAR DATOS (INTELIGENTE)

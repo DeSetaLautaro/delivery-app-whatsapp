@@ -11,7 +11,7 @@ const iniciarRobotHorarios = require('./cron/controlHorarios');
 const authRouter = require('./routes/auth'); 
 const adminPlatos = require('./routes/platos');
 const usuariosRouter = require('./routes/usuariosRoutes');
-const publicoRoutes = require('./routes/publico');
+const publicoRoutes = require('./routes/publicoRoutes');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;

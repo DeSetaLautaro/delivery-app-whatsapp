@@ -25,7 +25,15 @@ const usuarioSchema = new mongoose.Schema({
     abierto: { type: Boolean, default: true },
 
     // Para la URL
-    slug: { type: String, unique: true }
+    slug: { type: String, required: true, unique: true },
+
+    platos: [{
+        nombre: { type: String, required: true },
+        descripcion: { type: String },
+        precio: { type: Number, required: true },
+        categoria: { type: String, required: true },
+        disponible: { type: Boolean, default: true }
+    }]
 });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);

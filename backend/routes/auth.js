@@ -6,6 +6,19 @@ const fs = require('fs');
 
 const router = express.Router();
 
+
+// ============================================================
+// CREAR SLUG PARA EL URL 
+// ============================================================
+
+function crearSlugBase(nombre) {
+    return nombre
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Saca acentos
+        .replace(/[^a-z0-9 ]/g, '') // Saca caracteres raros
+        .replace(/\s+/g, '-'); // Cambia espacios por guiones
+}
+
 // ============================================================
 // POST /api/login
 // ============================================================
@@ -87,6 +100,19 @@ router.post('/login', async (req, res) => {
 router.post('/registro', async (req, res) => {
     const { nombre, email, password, telefono, nombreDelLocal } = req.body;
 
+    // Creamos el primer intento de slug (Ej: "la-esquina")
+     let slugFinal = crearSlugBase(nombreLocal);
+     
+     //  Chequeamos si ya existe en la base de datos
+     let localExistente = await Usuario.findOne({ slug: slugFinal });
+     let contador = 1;
+     //  Si ya existe, le sumamos un número hasta que encontremos uno libre
+     while (localExistente) {
+         slugFinal = `${crearSlugBase(nombreLocal)}-${contador}`; // Ej: "la-esquina-1"
+         localExistente = await Usuario.findOne({ slug: slugFinal });
+         contador++;
+     }
+
     try {
         // Verificar si el email ya existe
         const existe = await Usuario.findOne({ email });
@@ -98,7 +124,7 @@ router.post('/registro', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         // Guardar el usuario nuevo
-        await Usuario.create({ nombre, email, password: hash, telefono, nombreDelLocal });
+        await Usuario.create({ nombre, email, password: hash, telefono, nombreDelLocal, slug: slugFinal });
 
         res.status(201).json({ message: 'Usuario creado con exito' });
 

@@ -16,14 +16,12 @@ async function peticionAPI(ruta, metodo, datos = null) {
     try {
         const respuesta = await fetch(ruta, opciones);
 
-        // El motor revisa si el backend rebotó al usuario
-        if (respuesta.status === 401) {
-            alert('Tu sesión caducó por seguridad. Volvé a ingresar.');
-            localStorage.removeItem('token');
-            window.location.href = '/admin/login.html';
-            
-            // Retornamos null para que el archivo dashbord.js sepa que la petición fracasó
-            return null; 
+        // 2. ESCUDO 2: Si el backend tiró un error (400, 404, 500)
+        if (!respuesta.ok) {
+            // Intentamos leer el mensaje de error que mandó el backend (si existe)
+            const errorDetalle = await respuesta.json().catch(() => ({}));
+            console.error(`Error del servidor en ${ruta}:`, errorDetalle);
+            return null; // Devolvemos null para avisarle a tu dashboard que falló
         }
         // ----------------------------------
 

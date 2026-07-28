@@ -7,6 +7,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 const Anthropic = require('@anthropic-ai/sdk');
 const path      = require('path');
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const Usuario = require('../models/usuario');
+const verificarToken = require('../middleware/verificarToken');
 
 
 
@@ -15,52 +17,53 @@ const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 -PROPÓSITO: se envía el plato nuevo que se agrega en la DB
 */
 
-router.post('/', async (req, res) => {
-    
-    const { nombre, precio } = req.body;
+// Asegurate de importar tu modelo arriba: const Usuario = require('../models/User');
 
-    const platoNuevo = {
-        id: Date.now(),
-        nombre: nombre,
-        precio: precio
-    };
+router.post('/', verificarToken, async (req, res) => {
+    // 1. Recibimos los datos del front
+    const { nombre, precio, categoria } = req.body;
+
+    // 2. Armamos el plato (¡Sin ID! MongoDB lo hace solo)
+    const platoNuevo = { nombre, precio, categoria };
 
     try {
-        if (!(fs.existsSync('platos.json'))) {
-            fs.writeFileSync('platos.json', '[]');
-        } 
+        // 3. El comando mágico de MongoDB
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id, // Buscamos al dueño que está logueado
+            { $push: { platos: platoNuevo } }, // Le "pusheamos" el plato a su array
+            { new: true } // Le pedimos que nos devuelva el usuario YA actualizado
+        );
 
-        const archivo = fs.readFileSync('platos.json', 'utf8');
-        const listaDePlatos = JSON.parse(archivo);
-
-        listaDePlatos.push(platoNuevo);
-        fs.writeFileSync('platos.json', JSON.stringify(listaDePlatos, null, 2));
-
-        res.status(200).json(listaDePlatos);
+        // 4. Respondemos con éxito
+        res.status(200).json({ 
+            mensaje: "Plato agregado con éxito",
+            platos: usuarioActualizado.platos 
+        });
 
     } catch (error) {
         console.error("Error guardando el plato:", error);
         res.status(500).json({ error: "No se pudo guardar el plato" });
     }
-})
-
+});
 
 
 /*
 -PROPÓSITO: Cuando se realiza una petición  se devuelve la lista de platos guardadas en la DB.
 */ 
-router.get('/', (req, res) => {
+router.get('/', verificarToken, async (req, res) => {
     try {
-        // 1. Si el archivo no existe mandamos una lista vacía al frontend
-        if (!fs.existsSync('platos.json')) {
-            return res.status(200).json([]);
+        // 1. Buscamos al dueño en la base de datos usando el ID seguro del Token
+        const usuario = await Usuario.findById(req.usuario.id);
+
+        // (Por seguridad) Si el usuario fue borrado de la base de datos, cortamos acá
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        // 2. Si existe, se abre y se lee
-        const archivo = fs.readFileSync('platos.json', 'utf8');
-        const listaDePlatos = JSON.parse(archivo);
+        // 2. Extraemos la lista de platos que está guardada adentro de su documento
+        const listaDePlatos = usuario.platos;
 
-        // 3. se manda el array completo al frontend
+        // 3. Se manda el array completo al frontend
         res.status(200).json(listaDePlatos);
 
     } catch (error) {
@@ -73,35 +76,37 @@ router.get('/', (req, res) => {
 
 
 // Atrapamos las peticiones PUT que apuntan a un ID específico
-router.put('/:id', (req, res) => {
-    console.log("pase por aca");
+router.put('/:id', verificarToken, async (req, res) => {
     try {
-        // 1. Capturamos el ID de la URL y los datos nuevos del body
+        // 1. Capturamos el ID del plato de la URL y los datos nuevos del body
         const idPlato = req.params.id; 
-        const datosNuevos = req.body; // Esto trae el { nombre: "...", precio: ... }
+        const { nombre, precio, categoria, descripcion } = req.body; 
 
-        // 2. Abrimos la "caja fuerte" y leemos lo que hay
-        const archivo = fs.readFileSync('platos.json', 'utf8');
-        let listaDePlatos = JSON.parse(archivo);
+        // 2. Le pedimos a MongoDB que haga la búsqueda y el reemplazo en un solo paso
+        const usuarioActualizado = await Usuario.findOneAndUpdate(
+            { 
+                _id: req.usuario.id,        // Filtro 1: Buscamos al dueño correcto
+                "platos._id": idPlato       // Filtro 2: Buscamos que tenga ese plato adentro
+            },
+            { 
+                // El $set le dice "modificá solo estos campos"
+                // El símbolo $ significa "el renglón exacto que coincidió en la búsqueda"
+                $set: { 
+                    "platos.$.nombre": nombre,
+                    "platos.$.precio": precio,
+                    "platos.$.categoria": categoria,
+                    "platos.$.descripcion": descripcion 
+                } 
+            },
+            { new: true } // Para que nos devuelva el documento ya actualizado
+        );
 
-        // 3. Buscamos en qué número de renglón (índice) está nuestro plato
-        // Usamos == en vez de === porque el ID de la URL llega como Texto y el del JSON es un Número
-        const indice = listaDePlatos.findIndex(plato => plato.id == idPlato);
-
-        // Si findIndex nos devuelve -1, significa que no lo encontró
-        if (indice === -1) {
-            return res.status(404).json({ error: "Plato no encontrado" });
+        // 3. Si nos devuelve nulo, es porque no encontró al usuario o no encontró el plato
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Plato no encontrado o no tienes permiso" });
         }
 
-        // 4. Modificamos únicamente los datos de ESE renglón específico
-        listaDePlatos[indice].nombre = datosNuevos.nombre;
-        listaDePlatos[indice].precio = datosNuevos.precio;
-        listaDePlatos[indice].categoria = datosNuevos.categoria;
-
-        // 5. Volvemos a convertir todo a texto y lo guardamos aplastando el archivo anterior
-        fs.writeFileSync('platos.json', JSON.stringify(listaDePlatos, null, 2));
-
-        // Le avisamos al frontend que todo salió perfecto
+        // 4. Le avisamos al frontend que todo salió perfecto
         res.status(200).json({ mensaje: "Plato actualizado con éxito" });
 
     } catch (error) {
@@ -112,25 +117,29 @@ router.put('/:id', (req, res) => {
 
 
 // Atrapamos las peticiones DELETE que apuntan a un ID específico
-router.delete('/:id', (req, res) => {
+// Acordate de que este archivo ya tiene que tener importado Usuario y verificarToken
+
+router.delete('/:id', verificarToken, async (req, res) => {
     try {
         const idPlato = req.params.id; 
 
-        // 1. Abrimos el archivo
-        const archivo = fs.readFileSync('platos.json', 'utf8');
-        let listaDePlatos = JSON.parse(archivo);
+        // 1. Buscamos al dueño y le "arrancamos" el plato de su lista en un solo paso
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id, // Buscamos al dueño por el ID de su token
+            { 
+                // El operador $pull busca adentro del array "platos" 
+                // y elimina el que tenga este _id exacto.
+                $pull: { platos: { _id: idPlato } } 
+            },
+            { new: true } // Nos devuelve el usuario ya sin el plato
+        );
 
-        // 2. Filtar: guardamos todos los platos cuyo ID sea DISTINTO (!=) al de la URL
-        const nuevaLista = listaDePlatos.filter(plato => plato.id != idPlato);
-
-        // 3. Verificamos si realmente borramos algo
-        if (listaDePlatos.length === nuevaLista.length) {
-            return res.status(404).json({ error: "Plato no encontrado" });
+        // 2. Si el usuario no existe (ej: borraron la cuenta), tiramos error
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado o sin permisos" });
         }
 
-        // 4. Guardamos la nueva lista limpia aplastando el archivo anterior
-        fs.writeFileSync('platos.json', JSON.stringify(nuevaLista, null, 2));
-
+        // 3. Todo salió perfecto
         res.status(200).json({ mensaje: "Plato eliminado con éxito" });
 
     } catch (error) {
@@ -142,24 +151,25 @@ router.delete('/:id', (req, res) => {
 
 
 
-
-router.post('/bulk', (req, res) => {
-    // 1. Recibimos los platos del Excel
+router.post('/bulk', verificarToken, async (req, res) => {
+    // 1. Recibimos los platos del Excel (ya convertidos a JSON por el frontend)
     const platosDelExcel = req.body; 
 
     try {
-        // ¡OJO ACÁ!: Como el Excel no tiene las columnas de "ID" internas, 
-        // le inyectamos un ID único a cada plato antes de guardarlo, 
-        // para que tus botones de Borrar y Editar sigan funcionando después.
-        const platosListosParaGuardar = platosDelExcel.map((plato, index) => {
-            return {
-                id: Date.now().toString() + index, // Generamos un ID rápido
-                ...plato // Le pegamos todos los datos del Excel (nombre, precio, etc)
-            };
-        });
+        // 2. EL REEMPLAZO TOTAL: Buscamos al usuario y le pisamos la lista entera
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { 
+                // Usamos $set en vez de $push para aplastar la lista anterior 
+                // con la nueva lista que viene del Excel
+                $set: { platos: platosDelExcel } 
+            },
+            { new: true } 
+        );
 
-        // 2. EL REEMPLAZO TOTAL: Aplastamos el platos.json anterior con la nueva lista
-        fs.writeFileSync(rutaPlatosJSON, JSON.stringify(platosListosParaGuardar, null, 2), 'utf-8');
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
 
         // 3. Avisamos que todo salió de 10
         res.status(200).json({ mensaje: 'Menú actualizado por completo (Reemplazo total)' });
@@ -214,20 +224,17 @@ const bloquesDeImagen = fotos.map(file => ({
 
 
 // La constante la dejamos afuera, arribita de todo, para que sea más ordenado
-const MENU_PATH = path.join(__dirname, '../platos.json');
-
-// 1. Agregamos "async" acá
-router.post('/procesar-ia', upload.any(), async (req, res) => { 
+router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => { 
     try {
         const fotos = req.files;
         
-        // 1. Recibimos los platos de la IA (vienen sin ID)
+        // 1. Recibimos los platos crudos de la IA
         const platosDesdeIA = await procesarConIA(fotos); 
         
-        // 2. ¡LA MAGIA ACÁ! Recorremos el array y le inyectamos un ID único a cada uno
-        const menuJSON = platosDesdeIA.map(plato => {
+        // 2. Limpiamos los datos para asegurarnos que tengan el formato correcto
+        // ¡OJO! Ya NO inventamos el ID. Dejamos que Mongoose lo haga.
+        const menuLimpio = platosDesdeIA.map(plato => {
             return {
-                id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
                 nombre: plato.nombre,
                 descripcion: plato.descripcion || '',
                 precio: Number(plato.precio) || 0, // Nos aseguramos de que sea número
@@ -235,14 +242,27 @@ router.post('/procesar-ia', upload.any(), async (req, res) => {
             };
         });
         
-        // 3. ¡EL GUARDADO FÍSICO! (Ahora sí se guardan con su ID)
-        fs.writeFileSync(MENU_PATH, JSON.stringify(menuJSON, null, 2), 'utf8');
-        console.log(`[ÉXITO] Archivo creado/actualizado en: ${MENU_PATH}`);
+        // 3. ¡EL GUARDADO EN MONGODB! 
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id, // El ID seguro del token
+            { 
+                // El $push con $each empuja VARIOS platos al mismo tiempo 
+                // al final de la lista existente.
+                $push: { platos: { $each: menuLimpio } } 
+            },
+            { new: true } // Devuelve el menú completo ya actualizado
+        );
 
-        // 4. Le avisamos al Frontend
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        console.log(`[ÉXITO] Menú procesado por IA y guardado en la base de datos.`);
+
+        // 4. Le avisamos al Frontend y le devolvemos los platos (que ahora ya tienen su _id real)
         res.status(200).json({ 
             mensaje: 'Menú analizado y guardado con éxito',
-            platos: menuJSON 
+            platos: usuarioActualizado.platos 
         });
         
     } catch (error) {
@@ -251,10 +271,6 @@ router.post('/procesar-ia', upload.any(), async (req, res) => {
     }
 });
 
-/*router.post('/guardar-ia', upload.any(), async(req,res) =>{
-    
-    fs.writeFileSync(MENU_PATH, JSON.stringify(menuJSON, null, 2), 'utf8');
 
-});*/
 
 module.exports = router;
