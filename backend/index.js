@@ -47,6 +47,12 @@ app.use(express.static(path.join(__dirname, '../frontend/cliente')));
 // 3. ¡EL CAMBIO CLAVE! Ponemos todo lo del admin detrás de la puerta "/admin"
 app.use('/admin', express.static(path.join(__dirname, '../frontend/admin')));
 
+// RUTA PARA SERVIR EL HTML DEL MENÚ PÚBLICO
+app.get('/menu/:slug', (req, res) => {
+    // Le enviamos el archivo index.html (ajustá la carpeta 'public' o 'frontend' según tu estructura)
+    res.sendFile(path.join(__dirname, '../frontend/cliente/index.html')); 
+});
+
 
 
 

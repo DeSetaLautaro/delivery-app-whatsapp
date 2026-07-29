@@ -68,7 +68,9 @@ router.post('/login', async (req, res) => {
                     email : usuario.email,
                     id : usuario.id,
                     telefono : usuario.telefono,
-                    nombreDelLocal: usuario.nombreDelLocal
+                    nombreDelLocal: usuario.nombreDelLocal,
+                    slug: usuario.slug,
+                    direccion : usuario.direccion
             }
          });
 
@@ -101,14 +103,14 @@ router.post('/registro', async (req, res) => {
     const { nombre, email, password, telefono, nombreDelLocal } = req.body;
 
     // Creamos el primer intento de slug (Ej: "la-esquina")
-     let slugFinal = crearSlugBase(nombreLocal);
+     let slugFinal = crearSlugBase(nombreDelLocal);
      
      //  Chequeamos si ya existe en la base de datos
      let localExistente = await Usuario.findOne({ slug: slugFinal });
      let contador = 1;
      //  Si ya existe, le sumamos un número hasta que encontremos uno libre
      while (localExistente) {
-         slugFinal = `${crearSlugBase(nombreLocal)}-${contador}`; // Ej: "la-esquina-1"
+         slugFinal = `${crearSlugBase(nombreDelLocal)}-${contador}`; // Ej: "la-esquina-1"
          localExistente = await Usuario.findOne({ slug: slugFinal });
          contador++;
      }

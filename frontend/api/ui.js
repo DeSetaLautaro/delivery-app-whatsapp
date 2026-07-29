@@ -1,16 +1,17 @@
 function toggleDropdown() {
-            const dd = document.getElementById('dropdown');
-            dd.hidden ? dd.removeAttribute('hidden') : dd.setAttribute('hidden', '');
-        }
-        // Cerrar si se clickea afuera
-        document.addEventListener('click', (e) => {
-            if (!document.getElementById('userMenu').contains(e.target)) {
-                document.getElementById('dropdown').setAttribute('hidden', '');
-            }
-        });
-        function cerrarSesion() {
-            localStorage.removeItem('token');
-        }
+const menuUsuario = document.getElementById('userMenu');
+    const dropdown = document.getElementById('dropdown');
+
+    // 2. ESCUDO: Si no hay menú en esta pantalla, cortamos la ejecución acá nomás.
+    if (!menuUsuario || !dropdown) {
+        return; // "No hay menú acá, seguí con tu vida, guardia"
+    }
+
+    // 3. Si el menú SÍ existe, hacemos la lógica de cerrarlo
+    if (!menuUsuario.contains(e.target)) {
+        dropdown.setAttribute('hidden', '');
+    }
+}
 
 
 

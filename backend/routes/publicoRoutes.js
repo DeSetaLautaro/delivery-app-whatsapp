@@ -25,29 +25,20 @@ router.get('/estadoLocal', async (req, res) => {
     }
 });
 
-// ¡Acá a futuro vas a poner también la ruta pública para leer los platos del menú!
-// router.get('/menu', async (req, res) => { ... });
-// --- RUTA NUEVA: Para traer el menú del cliente ---
-router.get('/menu/:idLocal', async (req, res) => {
+// Le ponemos /api/ adelante para saber que esto devuelve DATOS, no pantallas
+router.get('/menu/:slugLocal', async (req, res) => {
     try {
-        let usuario;
-        
-        // Si el cliente entró con ?local=xxx en la URL, lo buscamos
-        const idLocal = req.query.local;
+        // 1. Como usamos los dos puntos (:slugLocal) en la ruta, se lee con req.params
+        const slug = req.params.slugLocal; 
 
-        if (idLocal) {
-            usuario = await Usuario.findById(idLocal);
-        } else {
-            // MVP: Si entra a la URL pelada (localhost:3000), 
-            // traemos al primer usuario por defecto para que no se rompa nada
-            usuario = await Usuario.findOne();
-        }
+        // 2. Buscamos al usuario que tenga ESE slug (findOne, no findById)
+        const usuario = await Usuario.findOne({ slug: slug });
 
         if (!usuario) {
             return res.status(404).json({ error: "Local no encontrado" });
         }
 
-        // Le devolvemos su lista de platos
+        // 3. Le devolvemos su lista de platos en JSON
         res.status(200).json(usuario.platos);
 
     } catch (error) {
@@ -57,20 +48,7 @@ router.get('/menu/:idLocal', async (req, res) => {
 });
 
 
-router.get('/menu', (req, res) => {
 
-    // Verificar si el archivo menu.json existe
-    if (!fs.existsSync(MENU_PATH)) {
-        return res.status(404).json({ error: 'Todavia no hay ningun menu cargado.' });
-    }
-
-    // Leer el archivo y devolverlo como JSON
-    const menuRaw  = fs.readFileSync(MENU_PATH, 'utf8');
-    const menuJSON = JSON.parse(menuRaw);
-
-    console.log(`[INFO] Menu enviado al cliente (${menuJSON.length} platos).`);
-    res.status(200).json(menuJSON);
-});
 
 
 module.exports = router;

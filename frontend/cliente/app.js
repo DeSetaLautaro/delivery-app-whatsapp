@@ -40,41 +40,23 @@ async function cargarMenu() {
     const contenedor = document.getElementById('menu-contenedor');
 
     try {
-        
-        // Validamos si hay un ID real, lo usamos. Si no, mandamos la ruta limpia.
-        let urlPeticion = '/api/publico/menu';
-        if (idLocal && idLocal !== 'null' && idLocal !== 'undefined') {
-            urlPeticion = `/api/publico/menu?local=${idLocal}`;
-        }
+        // 1. Sacamos el slug de la URL (Ej: familia-comidas)
+        const urlActual = window.location.pathname; 
+        const slugDelLocal = urlActual.split('/')[2]; 
 
-        // Hacemos el fetch de forma segura
-        const respuesta = await fetch(urlPeticion);
+        // 2. Hacemos la petición a la API
+        const respuesta = await fetch(`/api/publico/menu/${slugDelLocal}`);
 
         if (!respuesta.ok) {
             contenedor.innerHTML = '<p class="menu-error">Menú no disponible por el momento. Volvé a intentarlo más tarde.</p>';
             return;
         }
 
+        // 3. Convertimos la respuesta a JSON
         const platos = await respuesta.json();
 
-        if (platos.length === 0) {
-            contenedor.innerHTML = '<p class="menu-error">El menú está vacío.</p>';
-            return;
-        }
-
-        // Agrupar los platos por categoría
-        // Reduce transforma el array en un objeto { "Hamburguesas": [...], "Pizzas": [...] }
-        const porCategoria = platos.reduce((grupos, plato) => {
-            const cat = plato.categoria || 'Varios';
-            if (!grupos[cat]) grupos[cat] = [];
-            grupos[cat].push(plato);
-            return grupos;
-        }, {});
-
-        // Renderizar cada categoría como una sección
-        contenedor.innerHTML = Object.entries(porCategoria)
-            .map(([categoria, items]) => crearSeccionCategoria(categoria, items))
-            .join('');
+        // 4. Le pasamos los platos a la función dibujante
+        dibujarPlatos(platos);
 
     } catch (error) {
         console.error('[ERROR] No se pudo cargar el menú:', error);
@@ -82,6 +64,28 @@ async function cargarMenu() {
     }
 }
 
+function dibujarPlatos(platos) {
+    const contenedor = document.getElementById('menu-contenedor');
+
+    // Validación por si el local no tiene platos cargados
+    if (!platos || platos.length === 0) {
+        contenedor.innerHTML = '<p class="menu-error">El menú está vacío.</p>';
+        return;
+    }
+
+    // Agrupar los platos por categoría usando reduce
+    const porCategoria = platos.reduce((grupos, plato) => {
+        const cat = plato.categoria || 'Varios';
+        if (!grupos[cat]) grupos[cat] = [];
+        grupos[cat].push(plato);
+        return grupos;
+    }, {});
+
+    // Renderizar cada categoría como una sección usando tu función crearSeccionCategoria
+    contenedor.innerHTML = Object.entries(porCategoria)
+        .map(([categoria, items]) => crearSeccionCategoria(categoria, items))
+        .join('');
+}
 
 // ============================================================
 // RENDERIZADO DEL MENU
@@ -118,15 +122,21 @@ function crearSeccionCategoria(categoria, items) {
  * @returns {string}     - HTML de la tarjeta
  */
 function crearTarjetaPlato(plato) {
-    // Sanitizar el nombre para usarlo como atributo HTML sin romper las comillas
-    const nombreSeguro = plato.plato.replace(/"/g, '&quot;');
+    // 1. Escudo para el nombre: Probamos si viene como 'nombre' o como 'plato'
+    const nombreDelPlato = plato.nombre || plato.plato || 'Plato sin nombre';
+    
+    // 2. Ahora sí sanitizamos el texto con total seguridad
+    const nombreSeguro = nombreDelPlato.replace(/"/g, '&quot;');
+
+    // 3. Escudo para el precio: Si no hay precio, mostramos 0
+    const precioSeguro = plato.precio ? Number(plato.precio).toLocaleString('es-AR') : '0';
 
     return `
         <article class="product-card" role="listitem">
             <div class="product-info">
-                <h3 class="product-name">${plato.plato}</h3>
+                <h3 class="product-name">${nombreDelPlato}</h3>
                 ${plato.descripcion ? `<p class="product-desc">${plato.descripcion}</p>` : ''}
-                <p class="product-price">$${Number(plato.precio).toLocaleString('es-AR')}</p>
+                <p class="product-price">$${precioSeguro}</p>
             </div>
             <button
                 class="btn-agregar"
@@ -420,7 +430,7 @@ async function verificarEstadoDelLocal() {
 // ARRANCAR LA APP
 // ============================================================
 // Apenas carga la pantalla del cliente...
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     
     verificarEstadoDelLocal(); 
     cargarMenu(); 

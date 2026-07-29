@@ -1,4 +1,4 @@
-const switchAbierto = document.getElementById('toggleEstado'); 
+
 
 // ==========================================
 // 1. ZONA DE FUNCIONES
@@ -216,6 +216,8 @@ document.addEventListener('click', (e) => {
     }
 });
 
+
+
 // Función que va a buscar  a MongoDB el valor del switch Abierto/Cerrado
 async function sincronizarSwitch() {
     try {
@@ -241,24 +243,33 @@ async function sincronizarSwitch() {
 
 async function cargarEstadoDesdeMongoDB() {
     try {
-        // Hacemos la consulta a tu nueva ruta GET
+        // 1. Buscamos el paquete a MongoDB
         const respuesta = await peticionAPI('/api/usuarios/estadoLocal', 'GET');
-        if (!respuesta){
-            return;
+        
+        if (!respuesta || !respuesta.ok) return;
+
+        // ¡LA CLAVE ESTÁ ACÁ! 🔑
+        // 2. "Abrimos" el paquete crudo para transformarlo en datos de JavaScript
+        const datos = await respuesta.json(); 
+
+        // 3. Agarramos los elementos del HTML
+        const switchAbierto = document.getElementById('toggleEstado'); 
+        const textoEstado = document.getElementById('textoEstadoLocal');
+
+        // 4. Movemos el switch usando los DATOS limpios (no la respuesta cruda)
+        switchAbierto.checked = datos.abierto;
+            
+        // 5. (Opcional) Cambiamos el texto
+        if (textoEstado) {
+            textoEstado.innerText = datos.abierto ? "Recibiendo pedidos" : "Local cerrado";
+            textoEstado.style.color = datos.abierto ? "green" : "red";
         }
 
-        if (respuesta.ok) {
-            // ¡ACÁ ESTÁ LA MAGIA! 
-            // Forzamos al switch a tomar el valor real de la base de datos
-            const switchAbierto = document.getElementById('switchLabel'); // (Poné tu ID real)
-            switchAbierto.checked = respuesta.abierto; 
-            
-            
-        }
     } catch (error) {
-        console.error("Error al traer el estado inicial:", error);
+        console.error("Error al traer el estado desde MongoDB:", error);
     }
 }
+
 
 // ==========================================
 // 2. ZONA DE EJECUCIÓN 
@@ -286,11 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cargarCategorias();
 
-    cargarEstadoDesdeMongoDB(); 
+  
+    cargarEstadoDesdeMongoDB();
     setInterval(cargarEstadoDesdeMongoDB, 60000);
-
-    sincronizarSwitch();
-    setInterval(sincronizarSwitch, 60000);
     
 
 const modalOverlay = document.getElementById('modalOverlay');
@@ -369,7 +378,8 @@ btnGuardar.addEventListener('click', async (e) => {
         nombre: datosForm.get('nombre'),
         precio: Number(datosForm.get('precio')),
         categoria : datosForm.get('categoria'),
-        descripcion: datosForm.get('descripcion')
+        descripcion: datosForm.get('descripcion'),
+        id: datosForm.get('id')
     };
 
     const idOculto = datosPlato.id;
@@ -670,24 +680,28 @@ btnProcesarIADef.addEventListener('click', async () => {
 });
 
 
-
+const switchAbierto = document.getElementById('toggleEstado'); 
 // ==========================================
 // ACTUALIZAR LA BASE DE DATOS AL TOCAR EL SWITCH
 // ==========================================
 switchAbierto.addEventListener('change', async (e) => {
     // 1. Vemos si el dueño lo dejó prendido (true) o apagado (false)
-    const nuevoEstado = e.target.checked; 
+    const abierto = e.target.checked; 
 
 
     try {
         // 3. ¡El disparo a MongoDB! Usamos la ruta inteligente que creaste
         const respuesta = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', {
-            abierto: nuevoEstado
+            abierto: abierto
         });
 
         if (!respuesta.ok) {
             throw new Error("El servidor rechazó el cambio");
         }
+
+        const datosDelBackend = await respuesta.json(); 
+
+        localStorage.setItem('user', JSON.stringify(datosDelBackend.usuario));
         
         // Si todo salió bien, no hacemos nada más, ya está guardado y la luz está prendida/apagada.
 

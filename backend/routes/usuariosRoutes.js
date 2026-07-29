@@ -14,6 +14,8 @@ const router = express.Router();
 router.patch('/modificarDatos', verificarToken, async(req, res) => {
     try {
         const idUser = req.usuario.id; 
+
+        console.log("1. Backend recibió este body:", req.body);
         
         // 1. Armamos un cajón vacío para poner solo lo que vamos a actualizar
         const camposAActualizar = {};
@@ -25,6 +27,8 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.horarios !== undefined) camposAActualizar.horarios = req.body.horarios;
         if (req.body.abierto !== undefined) camposAActualizar.abierto = req.body.abierto; 
         if (req.body.horariosEstructurados !== undefined) camposAActualizar.horariosEstructurados = req.body.horariosEstructurados;
+
+        console.log("2. Cajón a actualizar en Mongo:", camposAActualizar);
 
         // 3. Magia de MongoDB: Usamos $set para decirle "cambiame SOLO estos campos específicos y no toques el resto"
         const usuarioActualizado = await Usuario.findByIdAndUpdate(

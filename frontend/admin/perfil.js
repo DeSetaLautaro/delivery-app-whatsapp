@@ -45,6 +45,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('whatsappNumero').value = userData.telefono || '';
     document.getElementById('direccion').value = userData.direccion || '';
     userData.direccion ? document.getElementById('direccion').placeholder = '' : document.getElementById('direccion').placeholder ='Agrega una dirección';
+    // 1. Agarramos la base de la página (Ej: "http://localhost:3000" o "https://miapp.com")
+    const baseUrl = window.location.origin;
+
+    if (userData.slug) {
+        // Pegamos la base + una barra + el slug
+        const urlCompleta = `${baseUrl}/${userData.slug}`;
+        document.getElementById('url').value = urlCompleta;
+    } else {
+        document.getElementById('url').value = '';
+    };
 
     leerEstadoParaElPerfil();
     setInterval(leerEstadoParaElPerfil, 60000);

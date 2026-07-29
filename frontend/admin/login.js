@@ -4,7 +4,7 @@ const loginForm = document.getElementById('loginForm');
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault(); // Evita que la página se recargue
 
-    const email = document.getElementById('usuario').value; // O email
+    const email = document.getElementById('email').value; // O email
     const password = document.getElementById('password').value;
 
     // Enviamos los datos al backend
