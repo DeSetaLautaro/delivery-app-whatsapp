@@ -483,3 +483,10 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
 .fila-oculta:hover {
     opacity: 0.8;
 }
+
+.tablaContainerTituloYBoton{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+}

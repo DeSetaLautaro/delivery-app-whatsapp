@@ -11,19 +11,22 @@ const iniciarRobotHorarios = require('./cron/controlHorarios');
 const authRouter = require('./routes/auth'); 
 const adminPlatos = require('./routes/platos');
 const usuariosRouter = require('./routes/usuariosRoutes');
+const rutasToppings = require('./routes/toppings');
 const publicoRoutes = require('./routes/publicoRoutes');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
 
 // 2. FUNDAMENTAL: Primero el "traductor" de JSON
-app.use(express.json());
+app.use(express.json());// Importás la ruta
+
 
 // 3. DESPUÉS conectamos las rutas (así ya pueden leer el JSON)
 app.use('/api/platos', adminPlatos);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/publico', publicoRoutes);
 app.use('/api', authRouter);
+app.use('/api/toppings', rutasToppings);
 
 // 4. Conexión a la Base de Datos
 mongoose.connect(process.env.MONGODB_URI)

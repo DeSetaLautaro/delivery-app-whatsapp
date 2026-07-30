@@ -49,7 +49,12 @@
         </section>
 
         <section class="tabla-container">
-            <h2>📋 Tus Platos Actuales</h2>
+            <div class="tablaContainerTituloYBoton">
+                <h2>📋 Tus Platos Actuales</h2>
+                <button id="btnAbrirModalToppings" class="btn-secundario">
+                    🍔 Toppings por Categoría
+                </button>
+            </div>
             <!-- Barra de búsqueda + botón filtros -->
             <div class="tabla-toolbar">
                 <input
@@ -311,6 +316,46 @@
             <input type="text" name="descripción" placeholder="hamburguesa con lechuga tomate y cheddar" >
 
             <button type="submit" id="btnGuardarPlato">Guardar Plato</button>
+        </form>
+
+    </div>
+    
+</div>
+
+
+<!-- ==========================================
+            MODAL PARA TOPPINGS
+============================================-->
+
+<div class="modal-overlay" id="modalToppings" hidden>
+    
+    <div class="modal-plato">
+        
+        <div class="modal-header">
+            <h2>🍔 Crear Grupo de Toppings</h2>
+            <button class="modal-close" id="btnCerrarModalToppings">✖</button>
+        </div>
+        
+        <form id="formCrearToppings">
+            <label>Nombre del Grupo:</label>
+            <input type="text" id="nombreGrupoTopping" placeholder="Ej: Salsas a elección o Agregados" required>
+
+            <label>¿A qué categoría aplica?</label>
+            <select id="categoriaDestinoTopping" required>
+                <option value="">Selecciona una categoría...</option>
+            </select>
+
+            <label>Opciones del grupo:</label>
+            <div id="contenedorOpcionesTopping">
+                <div class="fila-opcion" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" placeholder="Nombre (Ej: Cheddar)" class="topping-nombre" style="flex: 2;" required>
+                    <input type="number" placeholder="Precio (Ej: 500)" class="topping-precio" style="flex: 1;" required>
+                </div>
+            </div>
+            
+            <button type="button" id="btnAgregarFilaTopping" style="margin-bottom: 15px; background-color: #666;">+ Sumar otra opción</button>
+
+            <button type="submit" id="btnGuardarTopping">Guardar Toppings</button>
         </form>
 
     </div>

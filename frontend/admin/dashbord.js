@@ -1,4 +1,4 @@
-
+let listaPlatosGlobal = [];
 
 // ==========================================
 // 1. ZONA DE FUNCIONES
@@ -21,6 +21,7 @@ async function cargarListaDePlatos() {
         if (!respuesta) return;
 
         const listaDePlatos = await respuesta.json();
+        listaPlatosGlobal = listaDePlatos;
         const tbody = document.getElementById("lista-platos");
         
         tbody.innerHTML = ''; // Vaciamos la tabla antes de rellenarla
@@ -157,7 +158,7 @@ async function cargarHTMLListaDePlatos(datosPlato){
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
                     data-categoria="${datosPlato.categoria}">
-                    Borrar
+                    Eliminar
                 </button>
                 <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
                     data-id="${datosPlato._id}"
@@ -181,7 +182,7 @@ async function cargarHTMLListaDePlatos(datosPlato){
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
                         data-categoria="${datosPlato.categoria}">
-                        🗑️ Borrar
+                        🗑️ Eliminar
                     </button>
                    <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
                     data-id="${datosPlato._id}"
@@ -775,7 +776,106 @@ switchAbierto.addEventListener('change', async (e) => {
 });
 
 
+//------------------------------------------------------------------------------
+// --- VARIABLES DEL MODAL ---
+const modalToppings = document.getElementById('modalToppings');
+const btnAbrirModalToppings = document.getElementById('btnAbrirModalToppings'); // El botón que pusiste arriba de la tabla
+const btnCerrarModalToppings = document.getElementById('btnCerrarModalToppings');
+const btnAgregarFilaTopping = document.getElementById('btnAgregarFilaTopping');
+const btnGuardarTopping = document.getElementById('btnGuardarTopping');
+const contenedorOpcionesTopping = document.getElementById('contenedorOpcionesTopping');
+const selectCategoriaTopping = document.getElementById('categoriaDestinoTopping');
 
+// 1. ABRIR Y CERRAR MODAL
+document.addEventListener('click', (e) => {
+    // ABRIR
+    if (e.target.closest('#btnAbrirModalToppings')) {
+        const modal = document.getElementById('modalToppings');
+        modal.removeAttribute('hidden'); // Le sacamos el hidden para que se vea
+        llenarSelectCategorias(); 
+    }
+
+    // CERRAR
+    if (e.target.closest('#btnCerrarModalToppings')) {
+        const modal = document.getElementById('modalToppings');
+        modal.setAttribute('hidden', true); // Le volvemos a poner el hidden
+    }
+});
+
+// 2. LLENAR EL SELECT DE CATEGORÍAS (Reciclando las categorías de tus platos)
+function llenarSelectCategorias() {
+    // Leemos directo de la variable global
+    const categoriasUnicas = [...new Set(listaPlatosGlobal.map(p => p.categoria))];
     
+    selectCategoriaTopping.innerHTML = '<option value="">Selecciona una categoría...</option>';
+    
+    categoriasUnicas.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        selectCategoriaTopping.appendChild(option);
+    });
+}
+
+// 3. AGREGAR UNA NUEVA FILA DE OPCIÓN (Para poner más toppings)
+btnAgregarFilaTopping.addEventListener('click', () => {
+    const nuevaFila = document.createElement('div');
+    nuevaFila.classList.add('fila-opcion');
+    nuevaFila.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px;';
+    
+    nuevaFila.innerHTML = `
+        <input type="text" placeholder="Nombre (Ej: Panceta)" class="topping-nombre" style="flex: 2;">
+        <input type="number" placeholder="Precio (Ej: 700)" class="topping-precio" style="flex: 1;">
+        <button type="button" class="btn-eliminar-fila" style="color: red; border: none; background: none; cursor: pointer;">❌</button>
+    `;
+    
+    contenedorOpcionesTopping.appendChild(nuevaFila);
+
+    // Botón para borrar esta fila si se equivocó
+    nuevaFila.querySelector('.btn-eliminar-fila').addEventListener('click', () => {
+        nuevaFila.remove();
+    });
+});
+
+// 4. GUARDAR EL GRUPO EN EL BACKEND
+document.getElementById('formCrearToppings').addEventListener('submit', async (e) => {
+    e.preventDefault(); // ¡Clave para que no se recargue la página!
+
+    const nombreGrupo = document.getElementById('nombreGrupoTopping').value;
+    const categoriaDestino = document.getElementById('categoriaDestinoTopping').value;
+    
+    const filas = document.querySelectorAll('#contenedorOpcionesTopping .fila-opcion');
+    const opcionesArray = [];
+
+    filas.forEach(fila => {
+        const nombre = fila.querySelector('.topping-nombre').value;
+        const precio = fila.querySelector('.topping-precio').value;
+        
+        if(nombre.trim() !== "") {
+            opcionesArray.push({
+                nombre: nombre,
+                precio: Number(precio) || 0
+            });
+        }
+    });
+
+    const nuevoGrupoToppings = {
+        nombre: nombreGrupo,
+        categoriaDestino: categoriaDestino,
+        esMultiselect: true,
+        opciones: opcionesArray
+    };
+
+    try {
+        const res = await peticionAPI('/api/toppings', 'POST', nuevoGrupoToppings);
+        if (res && res.ok) {
+            alert("¡Toppings guardados con éxito!");
+            document.getElementById('modalToppings').setAttribute('hidden', true);
+            document.getElementById('formCrearToppings').reset(); // Limpiamos el formulario
+        }
+    } catch (error) {
+        console.error("Error al guardar toppings:", error);
+    }
+});
 
 
