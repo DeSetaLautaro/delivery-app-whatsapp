@@ -96,6 +96,29 @@ async function borrarPlato(idPlato) {
     }
 }
 
+// =============== FUNCIÓN OCULTAR PLATO ===========================
+
+async function ocultarPlato(idPlato)
+{
+   async function ocultarPlato(idPlato) {
+    try {
+        const res = await peticionAPI(`/api/platos/${idPlato}`, 'PATCH');
+        
+        // Si peticionAPI falló (devuelve null/undefined o error 4xx/5xx)
+        if (!res || !res.ok) {
+            console.error("No se pudo cambiar la disponibilidad del plato.");
+            return false; 
+        }
+
+        return true; 
+    } catch (error) {
+        console.error("Error en ocultarPlato:", error);
+        return false;
+    }
+}
+
+}
+
 
 // FUNCIÓN PARA CARGAR BLOQUE DE HTML CON LA LISTA DE PLATOS CARGADOS EN LA BD
 /**
@@ -105,9 +128,17 @@ async function borrarPlato(idPlato) {
 async function cargarHTMLListaDePlatos(datosPlato){
 
     const listaPlatos = document.getElementById("lista-platos");
+    // Evaluamos si está disponible
+    const estaDisponible = datosPlato.disponible !== false;
+
+    // Definimos el texto inicial (Emoji + Palabra)
+    const emojiBotonOcultar = estaDisponible ? "👁️ Ocultar" : "🙈 Mostrar";
+    const textoBotonOcultar = estaDisponible ? "Ocultar" : " Mostrar";
+    const claseFila = datosPlato.disponible === false ? 'fila-oculta' : '';
+    
     
         const bloqueHTML = `
-    <tr>
+    <tr class = ${claseFila}>
         <td>${datosPlato.nombre}</td>
         <td>$ ${datosPlato.precio}</td>
         <td>${datosPlato.categoria}</td>
@@ -115,18 +146,23 @@ async function cargarHTMLListaDePlatos(datosPlato){
             <!-- Desktop: botones normales -->
             <div class="acciones-desktop">
                 <button class="btn-accion btn-editar"
-                    data-id="${datosPlato.id}"
+                    data-id="${datosPlato._id}"
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
                     data-categoria="${datosPlato.categoria}">
                     Editar
                 </button>
                 <button class="btn-accion btn-borrar"
-                    data-id="${datosPlato.id}"
+                    data-id="${datosPlato._id}"
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
                     data-categoria="${datosPlato.categoria}">
                     Borrar
+                </button>
+                <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
+                    data-id="${datosPlato._id}"
+                    data-disponible="${estaDisponible}">
+                    ${textoBotonOcultar}
                 </button>
             </div>
             <!-- Mobile: tres puntos -->
@@ -134,19 +170,24 @@ async function cargarHTMLListaDePlatos(datosPlato){
                 <button class="btn-tres-puntos" onclick="toggleMenuTresPuntos(this)">&#8942;</button>
                 <div class="menu-tres-puntos" hidden>
                     <button class="btn-accion btn-editar"
-                        data-id="${datosPlato.id}"
+                        data-id="${datosPlato._id}"
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
                         data-categoria="${datosPlato.categoria}">
                         ✏️ Editar
                     </button>
                     <button class="btn-accion btn-borrar"
-                        data-id="${datosPlato.id}"
+                        data-id="${datosPlato._id}"
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
                         data-categoria="${datosPlato.categoria}">
                         🗑️ Borrar
                     </button>
+                   <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
+                    data-id="${datosPlato._id}"
+                    data-disponible="${estaDisponible}">
+                    ${emojiBotonOcultar}
+                </button>
                 </div>
             </div>
         </td>
@@ -407,7 +448,7 @@ btnGuardar.addEventListener('click', async (e) => {
 const tbodyPlatos = document.getElementById("lista-platos");
 
 // 2. evento
-tbodyPlatos.addEventListener('click', (e) => {
+tbodyPlatos.addEventListener('click', async (e) => {
     
     // 3. Atrapamos el botón de editar usando closest() (¡igual que el de borrar!)
     const btnEditar = e.target.closest('.btn-editar');
@@ -438,7 +479,7 @@ tbodyPlatos.addEventListener('click', (e) => {
     }
 
     // ==========================================
-    // LÓGICA DE BORRAR (Esto lo tenías perfecto)
+    // LÓGICA DE BORRAR 
     // ==========================================
     const botonBorrar = e.target.closest('.btn-borrar');
     if (botonBorrar) {
@@ -448,9 +489,25 @@ tbodyPlatos.addEventListener('click', (e) => {
         const confirmacion = confirm(`¿Estás 100% seguro de que querés borrar el plato "${nombrePlato}"?\nEsta acción no se puede deshacer.`);
 
         if (confirmacion) {
-            borrarPlato(idPlato);
+           await borrarPlato(idPlato);
         }
     }
+
+
+    // ==========================================
+    // LÓGICA DE OCULTAR 
+    // ==========================================
+    const botonOcultar = e.target.closest(".btn-ocultar");
+    if(botonOcultar){
+        const idPlato = botonOcultar.getAttribute('data-id');
+        const confirmacion = await ocultarPlato(idPlato);
+        if(confirmacion){
+
+            cargarListaDePlatos();
+        }
+        
+        }
+    
 });
 
 
@@ -649,30 +706,33 @@ btnProcesarIADef.addEventListener('click', async () => {
     });
 
     try {
-        // 3. Mandamos a procesar con la IA
+        // 3. UN SOLO VIAJE: Mandamos las fotos. El backend habla con la IA y guarda en MongoDB.
+        const token = localStorage.getItem('token'); // Buscamos la pulserita VIP
+        
         const respuestaIA = await fetch('/api/platos/procesar-ia', {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}` // Se lo pasamos al patovica del backend
+                // Nota: NO se pone 'Content-Type': 'application/json' cuando mandamos FormData
+            },
             body: formData 
         });
 
-        if (!respuestaIA.ok) throw new Error("Error al procesar las fotos con la IA.");
+        if (!respuestaIA.ok) {
+            throw new Error("Error al procesar las fotos con la IA.");
+        }
 
-        // Extraemos los platos que armó la IA
-        const { platos } = await respuestaIA.json(); 
-    
-        // 4. Como ya no hay modal, los mandamos a guardar directamente
-        await peticionAPI('/api/platos/procesar-ia/', 'POST', { nuevosPlatos: platos });
-        
+        // Si llegó hasta acá, es porque el backend hizo todo perfecto
         alert("¡Platos procesados y guardados con éxito!");
         
-        // Opcional: Recargar la página para que la tabla principal muestre los platos nuevos
-        // location.reload();
+        // Refrescamos la pantalla para que el Dashboard dibuje los platos nuevos
+        location.reload();
 
     } catch (error) {
         console.error("Error en el proceso:", error);
         alert("Hubo un problema: " + error.message);
     } finally {
-        // 5. Devolvemos el botón a la normalidad
+        // 4. Devolvemos el botón a la normalidad
         btnProcesarIADef.textContent = textoOriginalBoton;
         btnProcesarIADef.disabled = false;
         modalIA.hidden = true;

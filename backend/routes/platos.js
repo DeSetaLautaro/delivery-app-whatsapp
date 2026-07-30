@@ -72,7 +72,17 @@ router.get('/', verificarToken, async (req, res) => {
     }
 });
 
+// OCULTAR PLATO
+router.patch('/:id', verificarToken, async (req, res) => {
+    const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id }); // "platos._id": Traeme al usuario SOLO SI ese usuario es realmente el dueño de un plato con ese ID exacto". Es un escudo.
+    const plato = usuario.platos.id(req.params.id);
 
+    // El backend decide por sí solo invertir el estado
+    plato.disponible = !plato.disponible;
+    await usuario.save();
+
+    res.json({ disponible: plato.disponible });
+});
 
 
 // Atrapamos las peticiones PUT que apuntan a un ID específico

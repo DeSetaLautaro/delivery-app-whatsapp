@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
 
@@ -9,9 +9,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     cargarHeader(userData);
 
-
-
-
+    const res = await peticionAPI(`/api/usuarios/horarios`, 'GET');
+    if (!res){
+        return;
+    }
+    const horariosEstructurados = await res.json();
+    rellenarHorarios(horariosEstructurados.horarios);
 });
 
 // Seleccionamos todos los botones de variables
@@ -154,4 +157,41 @@ async function guardarHorarios() {
         estadoHorarios.style.color = '#dc2626';
         console.error('Error al guardar horarios:', error);
     }
+}
+
+//===================
+// RECOLECTAR HORARIOS
+//* El objetivo es rellenar en cada check y horario los datos que tengamos guardados en mongo DB
+//=====================
+
+function rellenarHorarios(horariosArray) {
+    // Si no hay horarios guardados o el array está vacío, no hacemos nada
+    if (!horariosArray || horariosArray.length === 0) return;
+
+    // Recorremos la lista de días uno por uno
+    horariosArray.forEach(configDia => {
+        // configDia es cada objetito: { dia: "lunes", apertura: "20:00", cierre: "23:30" }
+         console.log(`el formato de horarios es:`, configDia);
+        // Nos aseguramos de que el día esté en minúsculas para que coincida con los IDs del HTML
+        const dia = configDia.dia.toLowerCase(); 
+        console.log(`pasé por acá y hoy es: ${dia}`);
+
+        // Buscamos las 3 cajitas de ESE día en el HTML
+        const checkActivo = document.getElementById(`${dia}-activo`);
+        checkActivo.disabled = false;
+        const inputDesde = document.getElementById(`${dia}-desde`);
+        inputDesde.disabled = false;
+        const inputHasta = document.getElementById(`${dia}-hasta`);
+        inputHasta.disabled = false;
+
+        // 1. Rellenamos las horas usando las propiedades de tu MongoDB (apertura y cierre)
+        if (inputDesde) inputDesde.value = configDia.apertura || "";
+        if (inputHasta) inputHasta.value = configDia.cierre || "";
+
+        // 2. ¿Cómo sabemos si marcamos el Checkbox (activo)? 
+        // Lógica simple: Si tiene hora de apertura guardada, asumimos que ese día abre.
+        if (checkActivo) {
+            checkActivo.checked = configDia.apertura ? true : false;
+        }
+    });
 }

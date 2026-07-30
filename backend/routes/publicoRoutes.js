@@ -8,20 +8,15 @@ const MENU_PATH = path.join(__dirname, '../menu.json');
 
 // Ruta PÚBLICA: Cualquier persona puede ver si está abierto o cerrado
 // Se va a acceder desde: /api/publico/estadoLocal
-router.get('/estadoLocal', async (req, res) => {
+router.get('/estadoLocal/:slugLocal', async (req, res) => {
     try {
-        // Como por ahora es un MVP de un solo local, buscamos el primer usuario que haya
-        // (A futuro, acá buscarías por el ID del local que te pase el cliente)
-        const local = await Usuario.findOne().select('abierto'); 
+        const usuario = await Usuario.findOne({ slug: req.params.slugLocal });
+        if (!usuario) return res.status(404).json({ error: "Local no encontrado" });
         
-        if (!local) {
-            return res.status(404).json({ error: "Local no encontrado" });
-        }
-        
-        res.json({ abierto: local.abierto });
+        // Devolvemos solo el estado
+        res.status(200).json({ abierto: usuario.abierto });
     } catch (error) {
-        console.error("Error al leer estado público:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        res.status(500).json({ error: "Error del servidor" });
     }
 });
 

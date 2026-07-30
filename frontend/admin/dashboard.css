@@ -461,3 +461,25 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
 }
 .toggle-switch input:checked + .toggle-slider            { background: #25d366; }
 .toggle-switch input:checked + .toggle-slider::before   { transform: translateX(20px); }
+
+/*OCULTAR UN PLATO*/
+.plato-oculto {
+    opacity: 0.5;                /* Lo pone semi-transparente */
+    filter: grayscale(80%);      /* Le saca el color para que parezca "apagado" */
+    background-color: #f0f0f0;   /* Fondo gris claro */
+}
+
+.btn-ocultar.plato-oculto {
+    background-color: #6c757d;   /* Cambia el botón a un color gris/neutro */
+    color: white;
+}
+/* Fila del plato cuando está desactivado */
+.fila-oculta{
+    background-color: #f2f2f2; /* Fondo grisáceo */
+    opacity: 0.5;              /* Lo pone semitransparente (apagado) */
+}
+
+/* Opcional: que al pasar el mouse por encima recupere nitidez para ver los botones claro */
+.fila-oculta:hover {
+    opacity: 0.8;
+}

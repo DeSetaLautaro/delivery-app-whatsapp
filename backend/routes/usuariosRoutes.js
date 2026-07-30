@@ -108,5 +108,20 @@ router.get('/estadoLocal', verificarToken, async (req, res) => {
     }
 });
 
+router.get('/horarios', verificarToken, async (req, res) =>
+{
+    try {
+        const idUser = req.usuario.id;
+        const usuario = await Usuario.findById(idUser).select('horariosEstructurados');
+
+        if(!usuario) return res.status(404).json({error: "Usuario no encontrado"});
+        res.json({horarios : usuario.horariosEstructurados});
+        
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener estado" });
+    }
+
+})
+
 
 module.exports = router;

@@ -41,104 +41,93 @@
     <h3>⏰ Horarios de Atención</h3>
     <p class="texto-descriptivo">Definí los días y horarios en los que tu local recibe pedidos.</p>
 
-    <div class="lista-dias">
+<div class="lista-dias">
         
-        <!-- Fila Lunes -->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox" checked>
-                <span>Lunes</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00">
-                <span>a</span>
-                <input type="time" value="23:30">
-            </div>
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="lunes-activo">
+            <span>Lunes</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="lunes-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="lunes-hasta" value="23:30" disabled>
         </div>
-
-        <!-- Fila Martes-->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox">
-                <span>Martes</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00" disabled>
-                <span>a</span>
-                <input type="time" value="23:30" disabled>
-            </div>
-        </div>
-
-         <!-- Fila Miércoles-->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox">
-                <span>Miércoles</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00" disabled>
-                <span>a</span>
-                <input type="time" value="23:30" disabled>
-            </div>
-        </div>
-
-        <!-- Fila Jueves-->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox">
-                <span>Jueves</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00" disabled>
-                <span>a</span>
-                <input type="time" value="23:30" disabled>
-            </div>
-        </div>
-
-
-         <!-- Fila Viernes-->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox">
-                <span>Viernes</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00" disabled>
-                <span>a</span>
-                <input type="time" value="23:30" disabled>
-            </div>
-        </div>
-
-
-         <!-- Fila Sábado-->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox">
-                <span>Sábado</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00" disabled>
-                <span>a</span>
-                <input type="time" value="23:30" disabled>
-            </div>
-        </div>
-
-
-         <!-- Fila Domingo-->
-        <div class="fila-dia">
-            <label class="dia-check">
-                <input type="checkbox">
-                <span>Domingo</span>
-            </label>
-            <div class="dia-horas">
-                <input type="time" value="20:00" disabled>
-                <span>a</span>
-                <input type="time" value="23:30" disabled>
-            </div>
-        </div>
-
-        
     </div>
+
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="martes-activo">
+            <span>Martes</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="martes-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="martes-hasta" value="23:30" disabled>
+        </div>
+    </div>
+
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="miercoles-activo">
+            <span>Miércoles</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="miercoles-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="miercoles-hasta" value="23:30" disabled>
+        </div>
+    </div>
+
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="jueves-activo">
+            <span>Jueves</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="jueves-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="jueves-hasta" value="23:30" disabled>
+        </div>
+    </div>
+
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="viernes-activo">
+            <span>Viernes</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="viernes-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="viernes-hasta" value="23:30" disabled>
+        </div>
+    </div>
+
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="sabado-activo">
+            <span>Sábado</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="sabado-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="sabado-hasta" value="23:30" disabled>
+        </div>
+    </div>
+
+    <div class="fila-dia">
+        <label class="dia-check">
+            <input type="checkbox" id="domingo-activo">
+            <span>Domingo</span>
+        </label>
+        <div class="dia-horas">
+            <input type="time" id="domingo-desde" value="20:00" disabled>
+            <span>a</span>
+            <input type="time" id="domingo-hasta" value="23:30" disabled>
+        </div>
+    </div>
+        
+</div>
     <span id="estadoHorarios" style="font-size: 0.8rem; margin-top: 5px;"></span>
 </div>
         

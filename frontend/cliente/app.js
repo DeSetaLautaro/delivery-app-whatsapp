@@ -46,6 +46,7 @@ async function cargarMenu() {
 
         // 2. Hacemos la petición a la API
         const respuesta = await fetch(`/api/publico/menu/${slugDelLocal}`);
+        let estaAbierto = await fetch(`/api/publico/estadoLocal/${slugDelLocal}`);
 
         if (!respuesta.ok) {
             contenedor.innerHTML = '<p class="menu-error">Menú no disponible por el momento. Volvé a intentarlo más tarde.</p>';
@@ -54,9 +55,11 @@ async function cargarMenu() {
 
         // 3. Convertimos la respuesta a JSON
         const platos = await respuesta.json();
+        estaAbierto = await estaAbierto.json();
+
 
         // 4. Le pasamos los platos a la función dibujante
-        dibujarPlatos(platos);
+        dibujarPlatos(platos, estaAbierto.abierto);
 
     } catch (error) {
         console.error('[ERROR] No se pudo cargar el menú:', error);
@@ -64,14 +67,16 @@ async function cargarMenu() {
     }
 }
 
-function dibujarPlatos(platos) {
+function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está abierto o no
     const contenedor = document.getElementById('menu-contenedor');
 
+
     // Validación por si el local no tiene platos cargados
-    if (!platos || platos.length === 0) {
+    if (!todosLosPlatos || todosLosPlatos.length === 0) {
         contenedor.innerHTML = '<p class="menu-error">El menú está vacío.</p>';
         return;
     }
+    const platos = todosLosPlatos.filter(plato => plato.disponible === true);
 
     // Agrupar los platos por categoría usando reduce
     const porCategoria = platos.reduce((grupos, plato) => {
@@ -81,10 +86,27 @@ function dibujarPlatos(platos) {
         return grupos;
     }, {});
 
-    // Renderizar cada categoría como una sección usando tu función crearSeccionCategoria
-    contenedor.innerHTML = Object.entries(porCategoria)
+    // Armamos SOLO el HTML de las tarjetas de los platos
+    const htmlPlatos = Object.entries(porCategoria)
         .map(([categoria, items]) => crearSeccionCategoria(categoria, items))
         .join('');
+
+    // --- ACÁ ENTRA LA MAGIA DEL LOCAL CERRADO ---
+    if (!abierto) {
+        // 1. Armamos el banner rojo (sin bloquear)
+        const bannerHtml = `
+            <div class="banner-cerrado">
+                El local se encuentra cerrado en este momento.<br>
+                <small>Podés mirar el menú, pero no se pueden hacer pedidos.</small>
+            </div>
+        `;
+        
+        // 2. Inyectamos el banner, y envolvemos los platos en un div bloqueado
+        contenedor.innerHTML = bannerHtml + `<div class="menu-bloqueado">${htmlPlatos}</div>`;
+    } else {
+        // Si está abierto, inyectamos los platos normalmente
+        contenedor.innerHTML = htmlPlatos;
+    }
 }
 
 // ============================================================
@@ -382,47 +404,7 @@ document.getElementById('btnClear').addEventListener('click', () => {
 // VERIFICAR SI EL LOCAL ESTÁ ABIERTO O NO
 // ==============================================================
 
-async function verificarEstadoDelLocal() {
-    try {
-        // Hacemos la petición a la ruta pública
-        const respuesta = await peticionAPI(`/api/publico/estadoLocal?local=${idLocal}`, 'GET');
-        
-        // 1. PRIMERO comprobamos si el servidor tiró un error (ej. error 404 porque no encontró el local)
-        if (!respuesta.ok) {
-            console.error("Error en el servidor o local no encontrado.");
-            return; // Acá sí cortamos, porque falló la conexión
-        }
 
-        const datos = await respuesta.json();
-
-        // 2. AHORA SÍ comprobamos el estado del switch (abierto/cerrado)
-        // Si la base de datos dice que está cerrado (abierto: false)
-        if (!datos.abierto) {
-            console.log("El local está cerrado. Bloqueando menú...");
-
-            // 1. Mostrar el cartel rojo
-            const banner = document.getElementById('bannerCerrado');
-            if (banner) banner.style.display = 'block';
-            
-            // 2. Oscurecer y bloquear los clics en el menú
-            const contenedorMenu = document.getElementById('menu-contenedor');
-            if (contenedorMenu) contenedorMenu.classList.add('menu-bloqueado');
-            
-            // 3. Esconder el botón flotante del carrito
-            const btnCarrito = document.getElementById('fabWrapper'); 
-            if (btnCarrito) btnCarrito.style.display = 'none';
-
-            // 4. Cambiar la "bolita" del Header de Verde a Rojo
-            const badgeOpen = document.querySelector('.badge-open');
-            if (badgeOpen) {
-                badgeOpen.textContent = '● Cerrado';
-                badgeOpen.style.color = '#dc2626'; // Texto rojo
-            }
-        }
-    } catch (error) {
-        console.error("Error al verificar el estado del local:", error);
-    }
-}
 
 
 
@@ -432,6 +414,5 @@ async function verificarEstadoDelLocal() {
 // Apenas carga la pantalla del cliente...
 document.addEventListener('DOMContentLoaded', async () => {
     
-    verificarEstadoDelLocal(); 
     cargarMenu(); 
 });
