@@ -126,7 +126,7 @@ async function cargarGruposEnSelect() {
 
     // 1. Buscamos los datos usando tu función peticionAPI
     // (Asegurate de que la URL coincida con donde pusiste la ruta GET)
-    const respuesta = await peticionAPI('/api/platos/misToppings', 'GET');
+    const respuesta = await peticionAPI('/api/toppings/misToppings', 'GET');
     
     // Si la respuesta falló o devolvió null, frenamos acá
     if (!respuesta) return; 
@@ -971,7 +971,7 @@ formCrearToppings.addEventListener('submit', async (e)=>{
     };
 
     //f) hacer la petición
-    const respuesta = await peticionAPI('/api/platos/crearToppings', 'POST', body)
+    const respuesta = await peticionAPI('/api/toppings/crearToppings', 'POST', body)
     
     
     // Resetear formulario y cerrar modal
@@ -1073,7 +1073,7 @@ tabPorCategoria.addEventListener('click', () => {
 
 // 2. CARGAR LOS DATOS EN EL SELECT DE "EDITAR"
 async function cargarGruposParaGestionar() {
-    const respuesta = await peticionAPI('/api/platos/misToppings', 'GET');
+    const respuesta = await peticionAPI('/api/toppings/misToppings', 'GET');
     if (!respuesta) return;
 
     listaGruposToppings = await respuesta.json(); // Guardamos en la variable global
@@ -1237,7 +1237,7 @@ formEditarToppings.addEventListener('submit', async (e) => {
     };
 
     // Ojo: Asegurate de que la URL (/api/platos/editarToppings) coincida con donde creaste la ruta en el backend
-    const respuesta = await peticionAPI('/api/platos/editarToppings', 'PUT', body);
+    const respuesta = await peticionAPI('/api/toppings/editarToppings', 'PUT', body);
 
     if (respuesta) {
         // e) Si salió bien, actualizamos las cosas visuales
@@ -1262,7 +1262,7 @@ btnEliminarGrupoTopping.addEventListener('click', async () => {
     
     if (confirmacion) {
         // Enviamos el nombre por la URL como parámetro
-        const respuesta = await peticionAPI(`/api/platos/eliminarToppings/${nombreOriginal}`, 'DELETE');
+        const respuesta = await peticionAPI(`/api/toppings/eliminarToppings/${nombreOriginal}`, 'DELETE');
 
         if (respuesta) {
             // Actualizamos visualmente
@@ -1277,3 +1277,112 @@ btnEliminarGrupoTopping.addEventListener('click', async () => {
         }
     }
 });
+
+
+// ==========================================
+// ⚙️ GESTIÓN POR CATEGORÍA (Pestaña 2)
+// ==========================================
+
+// Función que dibuja la lista adentro del contenedorResultadosCategoria
+function renderizarToppingsPorCategoria(categoriaSeleccionada) {
+    const contenedorListado = document.getElementById('contenedorResultadosCategoria'); 
+    contenedorListado.innerHTML = ''; // Limpiamos el contenedor
+
+    // Filtramos qué grupos tienen esta categoría asignada
+    const gruposDeEstaCategoria = listaGruposToppings.filter(g => g.categoriaDestino.includes(categoriaSeleccionada));
+
+    if (gruposDeEstaCategoria.length === 0) {
+        contenedorListado.innerHTML = '<p class="topping-hint" style="text-align: center;">No hay toppings vinculados a esta categoría.</p>';
+        return;
+    }
+
+    // Dibujamos el título (ej: "Toppings para Coffee:")
+    const titulo = document.createElement('h4');
+    titulo.textContent = `Toppings para ${categoriaSeleccionada}:`;
+    titulo.style.marginBottom = '10px';
+    contenedorListado.appendChild(titulo);
+
+    // Dibujamos la lista de grupos con los tachitos
+    const ul = document.createElement('ul');
+    ul.style.listStyleType = 'none'; // Le saco los puntitos para que el tachito quede más limpio
+    ul.style.paddingLeft = '0';
+    ul.style.margin = '0';
+
+    gruposDeEstaCategoria.forEach(grupo => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.borderBottom = '1px solid #ddd';
+        li.style.paddingBottom = '5px';
+
+        // Armamos el texto: "salsas: (Cheddar, Bacon)"
+        const opcionesTxt = grupo.opciones.map(o => o.nombre).join(', ');
+        const texto = document.createElement('span');
+        texto.innerHTML = `<strong>${grupo.nombre}:</strong> <em>(${opcionesTxt})</em>`;
+
+        // Botón de eliminar individual
+        const btnQuitar = document.createElement('button');
+        btnQuitar.type = 'button';
+        btnQuitar.innerHTML = '🗑️';
+        btnQuitar.title = 'Quitar de esta categoría';
+        btnQuitar.style.background = 'transparent';
+        btnQuitar.style.border = 'none';
+        btnQuitar.style.cursor = 'pointer';
+        btnQuitar.style.fontSize = '16px';
+        
+        btnQuitar.addEventListener('click', async () => {
+            if (confirm(`¿Quitar el grupo "${grupo.nombre}" de la categoría ${categoriaSeleccionada}?`)) {
+                const body = { nombreGrupo: grupo.nombre, nombreCategoria: categoriaSeleccionada };
+                // Llamamos a la ruta de desvincular individual
+                const res = await peticionAPI('/api/toppings/desvincularCategoriaDeTopping', 'PUT', body);
+                if (res) {
+                    await cargarGruposParaGestionar(); // Refresca el array global
+                    renderizarToppingsPorCategoria(categoriaSeleccionada); // Vuelve a dibujar esta lista
+                }
+            }
+        });
+
+        li.appendChild(texto);
+        li.appendChild(btnQuitar);
+        ul.appendChild(li);
+    });
+
+    contenedorListado.appendChild(ul);
+
+    // Dibujamos el botón gigante de Eliminar Todos abajo
+    const btnQuitarTodos = document.createElement('button');
+    btnQuitarTodos.type = 'button';
+    btnQuitarTodos.innerHTML = '🗑️ Eliminar TODOS de esta categoría';
+    btnQuitarTodos.style.marginTop = '15px';
+    btnQuitarTodos.style.backgroundColor = '#ff4d4d';
+    btnQuitarTodos.style.color = 'white';
+    btnQuitarTodos.style.border = 'none';
+    btnQuitarTodos.style.padding = '8px 12px';
+    btnQuitarTodos.style.borderRadius = '5px';
+    btnQuitarTodos.style.cursor = 'pointer';
+    btnQuitarTodos.style.width = '100%'; // Ocupa todo el ancho
+
+    btnQuitarTodos.addEventListener('click', async () => {
+        if (confirm(`¿Estás SEGURO de quitar absolutamente TODOS los toppings de la categoría ${categoriaSeleccionada}?`)) {
+            const body = { nombreCategoria: categoriaSeleccionada };
+            // Llamamos a la ruta de desvincular TODOS
+            const res = await peticionAPI('/api/toppings/desvincularTodosDeCategoria', 'PUT', body);
+            if (res) {
+                await cargarGruposParaGestionar(); // Refresca el array global
+                renderizarToppingsPorCategoria(categoriaSeleccionada); // Vuelve a dibujar (debería decir "No hay toppings")
+            }
+        }
+    });
+
+    contenedorListado.appendChild(btnQuitarTodos);
+}
+
+// Escuchador para cuando el usuario selecciona una categoría en el <select>
+const selectFiltroCategoria = document.getElementById('selectFiltroCategoria'); 
+if (selectFiltroCategoria) {
+    selectFiltroCategoria.addEventListener('change', (e) => {
+        renderizarToppingsPorCategoria(e.target.value);
+    });
+}

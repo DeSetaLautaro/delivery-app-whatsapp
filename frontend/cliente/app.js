@@ -1,11 +1,4 @@
-const parametrosUrl = new URLSearchParams(window.location.search);
-const idLocal = parametrosUrl.get('local'); 
 
-
-if (!idLocal) {
-    document.getElementById('menu-contenedor').innerHTML = "<h1>Error: No se especificó el local</h1>";
-    // Frena todo si entran a /menu.html sin poner de quién es
-}
 
 
 // ============================================================
@@ -145,7 +138,7 @@ function crearSeccionCategoria(categoria, items) {
  */
 function crearTarjetaPlato(plato) {
     // 1. Escudo para el nombre: Probamos si viene como 'nombre' o como 'plato'
-    const nombreDelPlato = plato.nombre || plato.plato || 'Plato sin nombre';
+    const nombreDelPlato = plato.nombre || plato.nombre || 'Plato sin nombre';
     
     // 2. Ahora sí sanitizamos el texto con total seguridad
     const nombreSeguro = nombreDelPlato.replace(/"/g, '&quot;');
@@ -206,25 +199,38 @@ function obtenerEmoji(categoria) {
  * @param {string} nombrePlato - Nombre del plato a agregar
  */
 async function agregarAlCarrito(nombrePlato) {
+    try {
+        // 1. Leemos la URL actual. Ej: si está en "/menu/pepito", esto guarda "pepito"
+        const nombreLocal = window.location.pathname.split('/').pop();
 
-    // Buscar los datos completos del plato en el backend
-    // (precio, descripcion, etc.) para no depender de lo que está en el DOM
-    const respuesta = await fetch('/menu');
-    const platos    = await respuesta.json();
-    const plato     = platos.find(p => p.plato === nombrePlato);
+        // 2. Hacemos el fetch a la ruta correcta (👇 ACÁ TENEMOS QUE PONER TU RUTA REAL)
+        const respuesta = await fetch(`/api/publico/menu/${nombreLocal}`); 
+        
+        if (!respuesta.ok) {
+            throw new Error("No se pudo cargar el menú del servidor");
+        }
 
-    if (!plato) return;
+        const platos = await respuesta.json();
+        console.log("platos:", platos);
+        const plato = platos.find(p => p.nombre === nombrePlato);
+        console.log("el plato es:", plato);
 
-    if (carrito[nombrePlato]) {
-        // Si ya existe, solo sumamos 1 a la cantidad
-        carrito[nombrePlato].cantidad += 1;
-    } else {
-        // Si es nuevo, lo agregamos con cantidad 1
-        carrito[nombrePlato] = { ...plato, cantidad: 1 };
+
+        if (!plato) return;
+
+        if (carrito[nombrePlato]) {
+            carrito[nombrePlato].cantidad += 1;
+        } else {
+            carrito[nombrePlato] = { ...plato, cantidad: 1 };
+        }
+
+        actualizarUI();
+        mostrarToast(`${nombrePlato} agregado al carrito 🛒`);
+
+    } catch (error) {
+        console.error("Error al agregar al carrito:", error);
+        mostrarToast("Hubo un problema al agregar el plato.");
     }
-
-    actualizarUI();
-    mostrarToast(`${nombrePlato} agregado al carrito 🛒`);
 }
 
 /**
@@ -293,13 +299,13 @@ function actualizarListaModal(items, totalPrecio) {
     lista.innerHTML = items.map(item => `
         <li class="cart-item">
             <div class="cart-item-info">
-                <span class="cart-item-name">${item.plato}</span>
+                <span class="cart-item-name">${item.nombre}</span>
                 <span class="cart-item-price">$${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
             </div>
             <div class="cart-item-controls">
-                <button onclick="quitarDelCarrito('${item.plato.replace(/'/g, "\\'")}')" aria-label="Quitar uno">−</button>
+                <button onclick="quitarDelCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Quitar uno">−</button>
                 <span>${item.cantidad}</span>
-                <button onclick="agregarAlCarrito('${item.plato.replace(/'/g, "\\'")}')" aria-label="Agregar uno">+</button>
+                <button onclick="agregarAlCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Agregar uno">+</button>
             </div>
         </li>
     `).join('');
@@ -310,24 +316,16 @@ function actualizarListaModal(items, totalPrecio) {
 // WHATSAPP
 // ============================================================
 
-/**
- * PROPOSITO:
- *   Genera un mensaje de texto bien formateado con el pedido completo
- *   y abre WhatsApp con ese mensaje listo para enviar.
- *
- *   El número de WhatsApp del local se lee del .env a través de
- *   una ruta GET /config que expondremos en el backend (sin exponer la key).
- */
 function enviarPorWhatsapp() {
     const items = Object.values(carrito);
     if (items.length === 0) return;
 
     // Armar el texto del pedido línea por línea
     const lineas = items.map(item =>
-        `• ${item.cantidad}x ${item.plato} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`
+        `• ${item.cantidad}x ${item.nombre} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`
     );
 
-    const total   = items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
+    const total = items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
     const mensaje = [
         '🛒 *Nuevo pedido*',
         '',
@@ -336,17 +334,29 @@ function enviarPorWhatsapp() {
         `*Total: $${total.toLocaleString('es-AR')}*`
     ].join('\n');
 
-    // Leer el número del local desde el backend para no hardcodearlo acá
-    fetch('/config')
+    // 1. Leemos en qué local estamos parados
+    const nombreLocal = window.location.pathname.split('/').pop();
+
+    // 2. ⚠️ ACÁ TENÉS QUE LLAMAR A UNA RUTA QUE TE DEVUELVA EL TELÉFONO DE ESE LOCAL
+    // Puse una de ejemplo, tenés que adaptarla a tu backend
+    fetch(`/api/publico/perfil/${nombreLocal}`)
         .then(r => r.json())
-        .then(config => {
-            const url = `https://wa.me/${config.whatsappNumero}?text=${encodeURIComponent(mensaje)}`;
+        .then(perfil => {
+            // Suponiendo que el backend devuelve { whatsappNumero: "54911..." }
+            const numero = perfil.whatsappNumero || ''; 
+            const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
+            
+            // 🔄 MAGIA ACÁ: Redirigimos a la URL exacta en la que estaba el cliente
+            window.location.href = window.location.pathname;
         })
         .catch(() => {
-            // Si no hay config, igual abrimos WhatsApp sin número (el cliente elige)
+            // Si falla, abrimos WhatsApp sin número para que el cliente elija
             const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
+            
+            // 🔄 Redirigimos igual
+            window.location.href = window.location.pathname;
         });
 }
 
