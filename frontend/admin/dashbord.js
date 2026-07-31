@@ -30,6 +30,7 @@ async function cargarListaDePlatos() {
         listaDePlatos.forEach(plato => {
             cargarHTMLListaDePlatos(plato);
         });
+        generarCheckboxesCategorias();
         
     } catch (error) {
         console.error('Error al cargar platos:', error);
@@ -118,6 +119,35 @@ async function ocultarPlato(idPlato)
     }
 }
 
+}
+
+async function cargarGruposEnSelect() {
+    const select = document.getElementById('selectNombreGrupo');
+
+    // 1. Buscamos los datos usando tu función peticionAPI
+    // (Asegurate de que la URL coincida con donde pusiste la ruta GET)
+    const respuesta = await peticionAPI('/api/platos/misToppings', 'GET');
+    
+    // Si la respuesta falló o devolvió null, frenamos acá
+    if (!respuesta) return; 
+
+    const grupos = await respuesta.json();
+
+    // 2. Limpiamos el select, pero dejamos las dos opciones obligatorias
+    select.innerHTML = `
+        <option value="" disabled selected>Seleccioná un grupo...</option>
+        <option value="CREAR_NUEVO" style="font-weight: bold;">➕ Crear nuevo grupo...</option>
+    `;
+
+    // 3. Recorremos los grupos de la base de datos y creamos un <option> para cada uno
+    grupos.forEach(grupo => {
+        const opcionHtml = document.createElement('option');
+        opcionHtml.value = grupo.nombre;
+        opcionHtml.textContent = grupo.nombre;
+        
+        // Magia: Inserta la opción nueva JUSTO ANTES de la opción "➕ Crear nuevo..."
+        select.insertBefore(opcionHtml, select.lastElementChild);
+    });
 }
 
 
@@ -338,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarListaDePlatos();
 
     cargarCategorias();
+    cargarGruposEnSelect();
 
   
     cargarEstadoDesdeMongoDB();
@@ -776,106 +807,473 @@ switchAbierto.addEventListener('change', async (e) => {
 });
 
 
-//------------------------------------------------------------------------------
-// --- VARIABLES DEL MODAL ---
-const modalToppings = document.getElementById('modalToppings');
-const btnAbrirModalToppings = document.getElementById('btnAbrirModalToppings'); // El botón que pusiste arriba de la tabla
-const btnCerrarModalToppings = document.getElementById('btnCerrarModalToppings');
-const btnAgregarFilaTopping = document.getElementById('btnAgregarFilaTopping');
-const btnGuardarTopping = document.getElementById('btnGuardarTopping');
-const contenedorOpcionesTopping = document.getElementById('contenedorOpcionesTopping');
-const selectCategoriaTopping = document.getElementById('categoriaDestinoTopping');
+// ============================================================
+// MODAL TOPPINGS
+// ============================================================
 
-// 1. ABRIR Y CERRAR MODAL
+// ── 1. ABRIR / CERRAR con Event Delegation ──────────────────
+// Interceptamos clics en todo el documento para no depender
+// de que el botón exista al cargar el script.
 document.addEventListener('click', (e) => {
-    // ABRIR
+
+    // ABRIR: el botón "Toppings por Categoría" arriba de la tabla
     if (e.target.closest('#btnAbrirModalToppings')) {
-        const modal = document.getElementById('modalToppings');
-        modal.removeAttribute('hidden'); // Le sacamos el hidden para que se vea
-        llenarSelectCategorias(); 
+        document.getElementById('modalToppings').removeAttribute('hidden');
+        // Generamos los checkboxes CADA VEZ que se abre
+        // para reflejar si se agregaron platos nuevos desde que cargó la página.
+        
+        return;
     }
 
-    // CERRAR
+    // CERRAR: botón ✖ del modal
     if (e.target.closest('#btnCerrarModalToppings')) {
-        const modal = document.getElementById('modalToppings');
-        modal.setAttribute('hidden', true); // Le volvemos a poner el hidden
+        document.getElementById('modalToppings').setAttribute('hidden', '');
+        return;
+    }
+
+    // CERRAR: clic en el fondo oscuro (overlay), no en el contenido
+    if (e.target.id === 'modalToppings') {
+        e.target.setAttribute('hidden', '');
+        return;
+    }
+
+    // ELIMINAR FILA: usamos delegation para capturar el clic en cualquier
+    // botón .btn-eliminar-fila, tanto en la fila inicial como en las dinámicas.
+    if (e.target.closest('.btn-eliminar-fila')) {
+        const fila = e.target.closest('.fila-opcion');
+        // Solo borramos si hay más de una fila (no dejamos el contenedor vacío)
+        const totalFilas = document.querySelectorAll('#contenedorOpcionesTopping .fila-opcion').length;
+        if (totalFilas > 1) {
+            fila.remove();
+        }
     }
 });
 
-// 2. LLENAR EL SELECT DE CATEGORÍAS (Reciclando las categorías de tus platos)
-function llenarSelectCategorias() {
-    // Leemos directo de la variable global
-    const categoriasUnicas = [...new Set(listaPlatosGlobal.map(p => p.categoria))];
-    
-    selectCategoriaTopping.innerHTML = '<option value="">Selecciona una categoría...</option>';
-    
+
+// ── 2. GENERAR CHECKBOXES DE CATEGORÍAS ─────────────────────
+/**
+ * Lee `listaPlatosGlobal` (array global cargado en cargarListaDePlatos),
+ * extrae las categorías únicas y genera un checkbox por cada una
+ * dentro del contenedor #contenedorCategoriasTopping.
+ */
+// ── 2. GENERAR CHECKBOXES DE CATEGORÍAS ─────────────────────
+/**
+ * Lee `listaPlatosGlobal`, extrae las categorías únicas y genera 
+ * un checkbox por cada una para AMBOS modales (Crear y Editar).
+ */
+function generarCheckboxesCategorias() {
+    // Apuntamos a los dos contenedores
+    const contenedorCrear = document.getElementById('contenedorCategoriasTopping');
+    const contenedorEditar = document.getElementById('contenedorEditarCategoriasTopping'); 
+
+    // Limpiamos ambos
+    contenedorCrear.innerHTML = ''; 
+    contenedorEditar.innerHTML = ''; 
+
+    const categoriasUnicas = [...new Set(listaPlatosGlobal.map(p => p.categoria).filter(Boolean))];
+
+    if (categoriasUnicas.length === 0) {
+        const msj = '<p class="topping-hint">No hay categorías todavía. Cargá platos primero.</p>';
+        contenedorCrear.innerHTML = msj;
+        contenedorEditar.innerHTML = msj;
+        return;
+    }
+
     categoriasUnicas.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat;
-        selectCategoriaTopping.appendChild(option);
+        // Armamos el label y el checkbox original
+        const label = document.createElement('label');
+        label.className = 'topping-checkbox-label';
+
+        const checkbox = document.createElement('input');
+        checkbox.type  = 'checkbox';
+        checkbox.value = cat;
+        checkbox.name  = 'categoriaDestino';
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(cat));
+        
+        // 1. Lo metemos en el modal de CREAR
+        contenedorCrear.appendChild(label);
+        
+        // 2. Le sacamos una "fotocopia" y lo metemos en el modal de EDITAR
+        const labelClonado = label.cloneNode(true);
+        contenedorEditar.appendChild(labelClonado);
     });
 }
 
-// 3. AGREGAR UNA NUEVA FILA DE OPCIÓN (Para poner más toppings)
-btnAgregarFilaTopping.addEventListener('click', () => {
-    const nuevaFila = document.createElement('div');
-    nuevaFila.classList.add('fila-opcion');
-    nuevaFila.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px;';
-    
-    nuevaFila.innerHTML = `
-        <input type="text" placeholder="Nombre (Ej: Panceta)" class="topping-nombre" style="flex: 2;">
-        <input type="number" placeholder="Precio (Ej: 700)" class="topping-precio" style="flex: 1;">
-        <button type="button" class="btn-eliminar-fila" style="color: red; border: none; background: none; cursor: pointer;">❌</button>
-    `;
-    
-    contenedorOpcionesTopping.appendChild(nuevaFila);
 
-    // Botón para borrar esta fila si se equivocó
-    nuevaFila.querySelector('.btn-eliminar-fila').addEventListener('click', () => {
-        nuevaFila.remove();
-    });
+// ── 3. AGREGAR FILA DINÁMICA ─────────────────────────────────
+/**
+ * Cada clic en "+ Sumar otra opción" crea una nueva fila con
+ * input de nombre, input de precio y botón de eliminar.
+ * El botón de eliminar se maneja con delegation (ver punto 1).
+ */
+document.getElementById('btnAgregarFilaTopping').addEventListener('click', () => {
+    const contenedor = document.getElementById('contenedorOpcionesTopping');
+
+    const nuevaFila = document.createElement('div');
+    nuevaFila.className = 'fila-opcion';
+    nuevaFila.innerHTML = `
+        <input type="text"   class="topping-nombre" placeholder="Ej: Panceta" />
+        <input type="number" class="topping-precio" placeholder="Precio (0 = gratis)" min="0" />
+        <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
+    `;
+
+    contenedor.appendChild(nuevaFila);
+    // Foco automático en el input de nombre de la nueva fila
+    nuevaFila.querySelector('.topping-nombre').focus();
 });
 
-// 4. GUARDAR EL GRUPO EN EL BACKEND
-document.getElementById('formCrearToppings').addEventListener('submit', async (e) => {
-    e.preventDefault(); // ¡Clave para que no se recargue la página!
 
-    const nombreGrupo = document.getElementById('nombreGrupoTopping').value;
-    const categoriaDestino = document.getElementById('categoriaDestinoTopping').value;
+// 4)
+//-----------------------------------------------------------------------------------
+//===================== LÓGICA DE GUARDAR TOPPINGS ==================================
+//------------------------------------------------------------------------------------
+
+const formCrearToppings = document.getElementById('formCrearToppings');
+formCrearToppings.addEventListener('submit', async (e)=>{
+    e.preventDefault();
     
+    //a) nombre del grupo
+    let nombreGrupoTopping = selectNombreGrupo.value;
+
+    if (nombreGrupoTopping === 'CREAR_NUEVO') {
+        // Si quiso crear uno nuevo, pisamos la variable con lo que escribió en el input
+        nombreGrupoTopping = inputNuevoGrupoTopping.value.trim();
+    }
+
+    // Pequeña seguridad por si algo falla
+    if (!nombreGrupoTopping) {
+        alert("Por favor, ingresá o seleccioná un nombre para el grupo.");
+        return; 
+    }
+    // b) Categorías destino: filtramos solo los checkboxes tildados
+    const chekedForms = document.querySelectorAll('#contenedorCategoriasTopping input[type=checkbox]:checked');
+    
+    // c) Metemos los valores de cada checkbox en un array
+    const listaCategorias = [];
+    chekedForms.forEach(cheked => {listaCategorias.push(cheked.value)});
+
+    //d) Opciones del grupo: recorremos las filas y descartamos las vacías
     const filas = document.querySelectorAll('#contenedorOpcionesTopping .fila-opcion');
-    const opcionesArray = [];
+    const opciones = Array.from(filas).map(fila =>({
+        nombre: fila.querySelector('.topping-nombre').value,
+        precio: Number(fila.querySelector('.topping-precio').value) || 0
 
-    filas.forEach(fila => {
-        const nombre = fila.querySelector('.topping-nombre').value;
-        const precio = fila.querySelector('.topping-precio').value;
-        
-        if(nombre.trim() !== "") {
-            opcionesArray.push({
-                nombre: nombre,
-                precio: Number(precio) || 0
-            });
-        }
-    });
+    })).filter(opcion => opcion.nombre !== "");
 
-    const nuevoGrupoToppings = {
-        nombre: nombreGrupo,
-        categoriaDestino: categoriaDestino,
-        esMultiselect: true,
-        opciones: opcionesArray
+    //e) Construir el body que vamos a mandar en la petición
+
+    let body = {
+    nombre: nombreGrupoTopping,      // Matchea con 'nombre' del Schema
+    categoriaDestino: listaCategorias, // Matchea con 'categoriaDestino' del Schema
+    opciones: opciones                 // Matchea con 'opciones' del Schema
     };
 
-    try {
-        const res = await peticionAPI('/api/toppings', 'POST', nuevoGrupoToppings);
-        if (res && res.ok) {
-            alert("¡Toppings guardados con éxito!");
-            document.getElementById('modalToppings').setAttribute('hidden', true);
-            document.getElementById('formCrearToppings').reset(); // Limpiamos el formulario
-        }
-    } catch (error) {
-        console.error("Error al guardar toppings:", error);
+    //f) hacer la petición
+    const respuesta = await peticionAPI('/api/platos/crearToppings', 'POST', body)
+    
+    
+    // Resetear formulario y cerrar modal
+    document.getElementById('formCrearToppings').reset();
+    // En vez de borrar el HTML, simplemente destildamos todos los checkboxes
+    const checkboxes = document.querySelectorAll('#contenedorCategoriasTopping input[type="checkbox"]');
+    checkboxes.forEach(chk => {
+        chk.checked = false;
+    });
+    document.getElementById('contenedorOpcionesTopping').innerHTML = `
+        <div class="fila-opcion">
+            <input type="text"   class="topping-nombre" placeholder="Ej: Cheddar" />
+            <input type="number" class="topping-precio" placeholder="Precio (0 = gratis)" min="0" />
+            <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
+        </div>
+    `;
+    document.getElementById('modalToppings').setAttribute('hidden', '');
+
+    cargarGruposEnSelect();
+    
+
+    console.log("lo que salió es", body);
+
+
+   
+    
+});
+
+//===========================================
+// Acá cambiamos el select del toping por el input para crear uno nuevo
+//=========================================
+// 1. Capturamos el select y el input oculto
+const selectNombreGrupo = document.getElementById('selectNombreGrupo');
+const inputNuevoGrupoTopping = document.getElementById('inputNuevoGrupoTopping');
+
+// 2. Escuchamos cada vez que cambia el valor del select
+selectNombreGrupo.addEventListener('change', (e) => {
+    if (e.target.value === 'CREAR_NUEVO') {
+        // Si elige crear nuevo: mostramos el input, lo hacemos obligatorio y le damos el foco
+        inputNuevoGrupoTopping.style.display = 'block';
+        inputNuevoGrupoTopping.required = true;
+        inputNuevoGrupoTopping.focus(); // 👈 Esto pone el cursor titilando ahí automáticamente
+    } else {
+        // Si elige otra cosa: escondemos el input, le sacamos lo obligatorio y lo limpiamos
+        inputNuevoGrupoTopping.style.display = 'none';
+        inputNuevoGrupoTopping.required = false;
+        inputNuevoGrupoTopping.value = ''; 
     }
 });
 
 
+// ==========================================
+// LÓGICA DEL MODAL GESTIONAR TOPPINGS
+// ==========================================
+
+const btnGestionarToppings = document.getElementById('btnGestionarToppings');
+const modalGestionarToppings = document.getElementById('modalGestionarToppings');
+
+btnGestionarToppings.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    cargarGruposParaGestionar();
+    modalGestionarToppings.removeAttribute('hidden');
+});
+
+// Variable global para guardar los toppings y no tener que pedirselos al backend a cada rato
+let listaGruposToppings = [];
+
+// 1. LÓGICA DE LAS PESTAÑAS (TABS)
+const tabPorTopping = document.getElementById('tabPorTopping');
+const tabPorCategoria = document.getElementById('tabPorCategoria');
+const vistaPorTopping = document.getElementById('vistaPorTopping');
+const vistaPorCategoria = document.getElementById('vistaPorCategoria');
+
+tabPorTopping.addEventListener('click', () => {
+    // Estilos visuales
+    tabPorTopping.classList.add('activo');
+    tabPorTopping.style.opacity = '1';
+    tabPorCategoria.classList.remove('activo');
+    tabPorCategoria.style.opacity = '0.6';
+    // Mostrar/Ocultar
+    vistaPorTopping.style.display = 'block';
+    vistaPorCategoria.style.display = 'none';
+});
+
+tabPorCategoria.addEventListener('click', () => {
+    // Estilos visuales
+    tabPorCategoria.classList.add('activo');
+    tabPorCategoria.style.opacity = '1';
+    tabPorTopping.classList.remove('activo');
+    tabPorTopping.style.opacity = '0.6';
+    // Mostrar/Ocultar
+    vistaPorCategoria.style.display = 'block';
+    vistaPorTopping.style.display = 'none';
+    
+    // Al abrir esta pestaña, llenamos el select de categorías
+    cargarSelectCategoriasFiltro();
+});
+
+
+// 2. CARGAR LOS DATOS EN EL SELECT DE "EDITAR"
+async function cargarGruposParaGestionar() {
+    const respuesta = await peticionAPI('/api/platos/misToppings', 'GET');
+    if (!respuesta) return;
+
+    listaGruposToppings = await respuesta.json(); // Guardamos en la variable global
+    const select = document.getElementById('selectEditarGrupo');
+    
+    select.innerHTML = '<option value="" disabled selected>Elegí un grupo...</option>';
+
+    listaGruposToppings.forEach(grupo => {
+        const opcion = document.createElement('option');
+        opcion.value = grupo.nombre;
+        opcion.textContent = grupo.nombre;
+        select.appendChild(opcion);
+    });
+}
+
+// 3. CUANDO EL USUARIO ELIGE UN GRUPO PARA EDITAR
+const selectEditarGrupo = document.getElementById('selectEditarGrupo');
+selectEditarGrupo.addEventListener('change', (e) => {
+    const nombreElegido = e.target.value;
+    // Buscamos el grupo en nuestra lista global
+    const grupo = listaGruposToppings.find(g => g.nombre === nombreElegido);
+    
+    if (!grupo) return;
+
+    // A) Llenar los checkboxes de categorías
+    // Traemos el contenedor (que ahora ya tiene los checkboxes clonados desde el principio)
+    const contenedorCheckboxesEditar = document.getElementById('contenedorEditarCategoriasTopping');
+    
+    // Ahora tildamos solo los que este grupo ya tiene asignados
+    const checkboxes = contenedorCheckboxesEditar.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(chk => {
+        if (grupo.categoriaDestino.includes(chk.value)) {
+            chk.checked = true;
+        } else {
+            chk.checked = false;
+        }
+    });
+
+    // B) Llenar las opciones (Cheddar $500, Bacon $600, etc)
+    const contenedorOpciones = document.getElementById('contenedorEditarOpcionesTopping');
+    contenedorOpciones.innerHTML = ''; // Limpiamos
+
+    grupo.opciones.forEach(opcion => {
+        contenedorOpciones.insertAdjacentHTML('beforeend', `
+            <div class="fila-opcion">
+                <input type="text" class="topping-nombre" value="${opcion.nombre}" required />
+                <input type="number" class="topping-precio" value="${opcion.precio}" min="0" required />
+                <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
+            </div>
+        `);
+    });
+});
+
+// 4. AGREGAR / ELIMINAR FILAS EN LA VISTA EDITAR
+document.getElementById('btnAgregarFilaEditarTopping').addEventListener('click', () => {
+    document.getElementById('contenedorEditarOpcionesTopping').insertAdjacentHTML('beforeend', `
+        <div class="fila-opcion">
+            <input type="text" class="topping-nombre" placeholder="Ej: Nueva opción" required />
+            <input type="number" class="topping-precio" placeholder="Precio (0 = gratis)" min="0" required />
+            <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
+        </div>
+    `);
+});
+
+// Delegación de eventos para los botones de eliminar fila en el modal de edición
+document.getElementById('contenedorEditarOpcionesTopping').addEventListener('click', (e) => {
+    if (e.target.classList.contains('btn-eliminar-fila')) {
+        e.target.closest('.fila-opcion').remove();
+    }
+});
+
+
+// 5. LÓGICA DE LA PESTAÑA "POR CATEGORÍA"
+function cargarSelectCategoriasFiltro() {
+    const select = document.getElementById('selectFiltroCategoria');
+    // Tomamos todos los checkboxes que ya tenés renderizados en tu sistema para armar las opciones
+    const checkboxes = document.querySelectorAll('#contenedorCategoriasTopping input[type="checkbox"]');
+    
+    select.innerHTML = '<option value="" disabled selected>Elegí una categoría...</option>';
+    
+    checkboxes.forEach(chk => {
+        select.insertAdjacentHTML('beforeend', `<option value="${chk.value}">${chk.value}</option>`);
+    });
+}
+
+document.getElementById('selectFiltroCategoria').addEventListener('change', (e) => {
+    const categoriaElegida = e.target.value;
+    const contenedorResultados = document.getElementById('contenedorResultadosCategoria');
+    
+    // Filtramos los grupos que incluyan esta categoría en su array
+    const gruposAsociados = listaGruposToppings.filter(g => g.categoriaDestino.includes(categoriaElegida));
+    
+    if (gruposAsociados.length === 0) {
+        contenedorResultados.innerHTML = `<p style="color: #666; text-align:center;">No hay toppings asignados a la categoría <b>${categoriaElegida}</b>.</p>`;
+        return;
+    }
+
+    // Dibujamos el resultado
+    let htmlResultados = `<h4 style="margin-bottom: 10px;">Toppings para ${categoriaElegida}:</h4><ul>`;
+    gruposAsociados.forEach(grupo => {
+        const nombresOpciones = grupo.opciones.map(op => op.nombre).join(', ');
+        htmlResultados += `<li style="margin-bottom: 8px;">
+            <b>${grupo.nombre}:</b> <span style="font-size: 0.9em; color: #555;">(${nombresOpciones})</span>
+        </li>`;
+    });
+    htmlResultados += `</ul>`;
+    
+    contenedorResultados.innerHTML = htmlResultados;
+});
+// ==========================================
+// ACCIONES: GUARDAR CAMBIOS Y ELIMINAR
+// ==========================================
+
+const formEditarToppings = document.getElementById('formEditarToppings');
+const btnEliminarGrupoTopping = document.getElementById('btnEliminarGrupoTopping');
+
+// 1. GUARDAR CAMBIOS (PUT)
+formEditarToppings.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Evitamos que la página se recargue
+
+    // a) Saber qué grupo estamos editando
+    const nombreOriginal = document.getElementById('selectEditarGrupo').value;
+    
+    if (!nombreOriginal) {
+        alert("Por favor, seleccioná un grupo para editar.");
+        return;
+    }
+
+    // b) Recolectar las categorías tildadas
+    const categoriasSeleccionadas = [];
+    const checkboxes = document.querySelectorAll('#contenedorEditarCategoriasTopping input[type="checkbox"]:checked');
+    checkboxes.forEach(chk => categoriasSeleccionadas.push(chk.value));
+
+    // c) Recolectar las opciones y precios
+    const opciones = [];
+    const filas = document.querySelectorAll('#contenedorEditarOpcionesTopping .fila-opcion');
+    
+    let hayError = false;
+    filas.forEach(fila => {
+        const nombreOpcion = fila.querySelector('.topping-nombre').value.trim();
+        const precioOpcion = parseFloat(fila.querySelector('.topping-precio').value);
+
+        // Validamos que haya puesto nombre y un precio válido
+        if (nombreOpcion && !isNaN(precioOpcion)) {
+            opciones.push({ nombre: nombreOpcion, precio: precioOpcion });
+        } else {
+            hayError = true;
+        }
+    });
+
+    if (hayError || opciones.length === 0) {
+        alert("Asegurate de completar bien todas las opciones (nombre y precio).");
+        return;
+    }
+
+    // d) Armar el paquete y enviarlo al Backend
+    const body = {
+        nombreOriginal: nombreOriginal,
+        categoriaDestino: categoriasSeleccionadas,
+        opciones: opciones
+    };
+
+    // Ojo: Asegurate de que la URL (/api/platos/editarToppings) coincida con donde creaste la ruta en el backend
+    const respuesta = await peticionAPI('/api/platos/editarToppings', 'PUT', body);
+
+    if (respuesta) {
+        // e) Si salió bien, actualizamos las cosas visuales
+        cargarGruposParaGestionar(); // Refresca el select de este modal
+        cargarGruposEnSelect();      // Refresca el select del modal de "Crear Topping" para que no quede desactualizado
+        document.getElementById('modalGestionarToppings').setAttribute('hidden', '');
+    }
+});
+
+
+// 2. ELIMINAR GRUPO (DELETE)
+btnEliminarGrupoTopping.addEventListener('click', async () => {
+    const nombreOriginal = document.getElementById('selectEditarGrupo').value;
+    
+    if (!nombreOriginal) {
+        alert("Por favor, seleccioná un grupo primero.");
+        return;
+    }
+
+    // Ventana de alerta nativa del navegador para evitar borrados accidentales
+    const confirmacion = confirm(`¿Estás seguro de que querés eliminar el grupo "${nombreOriginal}" por completo?`);
+    
+    if (confirmacion) {
+        // Enviamos el nombre por la URL como parámetro
+        const respuesta = await peticionAPI(`/api/platos/eliminarToppings/${nombreOriginal}`, 'DELETE');
+
+        if (respuesta) {
+            // Actualizamos visualmente
+            cargarGruposParaGestionar(); 
+            cargarGruposEnSelect(); 
+            
+            // Limpiamos los inputs del modal para que no quede la información "fantasma"
+            formEditarToppings.reset();
+            document.getElementById('contenedorEditarOpcionesTopping').innerHTML = '';
+            
+            document.getElementById('modalGestionarToppings').setAttribute('hidden', '');
+        }
+    }
+});

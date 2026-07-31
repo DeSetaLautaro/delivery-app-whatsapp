@@ -207,6 +207,18 @@ body {
     transition: border-color 0.2s;
     margin-bottom: 8px;
 }
+.modal-plato select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+}
+
 .modal-plato input:focus { border-color: #ff6b35; }
 
 .modal-plato button[type="submit"] {
@@ -490,3 +502,127 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     align-items: center;
     gap: 20px;
 }
+
+/* ============================================================
+   MODAL TOPPINGS
+   ============================================================ */
+
+/* El modal de toppings tiene más contenido que el de platos */
+.modal-toppings { max-width: 500px; }
+
+/* Texto de ayuda pequeño */
+.topping-hint {
+    font-size: 0.78rem;
+    color: #aaa;
+    margin: -10px 0 2px;
+}
+
+/* Contenedor de checkboxes tipo pills */
+/* Contenedor de checkboxes tipo pills con SCROLL */
+.topping-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    /* SCROLL Fijo 👇 */
+    max-height: 130px; /* Altura máxima (entran unas 3 filas aprox). Podés cambiar este número */
+    overflow-y: auto;  /* Si hay más de 3 filas, aparece el scroll vertical automáticamente */
+    
+    /*: Estética de "Cajita" para que quede prolijo */
+    border: 1px solid #ccc; /* Borde gris sutil */
+    border-radius: 8px;     /* Bordes redondeados como tus inputs */
+    padding: 10px;          /* Espacio interno para que no quede pegado a los bordes */
+    background-color: #fafafa; /* Fondo apenas gris para destacarlo */
+}
+
+/*Poner linda la barrita de scroll en PC*/
+.topping-checkboxes::-webkit-scrollbar {
+    width: 6px;
+}
+.topping-checkboxes::-webkit-scrollbar-track {
+    background: transparent;
+}
+.topping-checkboxes::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 10px;
+}
+
+.topping-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #f5f5f5;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+}
+.topping-checkbox-label:hover       { background: #fff3ee; border-color: #ff6b35; }
+.topping-checkbox-label input        { accent-color: #ff6b35; width: 15px; height: 15px; }
+
+/* Filas de opciones (nombre + precio + eliminar) */
+.topping-opciones { display: flex; flex-direction: column; gap: 8px; }
+
+.fila-opcion { display: flex; gap: 8px; align-items: center; }
+
+.fila-opcion input[type="text"],
+.fila-opcion input[type="number"] {
+    padding: 8px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.fila-opcion input[type="text"]   { flex: 2; }
+.fila-opcion input[type="number"] { flex: 1; }
+.fila-opcion input:focus           { border-color: #ff6b35; }
+
+.btn-eliminar-fila {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px 6px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.btn-eliminar-fila:hover { background: #fee2e2; }
+
+/* Botón “+ Sumar otra opción” */
+.btn-sumar-opcion {
+    width: 100%;
+    background: #f5f5f5;
+    color: #555;
+    border: 1.5px dashed #ccc;
+    border-radius: 9px;
+    padding: 9px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.btn-sumar-opcion:hover { background: #ebebeb; border-color: #aaa; }
+
+/* Botón “Guardar Grupo” */
+.btn-guardar-topping {
+    width: 100%;
+    background: #ff6b35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-guardar-topping:hover { background: #e55a26; }

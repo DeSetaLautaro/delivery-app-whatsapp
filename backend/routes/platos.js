@@ -18,6 +18,65 @@ const verificarToken = require('../middleware/verificarToken');
 */
 
 // Asegurate de importar tu modelo arriba: const Usuario = require('../models/User');
+// RUTA PUT: Guardar los cambios de un grupo editado
+router.put('/editarToppings', verificarToken, async (req, res) => {
+    try {
+        // Recibimos los datos que nos manda el frontend
+        const { nombreOriginal, categoriaDestino, opciones } = req.body;
+        const userId = req.usuario.id;
+
+        const usuario = await Usuario.findById(userId);
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // Buscamos en qué posición del array está el grupo que queremos editar
+        const grupoIndex = usuario.gruposToppings.findIndex(g => g.nombre === nombreOriginal);
+        
+        if (grupoIndex === -1) {
+            return res.status(404).json({ error: "El grupo no existe" });
+        }
+
+        // Actualizamos los datos de ese grupo específico
+        usuario.gruposToppings[grupoIndex].categoriaDestino = categoriaDestino;
+        usuario.gruposToppings[grupoIndex].opciones = opciones;
+
+        // Guardamos los cambios
+        await usuario.save();
+
+        return res.status(200).json({ mensaje: "¡Grupo actualizado con éxito!" });
+
+    } catch (error) {
+        console.error("Error al editar toppings:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+// RUTA DELETE: Eliminar un grupo completo
+router.delete('/eliminarToppings/:nombreGrupo', verificarToken, async (req, res) => {
+    try {
+        const nombreGrupo = req.params.nombreGrupo; // Lo sacamos de la URL
+        const userId = req.usuario.id;
+
+        const usuario = await Usuario.findById(userId);
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // Filtramos el array: nos quedamos con todos los que NO se llamen igual al que queremos borrar
+        usuario.gruposToppings = usuario.gruposToppings.filter(g => g.nombre !== nombreGrupo);
+
+        await usuario.save();
+        
+        return res.status(200).json({ mensaje: "¡Grupo eliminado con éxito!" });
+
+    } catch (error) {
+        console.error("Error al eliminar toppings:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+
 
 router.post('/', verificarToken, async (req, res) => {
     // 1. Recibimos los datos del front
@@ -71,94 +130,6 @@ router.get('/', verificarToken, async (req, res) => {
         res.status(500).json({ error: "No se pudieron cargar los platos" });
     }
 });
-
-// OCULTAR PLATO
-router.patch('/:id', verificarToken, async (req, res) => {
-    const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id }); // "platos._id": Traeme al usuario SOLO SI ese usuario es realmente el dueño de un plato con ese ID exacto". Es un escudo.
-    const plato = usuario.platos.id(req.params.id);
-
-    // El backend decide por sí solo invertir el estado
-    plato.disponible = !plato.disponible;
-    await usuario.save();
-
-    res.json({ disponible: plato.disponible });
-});
-
-
-// Atrapamos las peticiones PUT que apuntan a un ID específico
-router.put('/:id', verificarToken, async (req, res) => {
-    try {
-        // 1. Capturamos el ID del plato de la URL y los datos nuevos del body
-        const idPlato = req.params.id; 
-        const { nombre, precio, categoria, descripcion } = req.body; 
-
-        // 2. Le pedimos a MongoDB que haga la búsqueda y el reemplazo en un solo paso
-        const usuarioActualizado = await Usuario.findOneAndUpdate(
-            { 
-                _id: req.usuario.id,        // Filtro 1: Buscamos al dueño correcto
-                "platos._id": idPlato       // Filtro 2: Buscamos que tenga ese plato adentro
-            },
-            { 
-                // El $set le dice "modificá solo estos campos"
-                // El símbolo $ significa "el renglón exacto que coincidió en la búsqueda"
-                $set: { 
-                    "platos.$.nombre": nombre,
-                    "platos.$.precio": precio,
-                    "platos.$.categoria": categoria,
-                    "platos.$.descripcion": descripcion 
-                } 
-            },
-            { new: true } // Para que nos devuelva el documento ya actualizado
-        );
-
-        // 3. Si nos devuelve nulo, es porque no encontró al usuario o no encontró el plato
-        if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Plato no encontrado o no tienes permiso" });
-        }
-
-        // 4. Le avisamos al frontend que todo salió perfecto
-        res.status(200).json({ mensaje: "Plato actualizado con éxito" });
-
-    } catch (error) {
-        console.error("Error al editar el plato:", error);
-        res.status(500).json({ error: "No se pudo actualizar el plato" });
-    }
-});
-
-
-// Atrapamos las peticiones DELETE que apuntan a un ID específico
-// Acordate de que este archivo ya tiene que tener importado Usuario y verificarToken
-
-router.delete('/:id', verificarToken, async (req, res) => {
-    try {
-        const idPlato = req.params.id; 
-
-        // 1. Buscamos al dueño y le "arrancamos" el plato de su lista en un solo paso
-        const usuarioActualizado = await Usuario.findByIdAndUpdate(
-            req.usuario.id, // Buscamos al dueño por el ID de su token
-            { 
-                // El operador $pull busca adentro del array "platos" 
-                // y elimina el que tenga este _id exacto.
-                $pull: { platos: { _id: idPlato } } 
-            },
-            { new: true } // Nos devuelve el usuario ya sin el plato
-        );
-
-        // 2. Si el usuario no existe (ej: borraron la cuenta), tiramos error
-        if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Usuario no encontrado o sin permisos" });
-        }
-
-        // 3. Todo salió perfecto
-        res.status(200).json({ mensaje: "Plato eliminado con éxito" });
-
-    } catch (error) {
-        console.error("Error al borrar el plato:", error);
-        res.status(500).json({ error: "No se pudo borrar el plato" });
-    }
-});
-
-
 
 
 router.post('/bulk', verificarToken, async (req, res) => {
@@ -278,6 +249,162 @@ router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
     } catch (error) {
         console.error("Error en la ruta procesar-ia:", error);
         res.status(500).json({ error: "No pude procesar las fotos" });
+    }
+});
+
+router.post('/crearToppings', verificarToken, async (req, res) => {
+    try {
+        const { nombre, categoriaDestino, opciones } = req.body;
+        const userId = req.usuario.id;
+
+        // 1. Buscamos al usuario completo
+        const usuario = await Usuario.findById(userId);
+        
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // 2. Nos fijamos si ya existe un grupo con ese nombre exacto (ignorando mayúsculas/minúsculas)
+        const grupoExistente = usuario.gruposToppings.find(
+            grupo => grupo.nombre.toLowerCase() === nombre.trim().toLowerCase()
+        );
+
+        if (grupoExistente) {
+            // ESCENARIO A: El grupo YA EXISTE. 
+            // 1. Le sumamos las opciones nuevas a las que ya tenía
+            grupoExistente.opciones.push(...opciones);
+            
+            // 2. (Opcional pero recomendado) Sumamos las categorías nuevas si no estaban marcadas
+            categoriaDestino.forEach(cat => {
+                if (!grupoExistente.categoriaDestino.includes(cat)) {
+                    grupoExistente.categoriaDestino.push(cat);
+                }
+            });
+
+        } else {
+            // ESCENARIO B: El grupo ES NUEVO. 
+            // Hacemos lo mismo que hacías antes, creamos el molde completo.
+            usuario.gruposToppings.push({ 
+                nombre: nombre.trim(), 
+                categoriaDestino, 
+                opciones 
+            });
+        }
+
+        // 3. Guardamos los cambios en la base de datos
+        await usuario.save();
+
+        return res.status(200).json({ mensaje: "¡Toppings guardados con éxito!" });
+
+    } catch (error) {
+        console.error("Error al guardar toppings:", error);
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Ruta para obtener todos los grupos de toppings del usuario
+router.get('/misToppings', verificarToken, async (req, res) => {
+    try {
+        const userId = req.usuario.id;
+        const usuario = await Usuario.findById(userId);
+        
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // Le devolvemos al frontend únicamente el array de grupos
+        return res.status(200).json(usuario.gruposToppings);
+
+    } catch (error) {
+        console.error("Error al obtener toppings:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+
+// OCULTAR PLATO
+router.patch('/:id', verificarToken, async (req, res) => {
+    const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id }); // "platos._id": Traeme al usuario SOLO SI ese usuario es realmente el dueño de un plato con ese ID exacto". Es un escudo.
+    const plato = usuario.platos.id(req.params.id);
+
+    // El backend decide por sí solo invertir el estado
+    plato.disponible = !plato.disponible;
+    await usuario.save();
+
+    res.json({ disponible: plato.disponible });
+});
+
+
+// Atrapamos las peticiones PUT que apuntan a un ID específico
+router.put('/:id', verificarToken, async (req, res) => {
+    try {
+        // 1. Capturamos el ID del plato de la URL y los datos nuevos del body
+        const idPlato = req.params.id; 
+        const { nombre, precio, categoria, descripcion } = req.body; 
+
+        // 2. Le pedimos a MongoDB que haga la búsqueda y el reemplazo en un solo paso
+        const usuarioActualizado = await Usuario.findOneAndUpdate(
+            { 
+                _id: req.usuario.id,        // Filtro 1: Buscamos al dueño correcto
+                "platos._id": idPlato       // Filtro 2: Buscamos que tenga ese plato adentro
+            },
+            { 
+                // El $set le dice "modificá solo estos campos"
+                // El símbolo $ significa "el renglón exacto que coincidió en la búsqueda"
+                $set: { 
+                    "platos.$.nombre": nombre,
+                    "platos.$.precio": precio,
+                    "platos.$.categoria": categoria,
+                    "platos.$.descripcion": descripcion 
+                } 
+            },
+            { new: true } // Para que nos devuelva el documento ya actualizado
+        );
+
+        // 3. Si nos devuelve nulo, es porque no encontró al usuario o no encontró el plato
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Plato no encontrado o no tienes permiso" });
+        }
+
+        // 4. Le avisamos al frontend que todo salió perfecto
+        res.status(200).json({ mensaje: "Plato actualizado con éxito" });
+
+    } catch (error) {
+        console.error("Error al editar el plato:", error);
+        res.status(500).json({ error: "No se pudo actualizar el plato" });
+    }
+});
+
+
+// Atrapamos las peticiones DELETE que apuntan a un ID específico
+// Acordate de que este archivo ya tiene que tener importado Usuario y verificarToken
+
+router.delete('/:id', verificarToken, async (req, res) => {
+    try {
+        const idPlato = req.params.id; 
+
+        // 1. Buscamos al dueño y le "arrancamos" el plato de su lista en un solo paso
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id, // Buscamos al dueño por el ID de su token
+            { 
+                // El operador $pull busca adentro del array "platos" 
+                // y elimina el que tenga este _id exacto.
+                $pull: { platos: { _id: idPlato } } 
+            },
+            { new: true } // Nos devuelve el usuario ya sin el plato
+        );
+
+        // 2. Si el usuario no existe (ej: borraron la cuenta), tiramos error
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado o sin permisos" });
+        }
+
+        // 3. Todo salió perfecto
+        res.status(200).json({ mensaje: "Plato eliminado con éxito" });
+
+    } catch (error) {
+        console.error("Error al borrar el plato:", error);
+        res.status(500).json({ error: "No se pudo borrar el plato" });
     }
 });
 

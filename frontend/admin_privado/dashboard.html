@@ -52,7 +52,10 @@
             <div class="tablaContainerTituloYBoton">
                 <h2>📋 Tus Platos Actuales</h2>
                 <button id="btnAbrirModalToppings" class="btn-secundario">
-                    🍔 Toppings por Categoría
+                    🍔 Crear Toppings
+                </button>
+                <button id="btnGestionarToppings" class="btn-secundario">
+                    🍔 Gestionar Toppings
                 </button>
             </div>
             <!-- Barra de búsqueda + botón filtros -->
@@ -326,42 +329,149 @@
 <!-- ==========================================
             MODAL PARA TOPPINGS
 ============================================-->
-
 <div class="modal-overlay" id="modalToppings" hidden>
-    
-    <div class="modal-plato">
-        
+    <div class="modal-plato modal-toppings">
+
         <div class="modal-header">
             <h2>🍔 Crear Grupo de Toppings</h2>
             <button class="modal-close" id="btnCerrarModalToppings">✖</button>
         </div>
-        
+
         <form id="formCrearToppings">
-            <label>Nombre del Grupo:</label>
-            <input type="text" id="nombreGrupoTopping" placeholder="Ej: Salsas a elección o Agregados" required>
 
-            <label>¿A qué categoría aplica?</label>
-            <select id="categoriaDestinoTopping" required>
-                <option value="">Selecciona una categoría...</option>
+            <!-- Campo: nombre del grupo -->
+        <div class="campo-grupo-topping">
+            <label for="selectNombreGrupo">Nombre del Grupo</label>
+
+            <!-- 1. El desplegable principal -->
+            <select id="selectNombreGrupo" class="topping-input" required>
+                <option value="" disabled selected>Seleccioná un grupo...</option>
+                <!-- Acá más adelante cargaremos los que ya existen -->
+                <option value="CREAR_NUEVO" style="font-weight: bold;">➕ Crear nuevo grupo...</option>
             </select>
+        
+            <!-- 2. El input oculto (solo aparece si elige crear nuevo) -->
+            <input 
+                type="text" 
+                id="inputNuevoGrupoTopping" 
+                class="topping-input" 
+                placeholder="Ej: Salsas, Puntos de cocción..." 
+                style="display: none; margin-top: 10px;" 
+            />
+        </div>
+            <!-- Categorías de destino: checkboxes inyectados dinámicamente por JS -->
+            <label>Categorías de destino</label>
+            <p class="topping-hint">Elegí a qué categorías aplicará este grupo de toppings.</p>
+            <div id="contenedorCategoriasTopping" class="topping-checkboxes">
+                <!-- Generado por generarCheckboxesCategorias() -->
+            </div>
 
-            <label>Opciones del grupo:</label>
-            <div id="contenedorOpcionesTopping">
-                <div class="fila-opcion" style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" placeholder="Nombre (Ej: Cheddar)" class="topping-nombre" style="flex: 2;" required>
-                    <input type="number" placeholder="Precio (Ej: 500)" class="topping-precio" style="flex: 1;" required>
+            <!-- Filas de opciones dinámicas -->
+            <label>Opciones del grupo</label>
+            <div id="contenedorOpcionesTopping" class="topping-opciones">
+                <!-- La primera fila base, las demás las agrega el botón -->
+                <div class="fila-opcion">
+                    <input type="text"   class="topping-nombre" placeholder="Ej: Cheddar" />
+                    <input type="number" class="topping-precio" placeholder="Precio (0 = gratis)" min="0" />
+                    <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
                 </div>
             </div>
-            
-            <button type="button" id="btnAgregarFilaTopping" style="margin-bottom: 15px; background-color: #666;">+ Sumar otra opción</button>
 
-            <button type="submit" id="btnGuardarTopping">Guardar Toppings</button>
+            <button type="button" id="btnAgregarFilaTopping" class="btn-sumar-opcion">
+                + Sumar otra opción
+            </button>
+
+            <button type="submit" id="btnGuardarTopping" class="btn-guardar-topping">
+                Guardar Grupo
+            </button>
+
         </form>
-
     </div>
-    
 </div>
 
+
+<!-- ==========================================
+            MODAL PARA GESTIONAR TOPPINGS
+============================================-->
+<div class="modal-overlay" id="modalGestionarToppings" hidden>
+    <div class="modal-plato modal-toppings">
+
+        <div class="modal-header">
+            <h2>⚙️ Gestionar Toppings</h2>
+            <button class="modal-close" id="btnCerrarModalGestionarToppings">✖</button>
+        </div>
+
+        <!-- BOTONES DE PESTAÑAS (TABS) -->
+        <div class="tabs-gestionar" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button type="button" id="tabPorTopping" class="btn-tab activo" style="flex: 1; padding: 10px; font-weight: bold;">Por Topping</button>
+            <button type="button" id="tabPorCategoria" class="btn-tab" style="flex: 1; padding: 10px; opacity: 0.6;">Por Categoría</button>
+        </div>
+
+        <!-- ==========================================
+             VISTA 1: POR TOPPING
+        ============================================-->
+        <div id="vistaPorTopping" class="vista-tab">
+            <form id="formEditarToppings">
+                
+                <!-- Seleccionar Grupo Existente -->
+                <div class="campo-grupo-topping">
+                    <label for="selectEditarGrupo">Seleccionar Grupo a Editar</label>
+                    <select id="selectEditarGrupo" class="topping-input" required>
+                        <option value="" disabled selected>Elegí un grupo...</option>
+                        <!-- Acá JS cargará los grupos ("Salsas", "Puntos de carne", etc.) -->
+                    </select>
+                </div>
+
+                <!-- Categorías (igual que en crear, pero para editar) -->
+                <label>Categorías de destino</label>
+                <div id="contenedorEditarCategoriasTopping" class="topping-checkboxes">
+                    <!-- Checkboxes se inyectan dinámicamente -->
+                </div>
+
+                <!-- Opciones (igual que en crear) -->
+                <label>Opciones del grupo</label>
+                <div id="contenedorEditarOpcionesTopping" class="topping-opciones">
+                    <!-- JS inyectará las filas según el grupo que elija arriba -->
+                </div>
+
+                <button type="button" id="btnAgregarFilaEditarTopping" class="btn-sumar-opcion">
+                    + Sumar otra opción
+                </button>
+
+                <!-- Botones de Acción -->
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" id="btnEliminarGrupoTopping" style="background-color: #ff4d4d; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; flex: 1;">
+                        🗑️ Eliminar Grupo
+                    </button>
+                    <button type="submit" id="btnGuardarEdicionTopping" class="btn-guardar-topping" style="flex: 2;">
+                        💾 Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ==========================================
+             VISTA 2: POR CATEGORÍA
+        ============================================-->
+        <div id="vistaPorCategoria" class="vista-tab" style="display: none;">
+            
+            <div class="campo-grupo-topping">
+                <label for="selectFiltroCategoria">Ver toppings de la categoría:</label>
+                <select id="selectFiltroCategoria" class="topping-input">
+                    <option value="" disabled selected>Elegí una categoría (Ej: Hamburguesas)...</option>
+                    <!-- JS inyectará las categorías de la carta -->
+                </select>
+            </div>
+            
+            <!-- Resultados -->
+            <div id="contenedorResultadosCategoria" style="margin-top: 15px; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">
+                <p class="topping-hint" style="text-align: center;">Seleccioná una categoría para ver qué toppings tiene asociados.</p>
+            </div>
+            
+        </div>
+
+    </div>
+</div>
 
 <div id="previsualizadorDePlatos" hidden></div>
 

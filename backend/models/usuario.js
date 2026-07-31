@@ -13,7 +13,7 @@ const opcionToppingSchema = new mongoose.Schema({
 // B. El esquema para el grupo entero (Ej: "Agregados para Hamburguesas")
 const grupoToppingSchema = new mongoose.Schema({
     nombre: { type: String, required: true }, // Título del grupo
-    categoriaDestino: { type: String, required: true }, // A qué categoría aplica (ej: "Hamburguesas")
+    categoriaDestino: { type: Array, required: true }, // A qué categoría aplica (ej: "Hamburguesas")
     esMultiselect: { type: Boolean, default: true }, // true = puede elegir varios, false = elige solo 1
     opciones: [opcionToppingSchema] // Lista de las opciones definidas arriba
 });
