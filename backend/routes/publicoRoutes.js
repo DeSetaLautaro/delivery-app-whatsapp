@@ -46,4 +46,25 @@ router.get('/menu/:slugLocal', async (req, res) => {
 
 
 
+// Ruta PÚBLICA: devuelve los grupos de toppings de un local filtrados por categoría.
+// El cliente la llama cuando toca "+ Agregar" en un plato.
+router.get('/toppings/:slugLocal/:categoria', async (req, res) => {
+    try {
+        const { slugLocal, categoria } = req.params;
+
+        const usuario = await Usuario.findOne({ slug: slugLocal });
+        if (!usuario) return res.status(404).json({ error: 'Local no encontrado' });
+
+        // Filtramos solo los grupos cuyo categoriaDestino incluye la categoría pedida
+        const grupos = usuario.gruposToppings.filter(g =>
+            g.categoriaDestino.includes(categoria)
+        );
+
+        res.status(200).json(grupos); // puede ser [] si no hay toppings para esa cat
+    } catch (error) {
+        console.error('Error al traer toppings públicos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = router;
