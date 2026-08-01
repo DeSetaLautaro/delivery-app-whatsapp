@@ -15,6 +15,19 @@ body {
 /* ============================================================
    HEADER
    ============================================================ */
+
+#contenedorHeaderYMetodoDePago
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.TarjetaEleccionMetodoDePago{
+    border-bottom: 1px ;
+
+}
+
 .site-header {
     background: #fff;
     border-bottom: 1px solid #e5e5e5;
@@ -256,6 +269,7 @@ body {
     justify-content: center;
     z-index: 300;
     padding: 0 0 0 0;
+    
 }
 
 .modal-overlay[hidden] { display: none; }
@@ -415,8 +429,291 @@ body {
 
 /* La clase mágica que bloquea todo */
 .menu-bloqueado {
-    opacity: 0.5; /* Pone la pantalla más oscura/transparente */
-    pointer-events: none; /* DESHABILITA TODOS LOS CLICS DENTRO DE ESTE DIV */
-    filter: grayscale(40%); /* Opcional: baja un poco los colores de las fotos */
-    transition: all 0.3s ease; /* Transición suave */
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(40%);
+    transition: all 0.3s ease;
+}
+
+/* ============================================================
+   MODAL TOPPINGS
+   ============================================================ */
+.modal-toppings-sel {
+    border-radius: 20px 20px 0 0;
+    max-height: 85vh;
+}
+
+.topping-modal-subtitulo {
+    font-size: 0.82rem;
+    color: #ff6b35;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* Un grupo de toppings (ej: "Salsas") */
+.topping-grupo {
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.topping-grupo:last-child { border-bottom: none; }
+
+.topping-grupo-titulo {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+}
+
+/* Lista de opciones */
+.topping-opciones-lista { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+
+.topping-opcion-item {
+    background: #fafafa;
+    border: 1.5px solid #f0f0f0;
+    border-radius: 10px;
+    transition: border-color 0.15s;
+}
+.topping-opcion-item:has(input:checked) { border-color: #ff6b35; background: #fff8f5; }
+
+.topping-opcion-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.topping-opcion-label input {
+    accent-color: #ff6b35;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+.topping-opcion-nombre { flex: 1; font-size: 0.9rem; font-weight: 500; }
+
+.topping-opcion-precio {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ff6b35;
+}
+.topping-opcion-gratis {
+    font-size: 0.78rem;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+/*---------------------------------------------
+        tarjeta de métodos de pago
+---------------------------------------------------
+*/
+
+/* Contenedor compacto */
+.payment-methods-container {
+  margin: 16px 0 12px 0;
+  padding-top: 12px;
+  border-top: 1px solid #f1f3f5; /* Línea divisora sutil */
+}
+
+.payment-title {
+  display: block;
+  font-size: 13px;
+  color: #6c757d;
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Selector horizontal (Segmented Control) */
+.payment-segmented {
+  display: flex;
+  gap: 8px;
+  background-color: #f8f9fa;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+/* Cada botón / chip */
+.payment-chip {
+  flex: 1; /* Hace que ambos botones midan exactamente lo mismo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+/* Ocultamos el radio nativo */
+.payment-chip input[type="radio"] {
+  display: none;
+}
+
+.payment-chip-icon {
+  font-size: 16px;
+}
+
+/* ESTADO SELECCIONADO */
+.payment-chip.selected {
+  background-color: #ffffff;
+  color: #212529;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); /* Sombra suave para darle relieve */
+  border: 1px solid #dee2e6;
+}
+
+/* Hover suave en la opción no seleccionada */
+.payment-chip:hover:not(.selected) {
+  color: #212529;
+}
+
+
+/*---------------------------------------------
+    INPUTS DE DIRECCIÓN Y COMENTARIOS
+------------------------------------------------*/
+.checkout-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 13px;
+  color: #6c757d;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  color: #212529;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box; /* Evita que el padding desborde el ancho */
+}
+
+.field-input:focus {
+  background-color: #ffffff;
+  border-color: #adb5bd;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================
+   SELECTOR DE PAGO ULTRA-COMPACTO
+   ========================================= */
+.payment-methods-container {
+  margin: 10px 0; /* Menos aire arriba y abajo */
+  padding-top: 10px;
+  border-top: 1px solid #f1f3f5;
+}
+
+.payment-title {
+  display: block;
+  font-size: 11px; /* Letra más chiquita */
+  color: #6c757d;
+  margin-bottom: 6px; /* Menos espacio debajo del título */
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.payment-segmented {
+  display: flex;
+  gap: 4px; /* Botones más pegados */
+  background-color: #f8f9fa;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.payment-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px; /* Botón mucho más finito/bajito */
+  font-size: 13px; /* Texto un puntito más chico */
+  font-weight: 500;
+  color: #495057;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.payment-chip-icon {
+  font-size: 14px; /* Icono más sutil */
+}
+
+.payment-chip input[type="radio"] {
+  display: none;
+}
+
+.payment-chip.selected {
+  background-color: #ffffff;
+  color: #212529;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #dee2e6;
+}
+
+/* =========================================
+   INPUTS DE DIRECCIÓN ULTRA-COMPACTOS
+   ========================================= */
+.checkout-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Menos espacio entre los dos inputs */
+  margin: 10px 0;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px; /* Etiqueta casi pegada al input */
+}
+
+.field-label {
+  font-size: 11px; /* Etiqueta más chiquita */
+  color: #6c757d;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.field-input {
+  width: 100%;
+  padding: 8px 10px; /* Input más fino */
+  font-size: 13px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  color: #212529;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.field-input:focus {
+  background-color: #ffffff;
+  border-color: #adb5bd;
 }

@@ -18,6 +18,16 @@
  */
 let carrito = {};
 
+// Cache del menú: se llena al cargar para no repetir el fetch cada vez que
+// el usuario toca "+ Agregar".
+let platosCache = [];
+
+// Slug del local (ej: "la-esquina"), sacado una sola vez de la URL.
+const slugLocal = window.location.pathname.split('/')[2] || '';
+
+// Plato que está esperando confirmación en el popup de toppings.
+let platoPendiente = null;
+
 
 // ============================================================
 // INICIO: Cargar el menú al abrir la página
@@ -50,6 +60,9 @@ async function cargarMenu() {
         const platos = await respuesta.json();
         estaAbierto = await estaAbierto.json();
 
+
+        // Guardamos en caché para usarlos en agregarAlCarrito sin refetch
+        platosCache = platos;
 
         // 4. Le pasamos los platos a la función dibujante
         dibujarPlatos(platos, estaAbierto.abierto);
@@ -155,7 +168,7 @@ function crearTarjetaPlato(plato) {
             </div>
             <button
                 class="btn-agregar"
-                onclick="agregarAlCarrito('${nombreSeguro}')"
+                onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || ''}')"
                 aria-label="Agregar ${nombreSeguro} al carrito"
             >
                 + Agregar
@@ -198,40 +211,120 @@ function obtenerEmoji(categoria) {
  *
  * @param {string} nombrePlato - Nombre del plato a agregar
  */
-async function agregarAlCarrito(nombrePlato) {
+/**
+ * Cuando el usuario toca "+ Agregar":
+ *   - Consulta si la categoría del plato tiene toppings públicos.
+ *   - SI tiene → abre el popup de personalización.
+ *   - NO tiene → agrega directo al carrito (comportamiento anterior).
+ */
+async function agregarAlCarrito(nombrePlato, categoria) {
+    // Buscamos en el caché (sin fetch extra)
+    const plato = platosCache.find(p => p.nombre === nombrePlato);
+    if (!plato) return;
+
     try {
-        // 1. Leemos la URL actual. Ej: si está en "/menu/pepito", esto guarda "pepito"
-        const nombreLocal = window.location.pathname.split('/').pop();
+        const res = await fetch(`/api/publico/toppings/${slugLocal}/${encodeURIComponent(categoria)}`);
+        const grupos = res.ok ? await res.json() : [];
 
-        // 2. Hacemos el fetch a la ruta correcta (👇 ACÁ TENEMOS QUE PONER TU RUTA REAL)
-        const respuesta = await fetch(`/api/publico/menu/${nombreLocal}`); 
-        
-        if (!respuesta.ok) {
-            throw new Error("No se pudo cargar el menú del servidor");
-        }
-
-        const platos = await respuesta.json();
-        console.log("platos:", platos);
-        const plato = platos.find(p => p.nombre === nombrePlato);
-        console.log("el plato es:", plato);
-
-
-        if (!plato) return;
-
-        if (carrito[nombrePlato]) {
-            carrito[nombrePlato].cantidad += 1;
+        if (grupos.length > 0) {
+            // Hay toppings: guardamos el plato y abrimos el popup
+            platoPendiente = plato;
+            abrirModalToppings(plato, grupos);
         } else {
-            carrito[nombrePlato] = { ...plato, cantidad: 1 };
+            // Sin toppings: agregamos directo
+            _sumarAlCarrito(plato);
         }
-
-        actualizarUI();
-        mostrarToast(`${nombrePlato} agregado al carrito 🛒`);
-
     } catch (error) {
-        console.error("Error al agregar al carrito:", error);
-        mostrarToast("Hubo un problema al agregar el plato.");
+        console.error('Error al buscar toppings:', error);
+        _sumarAlCarrito(plato); // Si falla, no bloqueamos al usuario
     }
 }
+
+/**
+ * Escribe en el carrito. Es la única función que modifica `carrito`.
+ * Crea una clave única que incluye los toppings elegidos, así la misma
+ * hamburguesa con y sin cheddar quedan como entradas separadas.
+ */
+function _sumarAlCarrito(plato, toppings = []) {
+    const extraPrecio = toppings.reduce((sum, t) => sum + (t.precio || 0), 0);
+
+    const clave = toppings.length
+        ? `${plato.nombre} (${toppings.map(t => t.opcionNombre).join(', ')})`
+        : plato.nombre;
+
+    if (carrito[clave]) {
+        carrito[clave].cantidad += 1;
+    } else {
+        carrito[clave] = { ...plato, nombre: clave, precio: plato.precio + extraPrecio, cantidad: 1 };
+    }
+
+    actualizarUI();
+    mostrarToast(`${plato.nombre} agregado al carrito 🛒`);
+}
+
+
+// ============================================================
+// POPUP DE TOPPINGS
+// ============================================================
+
+function abrirModalToppings(plato, grupos) {
+    document.getElementById('toppingModalSubtitulo').textContent = plato.nombre;
+
+    const contenido = document.getElementById('toppingsContenido');
+    contenido.innerHTML = grupos.map(grupo => `
+        <div class="topping-grupo">
+            <h3 class="topping-grupo-titulo">${grupo.nombre}</h3>
+            <ul class="topping-opciones-lista">
+                ${grupo.opciones.map(op => `
+                    <li class="topping-opcion-item">
+                        <label class="topping-opcion-label">
+                            <input
+                                type="${grupo.esMultiselect ? 'checkbox' : 'radio'}"
+                                name="topping-${grupo._id}"
+                                value="${op.nombre}"
+                                data-grupo="${grupo.nombre}"
+                                data-precio="${op.precio || 0}"
+                            />
+                            <span class="topping-opcion-nombre">${op.nombre}</span>
+                            ${op.precio
+                                ? `<span class="topping-opcion-precio">+$${Number(op.precio).toLocaleString('es-AR')}</span>`
+                                : `<span class="topping-opcion-gratis">Gratis</span>`
+                            }
+                        </label>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `).join('');
+
+    document.getElementById('modalToppings').removeAttribute('hidden');
+}
+
+function cerrarModalToppings() {
+    document.getElementById('modalToppings').setAttribute('hidden', '');
+    document.getElementById('toppingsContenido').innerHTML = '';
+    platoPendiente = null;
+}
+
+document.getElementById('cerrarModalToppings').addEventListener('click', cerrarModalToppings);
+
+document.getElementById('modalToppings').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) cerrarModalToppings();
+});
+
+document.getElementById('btnConfirmarToppings').addEventListener('click', () => {
+    if (!platoPendiente) return;
+
+    const seleccionados = [...document.querySelectorAll('#toppingsContenido input:checked')]
+        .map(input => ({
+            grupoNombre:  input.dataset.grupo,
+            opcionNombre: input.value,
+            precio:       Number(input.dataset.precio)
+        }));
+
+    _sumarAlCarrito(platoPendiente, seleccionados);
+    cerrarModalToppings();
+});
 
 /**
  * PROPOSITO:
@@ -320,46 +413,69 @@ function enviarPorWhatsapp() {
     const items = Object.values(carrito);
     if (items.length === 0) return;
 
-    // Armar el texto del pedido línea por línea
+    // 1. Leer los inputs de Dirección y Notas
+    const direccionInput = document.getElementById('direccionEntrega');
+    const notasInput     = document.getElementById('notasPedido');
+
+    const direccion = direccionInput ? direccionInput.value.trim() : '';
+    const notas     = notasInput ? notasInput.value.trim() : '';
+
+    // Validar que hayan puesto la dirección
+    if (!direccion) {
+        alert("Por favor, ingresá tu dirección para la entrega.");
+        if (direccionInput) direccionInput.focus();
+        return;
+    }
+
+    // 2. Leer el método de pago seleccionado
+    const metodoPagoInput = document.querySelector('input[name="metodo_pago"]:checked');
+    const metodoPago = metodoPagoInput && metodoPagoInput.value === 'mercadopago' 
+        ? 'Mercado Pago 📱' 
+        : 'Efectivo 💵';
+
+    // 3. Armar las líneas del pedido
     const lineas = items.map(item =>
         `• ${item.cantidad}x ${item.nombre} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`
     );
 
     const total = items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
-    const mensaje = [
+
+    // 4. Estructurar el mensaje para WhatsApp
+    const mensajeArr = [
         '🛒 *Nuevo pedido*',
         '',
         ...lineas,
         '',
-        `*Total: $${total.toLocaleString('es-AR')}*`
-    ].join('\n');
+        `*Total: $${total.toLocaleString('es-AR')}*`,
+        '',
+        `📍 *Dirección:* ${direccion}`,
+        `💳 *Método de Pago:* ${metodoPago}`
+    ];
 
-    // 1. Leemos en qué local estamos parados
+    // Si el cliente escribió notas, las agregamos
+    if (notas) {
+        mensajeArr.push(`📝 *Notas:* ${notas}`);
+    }
+
+    const mensaje = mensajeArr.join('\n');
+
+    // 5. Redirección dinámica
     const nombreLocal = window.location.pathname.split('/').pop();
 
-    // 2. ⚠️ ACÁ TENÉS QUE LLAMAR A UNA RUTA QUE TE DEVUELVA EL TELÉFONO DE ESE LOCAL
-    // Puse una de ejemplo, tenés que adaptarla a tu backend
     fetch(`/api/publico/perfil/${nombreLocal}`)
         .then(r => r.json())
         .then(perfil => {
-            // Suponiendo que el backend devuelve { whatsappNumero: "54911..." }
             const numero = perfil.whatsappNumero || ''; 
             const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
-            
-            // 🔄 MAGIA ACÁ: Redirigimos a la URL exacta en la que estaba el cliente
             window.location.href = window.location.pathname;
         })
         .catch(() => {
-            // Si falla, abrimos WhatsApp sin número para que el cliente elija
             const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
-            
-            // 🔄 Redirigimos igual
             window.location.href = window.location.pathname;
         });
 }
-
 
 // ============================================================
 // TOAST (notificacion flotante temporal)
@@ -417,6 +533,17 @@ document.getElementById('btnClear').addEventListener('click', () => {
 
 
 
+
+
+// ==============================================================
+// CAMBIAR EL MÉTODO DE PAGO
+// ==============================================================
+function cambiarPago(radioInput) {
+    const chips = document.querySelectorAll('.payment-chip');
+    chips.forEach(c => c.classList.remove('selected'));
+    
+    radioInput.closest('.payment-chip').classList.add('selected');
+}
 
 // ============================================================
 // ARRANCAR LA APP

@@ -78,11 +78,29 @@
       aria-labelledby="modalTitle"
       hidden
     >
-      <div class="modal">
-        <header class="modal-header">
-          <h2 class="modal-title" id="modalTitle">🛒 Tu Pedido</h2>
-          <button class="modal-close" id="modalClose" aria-label="Cerrar carrito">✕</button>
-        </header>
+      <div class="modal">          
+            <header class="modal-header">
+              <h2 class="modal-title" id="modalTitle">🛒 Tu Pedido</h2>
+              <button class="modal-close" id="modalClose" aria-label="Cerrar carrito">✕</button>
+            </header>
+
+            <div class="payment-methods-container">
+  <span class="payment-title">Método de pago</span>
+  
+  <div class="payment-segmented">
+    <label class="payment-chip selected">
+      <input type="radio" name="metodo_pago" value="mercadopago" checked onchange="cambiarPago(this)">
+      <span class="payment-chip-icon">📱</span>
+      <span>Mercado Pago</span>
+    </label>
+
+    <label class="payment-chip">
+      <input type="radio" name="metodo_pago" value="efectivo" onchange="cambiarPago(this)">
+      <span class="payment-chip-icon">💵</span>
+      <span>Efectivo</span>
+    </label>
+  </div>
+</div>
 
         <div class="modal-body">
           <ul class="cart-list" id="cartList" aria-label="Ítems en el carrito">
@@ -90,6 +108,29 @@
           </ul>
           <p class="cart-empty-msg" id="cartEmptyMsg">Tu carrito está vacío 🛒</p>
         </div>
+        <div class="checkout-fields">
+  <div class="field-group">
+    <label for="direccionEntrega" class="field-label">📍 Dirección de entrega</label>
+    <input 
+      type="text" 
+      id="direccionEntrega" 
+      class="field-input" 
+      placeholder="Ej: Av. Siempreviva 742, Dpto 2B" 
+      required
+    />
+  </div>
+
+  <div class="field-group">
+    <label for="notasPedido" class="field-label">📝 Comentarios adicionales (opcional)</label>
+    <input 
+      type="text" 
+      id="notasPedido" 
+      class="field-input" 
+      placeholder="Ej: Sin cebolla en la hamburguesa, timbre roto..." 
+    />
+  </div>
+</div>
+        
 
         <footer class="modal-footer">
           <div class="cart-summary">
@@ -104,6 +145,28 @@
           </button>
         </footer>
       </div>
+    </div>
+
+    <!-- ===== MODAL TOPPINGS ===== -->
+    <div class="modal-overlay" id="modalToppings" hidden
+         role="dialog" aria-modal="true" aria-labelledby="toppingModalTitle">
+        <div class="modal modal-toppings-sel">
+
+            <header class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="toppingModalTitle">Personalizá tu plato</h2>
+                    <p class="topping-modal-subtitulo" id="toppingModalSubtitulo"></p>
+                </div>
+                <button class="modal-close" id="cerrarModalToppings" aria-label="Cerrar">✕</button>
+            </header>
+
+            <!-- Acá se inyectan los grupos de toppings dinámicamente -->
+            <div class="modal-body" id="toppingsContenido"></div>
+
+            <footer class="modal-footer">
+                <button class="btn-whatsapp" id="btnConfirmarToppings">Confirmar y agregar al carrito 🛒</button>
+            </footer>
+        </div>
     </div>
 
     <script src="/app.js"></script>
