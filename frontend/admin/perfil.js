@@ -5,6 +5,29 @@ function actualizarVisibilidadTransferencia() {
     document.getElementById('datosTransferencia').classList.toggle('oculto', !marcado);
 }
 
+// Lee los métodos de pago guardados en la BD y los precarga en el formulario
+async function cargarMetodosPagoGuardados() {
+    try {
+        const res = await peticionAPI('/api/usuarios/metodosPago', 'GET');
+        const data = res.ok ? await res.json() : { metodosPago: [] };
+        const metodos = data.metodosPago || [];
+
+        const tipos = metodos.map(m => m.tipo);
+        document.getElementById('pagoEfectivo').checked     = tipos.includes('efectivo');
+        document.getElementById('pagoTransferencia').checked = tipos.includes('transferencia');
+        document.getElementById('pagoTarjeta').checked      = tipos.includes('tarjeta');
+
+        const transf = metodos.find(m => m.tipo === 'transferencia');
+        if (transf) {
+            document.getElementById('transAlias').value    = transf.alias    || '';
+            document.getElementById('transTitular').value  = transf.titular  || '';
+        }
+        actualizarVisibilidadTransferencia();
+    } catch (error) {
+        console.error('Error al cargar métodos de pago:', error);
+    }
+}
+
 // Función que solo LEE de la base de datos
 async function leerEstadoParaElPerfil() {
     try {
@@ -64,20 +87,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
         leerEstadoParaElPerfil();
     setInterval(leerEstadoParaElPerfil, 60000);
 
-    // Cargar métodos de pago guardados
-    if (userData.metodosPago && userData.metodosPago.length) {
-        const tipos = userData.metodosPago.map(m => m.tipo);
-        document.getElementById('pagoEfectivo').checked     = tipos.includes('efectivo');
-        document.getElementById('pagoTransferencia').checked = tipos.includes('transferencia');
-        document.getElementById('pagoTarjeta').checked      = tipos.includes('tarjeta');
-
-        const transf = userData.metodosPago.find(m => m.tipo === 'transferencia');
-        if (transf) {
-            document.getElementById('transAlias').value    = transf.alias    || '';
-            document.getElementById('transTitular').value  = transf.titular  || '';
-        }
-    }
-    actualizarVisibilidadTransferencia();
+        // Cargar métodos de pago desde la base de datos (para que siempre estén frescos)
+    cargarMetodosPagoGuardados();
 
         document.getElementById('pagoTransferencia').addEventListener('change', actualizarVisibilidadTransferencia);
 });

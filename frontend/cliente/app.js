@@ -345,6 +345,22 @@ function quitarDelCarrito(nombrePlato) {
     actualizarUI();
 }
 
+/**
+ * PROPOSITO:
+ *   Suma +1 a un item del carrito usando su clave compuesta completa
+ *   (ej: "Hamburguesa (Cheddar, Bacon)"). NO re-abre el popup ni busca
+ *   en el caché: solo incrementa la cantidad del item tal y como está.
+ *
+ * @param {string} claveItem - Clave compuesta con la que se guardó el item.
+ */
+function sumarUnoAlCarrito(claveItem) {
+    if (!carrito[claveItem]) return;
+
+    carrito[claveItem].cantidad += 1;
+    actualizarUI();
+    mostrarToast(`${claveItem} agregado al carrito 🛒`);
+}
+
 
 // ============================================================
 // ACTUALIZACION DE LA INTERFAZ
@@ -393,12 +409,13 @@ function actualizarListaModal(items, totalPrecio) {
         <li class="cart-item">
             <div class="cart-item-info">
                 <span class="cart-item-name">${item.nombre}</span>
+                ${item.toppings && item.toppings.length ? `<span class="cart-item-toppings">➕ ${item.toppings.map(t => t.opcionNombre).join(', ')}</span>` : ''}
                 <span class="cart-item-price">$${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
             </div>
             <div class="cart-item-controls">
                 <button onclick="quitarDelCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Quitar uno">−</button>
                 <span>${item.cantidad}</span>
-                <button onclick="agregarAlCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Agregar uno">+</button>
+                <button onclick="sumarUnoAlCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Agregar uno">+</button>
             </div>
         </li>
     `).join('');
@@ -598,9 +615,9 @@ function mostrarInfoTransferencia(mostrar) {
     if (mostrar) {
         document.getElementById('transferenciaAlias').textContent   = datosTransferencia.alias   || '(sin configurar)';
         document.getElementById('transferenciaTitular').textContent = datosTransferencia.titular || '(sin configurar)';
-        div.removeAttribute('hidden');
+        div.style.display = 'flex';
     } else {
-        div.setAttribute('hidden', '');
+        div.style.display = 'none';
     }
 }
 

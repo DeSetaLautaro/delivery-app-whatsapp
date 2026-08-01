@@ -125,4 +125,15 @@ router.get('/horarios', verificarToken, async (req, res) =>
 })
 
 
+// Ruta para leer los métodos de pago del local (protegida)
+router.get('/metodosPago', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findById(req.usuario.id).select('metodosPago');
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+        res.json({ metodosPago: usuario.metodosPago || [] });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener métodos de pago' });
+    }
+});
+
 module.exports = router;
