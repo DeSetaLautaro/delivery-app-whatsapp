@@ -46,6 +46,21 @@ router.get('/menu/:slugLocal', async (req, res) => {
 
 
 
+// Ruta PÚBLICA: datos del perfil del local (número de WA + métodos de pago)
+router.get('/perfil/:slugLocal', async (req, res) => {
+    try {
+        const usuario = await Usuario.findOne({ slug: req.params.slugLocal });
+        if (!usuario) return res.status(404).json({ error: 'Local no encontrado' });
+        res.json({
+            nombre:         usuario.nombreDelLocal,
+            whatsappNumero: usuario.telefono,
+            metodosPago:    usuario.metodosPago || []
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
 // Ruta PÚBLICA: devuelve los grupos de toppings de un local filtrados por categoría.
 // El cliente la llama cuando toca "+ Agregar" en un plato.
 router.get('/toppings/:slugLocal/:categoria', async (req, res) => {

@@ -503,6 +503,7 @@ function mostrarToast(mensaje) {
 // Abrir el modal al clickear el botón flotante
 document.getElementById('fabBtn').addEventListener('click', () => {
     document.getElementById('modalOverlay').removeAttribute('hidden');
+    cargarMetodosPago();
 });
 
 // Cerrar el modal con el botón X
@@ -536,13 +537,71 @@ document.getElementById('btnClear').addEventListener('click', () => {
 
 
 // ==============================================================
-// CAMBIAR EL MÉTODO DE PAGO
+// MÉTODOS DE PAGO (dinámicos según lo que configuró el local)
 // ==============================================================
+
+// Guardamos los datos de transferencia para mostrarlos si el usuario elige esa opción
+let datosTransferencia = { alias: '', titular: '' };
+
+async function cargarMetodosPago() {
+    const contenedor = document.getElementById('contenedorMetodosPago');
+    if (!contenedor) return;
+
+    try {
+        const res  = await fetch(`/api/publico/perfil/${slugLocal}`);
+        const data = res.ok ? await res.json() : {};
+        const metodos = data.metodosPago || [];
+
+        // Si el local no configuró nada todavía, mostramos efectivo por defecto
+        const lista = metodos.length
+            ? metodos
+            : [{ tipo: 'efectivo' }];
+
+        // Guardamos los datos de transferencia por si los necesitamos luego
+        const transf = lista.find(m => m.tipo === 'transferencia');
+        if (transf) datosTransferencia = { alias: transf.alias, titular: transf.titular };
+
+        const iconos   = { efectivo: '💵 Efectivo', transferencia: '🏦 Transferencia', tarjeta: '💳 Tarjeta' };
+        const primero  = lista[0].tipo;
+
+        contenedor.innerHTML = `
+            <div class="payment-methods-container">
+                <span class="payment-title">Método de pago</span>
+                <div class="payment-segmented">
+                    ${lista.map((m, i) => `
+                        <label class="payment-chip ${i === 0 ? 'selected' : ''}">
+                            <input type="radio" name="metodo_pago" value="${m.tipo}"
+                                   ${i === 0 ? 'checked' : ''}
+                                   onchange="cambiarPago(this)" />
+                            ${iconos[m.tipo] || m.tipo}
+                        </label>`).join('')}
+                </div>
+            </div>`;
+
+        // Mostramos info de transferencia si es el primer método
+        if (primero === 'transferencia') mostrarInfoTransferencia(true);
+
+    } catch (e) {
+        console.error('Error al cargar métodos de pago:', e);
+    }
+}
+
 function cambiarPago(radioInput) {
-    const chips = document.querySelectorAll('.payment-chip');
-    chips.forEach(c => c.classList.remove('selected'));
-    
+    document.querySelectorAll('.payment-chip').forEach(c => c.classList.remove('selected'));
     radioInput.closest('.payment-chip').classList.add('selected');
+    mostrarInfoTransferencia(radioInput.value === 'transferencia');
+}
+
+function mostrarInfoTransferencia(mostrar) {
+    const div = document.getElementById('infoTransferencia');
+    if (!div) return;
+    if (mostrar) {
+        document.getElementById('transferenciaAlias').textContent   = datosTransferencia.alias   || '(sin configurar)';
+        document.getElementById('transferenciaTitular').textContent = datosTransferencia.titular || '(sin configurar)';
+        div.removeAttribute('hidden');
+    } else {
+        div.setAttribute('hidden', '');
+    }
 }
 
 // ============================================================

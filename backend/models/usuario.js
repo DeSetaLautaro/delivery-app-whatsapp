@@ -51,6 +51,13 @@ const usuarioSchema = new mongoose.Schema({
     abierto: { type: Boolean, default: true },
     slug: { type: String, required: true, unique: true },
 
+    // Métodos de pago que acepta el local
+    metodosPago: [{
+        tipo:    { type: String, enum: ['efectivo', 'transferencia', 'tarjeta'] },
+        alias:   { type: String, default: '' },   // solo para transferencia
+        titular: { type: String, default: '' }    // solo para transferencia
+    }],
+
     // Listas (Subdocumentos)
     platos: [platoSchema],
     

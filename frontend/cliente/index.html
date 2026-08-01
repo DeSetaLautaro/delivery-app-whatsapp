@@ -78,59 +78,45 @@
       aria-labelledby="modalTitle"
       hidden
     >
-      <div class="modal">          
-            <header class="modal-header">
-              <h2 class="modal-title" id="modalTitle">🛒 Tu Pedido</h2>
-              <button class="modal-close" id="modalClose" aria-label="Cerrar carrito">✕</button>
-            </header>
+            <div class="modal">
 
-            <div class="payment-methods-container">
-  <span class="payment-title">Método de pago</span>
-  
-  <div class="payment-segmented">
-    <label class="payment-chip selected">
-      <input type="radio" name="metodo_pago" value="mercadopago" checked onchange="cambiarPago(this)">
-      <span class="payment-chip-icon">📱</span>
-      <span>Mercado Pago</span>
-    </label>
+        <header class="modal-header">
+          <h2 class="modal-title" id="modalTitle">🛒 Tu Pedido</h2>
+          <button class="modal-close" id="modalClose" aria-label="Cerrar carrito">✕</button>
+        </header>
 
-    <label class="payment-chip">
-      <input type="radio" name="metodo_pago" value="efectivo" onchange="cambiarPago(this)">
-      <span class="payment-chip-icon">💵</span>
-      <span>Efectivo</span>
-    </label>
-  </div>
-</div>
-
+        <!-- Todo lo que scrollea va acá -->
         <div class="modal-body">
-          <ul class="cart-list" id="cartList" aria-label="Ítems en el carrito">
-            <!-- Renderizado dinámicamente -->
-          </ul>
-          <p class="cart-empty-msg" id="cartEmptyMsg">Tu carrito está vacío 🛒</p>
-        </div>
-        <div class="checkout-fields">
-  <div class="field-group">
-    <label for="direccionEntrega" class="field-label">📍 Dirección de entrega</label>
-    <input 
-      type="text" 
-      id="direccionEntrega" 
-      class="field-input" 
-      placeholder="Ej: Av. Siempreviva 742, Dpto 2B" 
-      required
-    />
-  </div>
 
-  <div class="field-group">
-    <label for="notasPedido" class="field-label">📝 Comentarios adicionales (opcional)</label>
-    <input 
-      type="text" 
-      id="notasPedido" 
-      class="field-input" 
-      placeholder="Ej: Sin cebolla en la hamburguesa, timbre roto..." 
-    />
-  </div>
-</div>
-        
+          <!-- Lista de items -->
+          <ul class="cart-list" id="cartList" aria-label="Ítems en el carrito"></ul>
+          <p class="cart-empty-msg" id="cartEmptyMsg">Tu carrito está vacío 🛒</p>
+
+          <!-- Dirección y comentarios -->
+          <div class="checkout-fields">
+            <div class="field-group">
+              <label for="direccionEntrega" class="field-label">📍 Dirección de entrega</label>
+              <input type="text" id="direccionEntrega" class="field-input"
+                     placeholder="Ej: Av. Siempreviva 742, Dpto 2B" />
+            </div>
+            <div class="field-group">
+              <label for="notasPedido" class="field-label">📝 Comentarios (opcional)</label>
+              <input type="text" id="notasPedido" class="field-input"
+                     placeholder="Sin cebolla, timbre roto..." />
+            </div>
+          </div>
+
+          <!-- Métodos de pago dinámicos (JS los inyecta) -->
+          <div id="contenedorMetodosPago"></div>
+
+          <!-- Info de transferencia (se muestra solo si eligen transferencia) -->
+          <div id="infoTransferencia" class="transfer-info" hidden>
+            <p class="transfer-info-titulo">🏦 Datos para transferir</p>
+            <p>Alias: <strong id="transferenciaAlias"></strong></p>
+            <p>A nombre de: <strong id="transferenciaTitular"></strong></p>
+          </div>
+
+        </div>
 
         <footer class="modal-footer">
           <div class="cart-summary">
@@ -140,10 +126,9 @@
           <button class="btn-whatsapp" id="btnWhatsapp" disabled>
             <span aria-hidden="true">💬</span> Enviar pedido por WhatsApp
           </button>
-          <button class="btn-clear" id="btnClear">
-            🗑️ Vaciar carrito
-          </button>
+          <button class="btn-clear" id="btnClear">🗑️ Vaciar carrito</button>
         </footer>
+
       </div>
     </div>
 

@@ -504,216 +504,57 @@ body {
     font-weight: 600;
 }
 
-/*---------------------------------------------
-        tarjeta de métodos de pago
----------------------------------------------------
-*/
-
-/* Contenedor compacto */
-.payment-methods-container {
-  margin: 16px 0 12px 0;
-  padding-top: 12px;
-  border-top: 1px solid #f1f3f5; /* Línea divisora sutil */
-}
-
-.payment-title {
-  display: block;
-  font-size: 13px;
-  color: #6c757d;
-  margin-bottom: 8px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Selector horizontal (Segmented Control) */
-.payment-segmented {
-  display: flex;
-  gap: 8px;
-  background-color: #f8f9fa;
-  padding: 4px;
-  border-radius: 10px;
-  border: 1px solid #e9ecef;
-}
-
-/* Cada botón / chip */
-.payment-chip {
-  flex: 1; /* Hace que ambos botones midan exactamente lo mismo */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #495057;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-}
-
-/* Ocultamos el radio nativo */
-.payment-chip input[type="radio"] {
-  display: none;
-}
-
-.payment-chip-icon {
-  font-size: 16px;
-}
-
-/* ESTADO SELECCIONADO */
-.payment-chip.selected {
-  background-color: #ffffff;
-  color: #212529;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); /* Sombra suave para darle relieve */
-  border: 1px solid #dee2e6;
-}
-
-/* Hover suave en la opción no seleccionada */
-.payment-chip:hover:not(.selected) {
-  color: #212529;
-}
-
-
-/*---------------------------------------------
-    INPUTS DE DIRECCIÓN Y COMENTARIOS
-------------------------------------------------*/
-.checkout-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 14px 0;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.field-label {
-  font-size: 13px;
-  color: #6c757d;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.field-input {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  color: #212529;
-  outline: none;
-  transition: all 0.2s ease;
-  box-sizing: border-box; /* Evita que el padding desborde el ancho */
-}
-
-.field-input:focus {
-  background-color: #ffffff;
-  border-color: #adb5bd;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
-}
-
-
 /* =========================================
-   SELECTOR DE PAGO ULTRA-COMPACTO
-   ========================================= */
-.payment-methods-container {
-  margin: 10px 0; /* Menos aire arriba y abajo */
-  padding-top: 10px;
-  border-top: 1px solid #f1f3f5;
-}
-
-.payment-title {
-  display: block;
-  font-size: 11px; /* Letra más chiquita */
-  color: #6c757d;
-  margin-bottom: 6px; /* Menos espacio debajo del título */
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.payment-segmented {
-  display: flex;
-  gap: 4px; /* Botones más pegados */
-  background-color: #f8f9fa;
-  padding: 3px;
-  border-radius: 8px;
-}
-
-.payment-chip {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 8px; /* Botón mucho más finito/bajito */
-  font-size: 13px; /* Texto un puntito más chico */
-  font-weight: 500;
-  color: #495057;
-  border-radius: 6px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.payment-chip-icon {
-  font-size: 14px; /* Icono más sutil */
-}
-
-.payment-chip input[type="radio"] {
-  display: none;
-}
-
-.payment-chip.selected {
-  background-color: #ffffff;
-  color: #212529;
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid #dee2e6;
-}
-
-/* =========================================
-   INPUTS DE DIRECCIÓN ULTRA-COMPACTOS
+   CHECKOUT: DIRECCIÓN, COMENTARIOS, PAGO
    ========================================= */
 .checkout-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* Menos espacio entre los dos inputs */
-  margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
 }
+.field-group  { display: flex; flex-direction: column; gap: 3px; }
+.field-label  { font-size: 11px; color: #6c757d; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+.field-input  {
+    width: 100%;
+    padding: 9px 11px;
+    font-size: 13px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    color: #212529;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+}
+.field-input:focus { background: #fff; border-color: #ff6b35; }
 
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px; /* Etiqueta casi pegada al input */
+/* Métodos de pago */
+.payment-methods-container { margin: 12px 0; padding-top: 12px; border-top: 1px solid #f1f3f5; }
+.payment-title  { display: block; font-size: 11px; color: #6c757d; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+.payment-segmented { display: flex; gap: 4px; background: #f8f9fa; padding: 3px; border-radius: 9px; }
+.payment-chip {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px;
+    padding: 8px 6px;
+    font-size: 13px; font-weight: 500; color: #495057;
+    border-radius: 7px; cursor: pointer; user-select: none;
+    transition: background 0.15s;
 }
+.payment-chip input[type="radio"] { display: none; }
+.payment-chip.selected { background: #fff; color: #1a1a1a; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 1px solid #dee2e6; }
 
-.field-label {
-  font-size: 11px; /* Etiqueta más chiquita */
-  color: #6c757d;
-  font-weight: 600;
-  text-transform: uppercase;
+/* Tarjeta info transferencia */
+.transfer-info {
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.88rem;
 }
-
-.field-input {
-  width: 100%;
-  padding: 8px 10px; /* Input más fino */
-  font-size: 13px;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  background-color: #f8f9fa;
-  color: #212529;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.field-input:focus {
-  background-color: #ffffff;
-  border-color: #adb5bd;
-}
+.transfer-info-titulo { font-weight: 700; color: #1d4ed8; margin-bottom: 4px; }

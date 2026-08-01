@@ -243,6 +243,30 @@ body {
 .horario-fila input[type="time"]:focus { border-color: #ff6b35; }
 .separador { font-size: 0.8rem; color: #aaa; }
 
+/* Métodos de pago */
+.metodos-pago-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.metodo-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 999px;
+    font-size: 0.84rem; font-weight: 500;
+    cursor: pointer; user-select: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+.metodo-chip:has(input:checked) { border-color: #ff6b35; background: #fff3ee; color: #c94e1a; }
+.metodo-chip input { accent-color: #ff6b35; }
+
+#datosTransferencia {
+    display: flex; flex-direction: column; gap: 10px;
+    background: #f8faff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 14px;
+}
+#datosTransferencia.oculto { display: none; }
+
 .bienvenida-badge {
     background: rgba(255,255,255,0.2);
     border: 1px solid rgba(255,255,255,0.4);

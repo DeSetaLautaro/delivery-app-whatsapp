@@ -1,5 +1,10 @@
 const cartelitoEstado = document.getElementById('cartelEstado');
 
+function actualizarVisibilidadTransferencia() {
+    const marcado = document.getElementById('pagoTransferencia').checked;
+    document.getElementById('datosTransferencia').classList.toggle('oculto', !marcado);
+}
+
 // Función que solo LEE de la base de datos
 async function leerEstadoParaElPerfil() {
     try {
@@ -56,8 +61,25 @@ document.addEventListener('DOMContentLoaded', ()=>{
         document.getElementById('url').value = '';
     };
 
-    leerEstadoParaElPerfil();
+        leerEstadoParaElPerfil();
     setInterval(leerEstadoParaElPerfil, 60000);
+
+    // Cargar métodos de pago guardados
+    if (userData.metodosPago && userData.metodosPago.length) {
+        const tipos = userData.metodosPago.map(m => m.tipo);
+        document.getElementById('pagoEfectivo').checked     = tipos.includes('efectivo');
+        document.getElementById('pagoTransferencia').checked = tipos.includes('transferencia');
+        document.getElementById('pagoTarjeta').checked      = tipos.includes('tarjeta');
+
+        const transf = userData.metodosPago.find(m => m.tipo === 'transferencia');
+        if (transf) {
+            document.getElementById('transAlias').value    = transf.alias    || '';
+            document.getElementById('transTitular').value  = transf.titular  || '';
+        }
+    }
+    actualizarVisibilidadTransferencia();
+
+        document.getElementById('pagoTransferencia').addEventListener('change', actualizarVisibilidadTransferencia);
 });
 
 // ===========================================
@@ -67,42 +89,43 @@ const btnGuardar = document.getElementById('btnGuardarCambios');
 btnGuardar.addEventListener('click', async (e) =>{
     e.preventDefault();
 
-
-    // 1. capturar los valores del html
-    const nombreLocal = document.getElementById('nombreLocal').value;
+    // 1. Datos del local
+    const nombreLocal    = document.getElementById('nombreLocal').value;
     const whatsappNumero = document.getElementById('whatsappNumero').value;
-    const direccion = document.getElementById('direccion').value;
+    const direccion      = document.getElementById('direccion').value;
+    const nombreUsuario = document.getElementById('nombreUsuario').value;
 
-    //2. armar el paquete de datos
-    const datosNuevos = 
-    {
-        nombre: nombreLocal,
-        telefono: whatsappNumero,
-        direccion: direccion
+    // 2. Métodos de pago: armamos el array según los checkboxes tildados
+    const metodosPago = [];
+    if (document.getElementById('pagoEfectivo').checked)
+        metodosPago.push({ tipo: 'efectivo' });
+    if (document.getElementById('pagoTransferencia').checked)
+        metodosPago.push({
+            tipo:    'transferencia',
+            alias:   document.getElementById('transAlias').value.trim(),
+            titular: document.getElementById('transTitular').value.trim()
+        });
+    if (document.getElementById('pagoTarjeta').checked)
+        metodosPago.push({ tipo: 'tarjeta' });
 
-    }
-    // 3.Buscamos el token en localStorage (En realidad no es necesario porque ya lo hacemos en la función peticionAPI)
-    //const token = localStorage.getItem('token');
+    const datosNuevos = {nombre: nombreUsuario,  nombreDelLocal: nombreLocal, telefono: whatsappNumero, direccion, metodosPago };
 
-    // 4.Hacemos la petición
     try {
         const resultado = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', datosNuevos);
-
         const respuesta = await resultado.json();
 
-
-        // verificación
-        if (respuesta.ok) {
-            alert("¡Perfil actualizado con éxito!");
-
-            
-        } else{
-            alert("Hubo un error: " + respuesta.mensaje);        }
-        
+        if (resultado.ok) {
+            // Actualizamos el localStorage para que la info sea fresca
+            const userGuardado = JSON.parse(localStorage.getItem('user'));
+            Object.assign(userGuardado, { nombre: nombreUsuario, nombreDelLocal: nombreLocal, telefono: whatsappNumero, direccion, metodosPago });
+            localStorage.setItem('user', JSON.stringify(userGuardado));
+            alert('¡Perfil actualizado con éxito!');
+        } else {
+            alert('Hubo un error: ' + (respuesta.mensaje || respuesta.error));
+        }
     } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
+        console.error('Error al conectar con el servidor:', error);
     }
-
 });
 
 //=====================================

@@ -158,9 +158,36 @@
                         <input type="text" id="direccion" placeholder="" value="" />
                     </div>
 
-                    <hr class="card-divider" />
+                                        <hr class="card-divider" />
+                    <p class="card-subtitulo">Métodos de pago aceptados</p>
 
-                    
+                    <!-- Checkboxes de métodos -->
+                    <div class="metodos-pago-grid">
+                        <label class="metodo-chip">
+                            <input type="checkbox" id="pagoEfectivo" value="efectivo" checked />
+                            💵 Efectivo
+                        </label>
+                        <label class="metodo-chip">
+                            <input type="checkbox" id="pagoTransferencia" value="transferencia" checked />
+                            🏦 Transferencia
+                        </label>
+                        <label class="metodo-chip">
+                            <input type="checkbox" id="pagoTarjeta" value="tarjeta" />
+                            💳 Tarjeta
+                        </label>
+                    </div>
+
+                    <!-- Campos extra solo para transferencia -->
+                    <div id="datosTransferencia">
+                        <div class="campo-grupo">
+                            <label for="transAlias">Alias</label>
+                            <input type="text" id="transAlias" placeholder="mi.alias.mp" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label for="transTitular">A nombre de</label>
+                            <input type="text" id="transTitular" placeholder="Juan Pérez" />
+                        </div>
+                    </div>
 
                     <button class="btn-guardar" id="btnGuardarCambios" style="margin-top: 8px;">Guardar cambios</button>
                 </div>
