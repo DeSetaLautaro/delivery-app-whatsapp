@@ -64,13 +64,14 @@ router.post('/login', async (req, res) => {
         );
 
         res.status(200).json({ token,
-            user: {nombre : usuario.nombre,
+                        user: {nombre : usuario.nombre,
                     email : usuario.email,
                     id : usuario.id,
                     telefono : usuario.telefono,
                     nombreDelLocal: usuario.nombreDelLocal,
                     slug: usuario.slug,
-                    direccion : usuario.direccion
+                    direccion : usuario.direccion,
+                    fotoPerfil : usuario.fotoPerfil || ''
             }
          });
 

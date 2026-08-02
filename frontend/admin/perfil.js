@@ -61,10 +61,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
         return;
     }
 
-    cargarHeader(userDataJS);
+        cargarHeader(userDataJS);
 
     const userData = JSON.parse(userDataJS);
-  
+
+    // Si el local ya tiene una foto guardada, la mostramos en el avatar
+    if (userData.fotoPerfil) {
+        document.getElementById('avatarImg').src = userData.fotoPerfil;
+    }
 
     // Modificar los placeholder con la información del local
     document.getElementById('nombreUsuario').value = userData.nombre || '';
@@ -178,7 +182,74 @@ btnActualizarContraseña.addEventListener('click', async (e) => {
         document.getElementById('passConfirm').value = '';
     }
 
-    btnActualizarContraseña.disabled = false;
+        btnActualizarContraseña.disabled = false;
     btnActualizarContraseña.innerText = "Actualizar Contraseña";
 });
+
+// ===========================================
+//   FOTO DE PERFIL DEL LOCAL (AVATAR)
+// ===========================================
+const avatarImg   = document.getElementById('avatarImg');
+const btnFoto     = document.getElementById('btnCambiarFoto');
+const inputFoto   = document.getElementById('inputFoto');
+
+// Clickeando la foto O el botón de la cámara → se abre el selector de archivos
+avatarImg.addEventListener('click', () => inputFoto.click());
+btnFoto.addEventListener('click', () => inputFoto.click());
+
+// Cuando el usuario elige una foto de su dispositivo
+inputFoto.addEventListener('change', async (e) => {
+    const archivo = e.target.files[0];
+    if (!archivo) return;
+
+    // 1. Vista previa local al instante (antes de subir)
+    const lector = new FileReader();
+    lector.onload = (ev) => { avatarImg.src = ev.target.result; };
+    lector.readAsDataURL(archivo);
+
+    // 2. Subir la foto al servidor y guardarla en la base de datos
+    try {
+        const formData = new FormData();
+        formData.append('foto', archivo);
+
+        const respuesta = await fetch('/api/usuarios/subirFotoPerfil', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: formData
+        });
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+            throw new Error(datos.error || 'No se pudo subir la foto');
+        }
+
+        // 3. Guardar la URL nueva en el localStorage para que esté fresca
+        const userGuardado = JSON.parse(localStorage.getItem('user'));
+        userGuardado.fotoPerfil = datos.url;
+        localStorage.setItem('user', JSON.stringify(userGuardado));
+
+        // 4. Refrescar el logo del header al instante
+        actualizarLogoHeader(datos.url);
+
+        alert('¡Foto actualizada con éxito!');
+    } catch (error) {
+        console.error('Error al subir la foto:', error);
+        alert('No se pudo subir la foto. Intentá de nuevo.');
+    }
+
+    // Limpiamos el input para poder elegir la misma foto otra vez
+    inputFoto.value = '';
+});
+
+// Reemplaza la pizza del header por la foto del local
+function actualizarLogoHeader(url) {
+    const logoImg   = document.getElementById('headerLogoImg');
+    const logoEmoji = document.getElementById('headerLogoEmoji');
+    if (logoImg && logoEmoji) {
+        logoImg.src = url;
+        logoImg.hidden = false;
+        logoEmoji.hidden = true;
+    }
+}
 

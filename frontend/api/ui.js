@@ -29,10 +29,24 @@ async function cargarHeader(usuarioDataString) {
 
         const usuarioData = JSON.parse(usuarioDataString);
         
-        const welcomeNombre = document.getElementById("welcomeNombre");
+                const welcomeNombre = document.getElementById("welcomeNombre");
         const userNombre = document.getElementById("userNombre");
         if (welcomeNombre) welcomeNombre.textContent = usuarioData.nombre;
         if (userNombre) userNombre.textContent = usuarioData.nombre;
+
+        // Logo del local en el header: si tiene foto, reemplazamos la pizza
+        const logoImg   = document.getElementById('headerLogoImg');
+        const logoEmoji = document.getElementById('headerLogoEmoji');
+        if (logoImg && logoEmoji) {
+            if (usuarioData.fotoPerfil) {
+                logoImg.src   = usuarioData.fotoPerfil;
+                logoImg.hidden = false;
+                logoEmoji.hidden = true;
+            } else {
+                logoImg.hidden = true;
+                logoEmoji.hidden = false;
+            }
+        }
 
         // Lógica del Menú Dropdown
         const userMenu = document.getElementById('userMenu');

@@ -47,8 +47,9 @@ const usuarioSchema = new mongoose.Schema({
         apertura: { type: String },
         cierre: { type: String }
     }],
-    telefono: { type: String, default: "" },
+            telefono: { type: String, default: "" },
     direccion: { type: String, default: "" },
+    fotoPerfil: { type: String, default: '' }, // URL de la foto/logo del local
     abierto: { type: Boolean, default: true },
     slug: { type: String, required: true, unique: true },
 

@@ -14,7 +14,48 @@ const verificarToken = require('../middleware/verificarToken');
 
 
 
+// Ruta en tu backend para aplicar foto a toda la categoría
+router.post('/aplicar-foto-categoria', verificarToken, async (req, res) => {
+    const { categoria, fotoUrl } = req.body;
+    console.log("llegue");
+    // Validación mínima para no hacer consultas raras
+    if (!categoria || !fotoUrl) {
+        return res.status(400).json({ error: "Faltan datos (categoria o fotoUrl)" });
+    }
 
+    try {
+        // 1. Los platos viven adentro del documento del dueño (usuario.platos),
+        //    así que buscamos al usuario logueado con su lista completa.
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // 2. Recorremos sus platos y les ponemos la foto SOLO a los que
+        //    sean de la misma categoría y no tengan foto (vacía o inexistente).
+        let actualizados = 0;
+        usuario.platos.forEach(plato => {
+            const sinFoto = !plato.fotoUrl || plato.fotoUrl === '';
+            if (plato.categoria === categoria && sinFoto) {
+                plato.fotoUrl = fotoUrl;
+                actualizados++;
+            }
+        });
+
+        // 3. Si cambió alguno, guardamos los cambios en MongoDB.
+        if (actualizados > 0) {
+            usuario.markModified('platos');
+            await usuario.save();
+        }
+
+        // 4. Le avisamos al frontend cuántos platos actualizó.
+        res.json({ actualizados });
+
+    } catch (error) {
+        console.error("Error al aplicar la foto:", error);
+        res.status(500).json({ error: "Error al aplicar la foto" });
+    }
+});
 
 
 const uploadFoto = multer({ dest: 'uploads/' });

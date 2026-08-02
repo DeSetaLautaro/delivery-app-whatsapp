@@ -495,7 +495,7 @@ function limpiarCamposFoto() {
 
 /** Aplica la foto a todos los platos de la categoría sin foto */
 async function aplicarFotoACategoria(fotoUrl) {
-    const categoria = document.querySelector('input[name="categoria"]').value.trim();
+    const categoria = document.querySelector('input[name="categoria"]').value;
     if (!categoria || !fotoUrl) return;
 
     const token = localStorage.getItem('token');
@@ -558,17 +558,18 @@ btnGuardar.addEventListener('click', async (e) => {
 
     const idOculto = datosPlato.id;
 
+     // Si el checkbox está tildado, aplicamos la foto a toda la categoría
+    if (checkAplicarCategoria.checked && datosPlato.fotoUrl) {
+        await aplicarFotoACategoria(datosPlato.fotoUrl);
+    }
+
     if (idOculto === "") {
         await crearPlato(datosPlato, formPlato);
     } else {
         await editarPlato(idOculto, datosPlato, formPlato);
     }
 
-    // Si el checkbox está tildado, aplicamos la foto a toda la categoría
-    if (checkAplicarCategoria.checked && datosPlato.fotoUrl) {
-        await aplicarFotoACategoria(datosPlato.fotoUrl);
-    }
-
+    
     cargarHTMLListaDePlatos(datosPlato);
     terminarYRedibujar(formPlato);
 });
@@ -606,7 +607,7 @@ tbodyPlatos.addEventListener('click', async (e) => {
         document.querySelector('input[name="id"]').value = idPlato;        
         document.querySelector('input[name="nombre"]').value = nombrePlato;
         document.querySelector('input[name="precio"]').value = precioPlato;
-                document.querySelector('input[name="categoria"]').value = catPlato;
+        document.querySelector('input[name="categoria"]').value = catPlato;
         document.querySelector('input[name="foto"]').value = fotoPlato;
 
         // Mostramos la vista previa si el plato ya tiene foto

@@ -14,7 +14,7 @@ const usuariosRouter = require('./routes/usuariosRoutes');
 const rutasToppings = require('./routes/toppings');
 const publicoRoutes = require('./routes/publicoRoutes');
 
-const app    = express();git
+const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
 
 // 2. FUNDAMENTAL: Primero el "traductor" de JSON

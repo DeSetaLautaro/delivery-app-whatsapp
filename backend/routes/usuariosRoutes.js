@@ -2,10 +2,51 @@ require('dotenv').config();
 const express  = require('express');
 const bcrypt   = require('bcrypt'); 
 const jwt      = require('jsonwebtoken');
+const fs       = require('fs');
+const path     = require('path');
+const multer   = require('multer');
 const Usuario  = require('../models/usuario'); 
 const verificarToken = require('../middleware/verificarToken');
 
 const router = express.Router();
+
+// Multer: guarda la foto del perfil en la carpeta /uploads
+const uploadFotoPerfil = multer({ dest: 'uploads/' });
+
+
+// ==========================================
+// RUTA PARA SUBIR LA FOTO/LOGO DEL LOCAL
+// ==========================================
+router.post('/subirFotoPerfil', verificarToken, uploadFotoPerfil.single('foto'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se recibió archivo' });
+        }
+
+        // 1. Le damos la extensión correcta y lo movemos a /uploads
+        const ext          = path.extname(req.file.originalname) || '.jpg';
+        const nuevoNombre  = `${req.file.filename}${ext}`;
+        const rutaActual   = req.file.path;
+        const rutaFinal    = path.join(__dirname, '../uploads', nuevoNombre);
+        fs.renameSync(rutaActual, rutaFinal);
+
+        const url = `/uploads/${nuevoNombre}`;
+
+        // 2. Guardamos la URL en la base de datos del usuario
+        await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { $set: { fotoPerfil: url } },
+            { new: true }
+        );
+
+        // 3. Devolvemos la URL para que el frontend la use al instante
+        res.status(200).json({ url });
+
+    } catch (error) {
+        console.error('Error al subir la foto de perfil:', error);
+        res.status(500).json({ error: 'No se pudo subir la foto' });
+    }
+});
 
 
 // ==========================================
