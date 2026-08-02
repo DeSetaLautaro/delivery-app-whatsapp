@@ -49,6 +49,15 @@ body {
 
 .brand-logo { font-size: 2rem; }
 
+/* Logo del local (foto de perfil) en el header */
+#brandLogoImg {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ff6b35;
+}
+
 .brand-name    { font-size: 1.2rem; font-weight: 800; color: #1a1a1a; }
 .brand-tagline { font-size: 0.78rem; color: #888; margin-top: 2px; }
 

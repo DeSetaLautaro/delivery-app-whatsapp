@@ -51,10 +51,11 @@ router.get('/perfil/:slugLocal', async (req, res) => {
     try {
         const usuario = await Usuario.findOne({ slug: req.params.slugLocal });
         if (!usuario) return res.status(404).json({ error: 'Local no encontrado' });
-        res.json({
+                res.json({
             nombre:         usuario.nombreDelLocal,
             whatsappNumero: usuario.telefono,
-            metodosPago:    usuario.metodosPago || []
+            metodosPago:    usuario.metodosPago || [],
+            fotoPerfil:     usuario.fotoPerfil || ''
         });
     } catch (e) {
         res.status(500).json({ error: 'Error del servidor' });

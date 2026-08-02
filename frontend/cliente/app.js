@@ -60,6 +60,14 @@ async function cargarMenu() {
         const platos = await respuesta.json();
         estaAbierto = await estaAbierto.json();
 
+        // 4. Logo del header: si el local tiene foto, reemplazamos la pizza
+        const perfilDelLocal = await (await fetch(`/api/publico/perfil/${slugDelLocal}`)).json();
+        const logoHeader     = document.getElementById('brandLogoImg');
+        if (perfilDelLocal.fotoPerfil) {
+            logoHeader.src    = perfilDelLocal.fotoPerfil;
+            logoHeader.hidden = false;
+            document.getElementById('brandLogoFallback').hidden = true;
+        }
 
         // Guardamos en caché para usarlos en agregarAlCarrito sin refetch
         platosCache = platos;
