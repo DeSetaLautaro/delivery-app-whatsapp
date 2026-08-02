@@ -101,6 +101,9 @@ app.get('/admin/perfil', (req,res) =>{
 // Multer: guarda los archivos recibidos en la carpeta /uploads
 const upload = multer({ dest: 'uploads/' });
 
+// Servimos la carpeta /uploads como archivos estáticos para poder mostrar las fotos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Ruta donde se va a guardar el menu procesado por la IA.
 // __dirname es la carpeta del archivo actual (backend/)
 // El archivo se llama menu.json y vive dentro de backend/

@@ -136,7 +136,7 @@ function crearSeccionCategoria(categoria, items) {
                 ${obtenerEmoji(categoria)} ${categoria}
             </h2>
             <div class="products-grid" role="list">
-                ${items.map(plato => crearTarjetaPlato(plato)).join('')}
+                ${items.map(plato => crearTarjetaPlato(plato, categoria)).join('')}
             </div>
         </section>
     `;
@@ -149,7 +149,7 @@ function crearSeccionCategoria(categoria, items) {
  * @param {Object} plato - { plato, descripcion, precio, categoria }
  * @returns {string}     - HTML de la tarjeta
  */
-function crearTarjetaPlato(plato) {
+function crearTarjetaPlato(plato, categoria) {
     // 1. Escudo para el nombre: Probamos si viene como 'nombre' o como 'plato'
     const nombreDelPlato = plato.nombre || plato.nombre || 'Plato sin nombre';
     
@@ -159,20 +159,29 @@ function crearTarjetaPlato(plato) {
     // 3. Escudo para el precio: Si no hay precio, mostramos 0
     const precioSeguro = plato.precio ? Number(plato.precio).toLocaleString('es-AR') : '0';
 
+    // 4. Foto del plato: si hay URL la mostramos, si no, el emoji de la categoría
+    const emojiCategoria = obtenerEmoji(categoria || plato.categoria || '');
+    const fotoHTML = plato.fotoUrl
+        ? `<div class="product-img"><img src="${plato.fotoUrl}" alt="${nombreDelPlato}" loading="lazy" /></div>`
+        : `<div class="product-img product-img-emoji">${emojiCategoria}</div>`;
+
     return `
         <article class="product-card" role="listitem">
+            ${fotoHTML}
             <div class="product-info">
                 <h3 class="product-name">${nombreDelPlato}</h3>
                 ${plato.descripcion ? `<p class="product-desc">${plato.descripcion}</p>` : ''}
-                <p class="product-price">$${precioSeguro}</p>
+                <div class="product-bottom">
+                    <p class="product-price">$${precioSeguro}</p>
+                    <button
+                        class="btn-agregar"
+                        onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')"
+                        aria-label="Agregar ${nombreSeguro} al carrito"
+                    >
+                        + Agregar
+                    </button>
+                </div>
             </div>
-            <button
-                class="btn-agregar"
-                onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || ''}')"
-                aria-label="Agregar ${nombreSeguro} al carrito"
-            >
-                + Agregar
-            </button>
         </article>
     `;
 }

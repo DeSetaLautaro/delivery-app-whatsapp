@@ -176,11 +176,12 @@ async function cargarHTMLListaDePlatos(datosPlato){
         <td class="tdBotones">
             <!-- Desktop: botones normales -->
             <div class="acciones-desktop">
-                <button class="btn-accion btn-editar"
+                                <button class="btn-accion btn-editar"
                     data-id="${datosPlato._id}"
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
-                    data-categoria="${datosPlato.categoria}">
+                    data-categoria="${datosPlato.categoria}"
+                    data-foto="${datosPlato.fotoUrl || ''}">
                     Editar
                 </button>
                 <button class="btn-accion btn-borrar"
@@ -204,7 +205,8 @@ async function cargarHTMLListaDePlatos(datosPlato){
                         data-id="${datosPlato._id}"
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
-                        data-categoria="${datosPlato.categoria}">
+                        data-categoria="${datosPlato.categoria}"
+                        data-foto="${datosPlato.fotoUrl || ''}">
                         ✏️ Editar
                     </button>
                     <button class="btn-accion btn-borrar"
@@ -391,7 +393,8 @@ if (btnCerrarSesion) {
 btnCargaManual.addEventListener('click', () => {
         document.getElementById("tituloModal").innerText = "Crear Plato";
         document.getElementById("btnGuardarPlato").innerText = "Guardar Plato";
-        modalOverlay.hidden = false; 
+                modalOverlay.hidden = false;
+        limpiarCamposFoto();
     });
 
 // 5. Cuando el modal está activado y usuario hace click en la cruz este se cierra.
@@ -431,6 +434,93 @@ botonesCerrar.forEach( boton => {
 
 
 
+// ============================================================
+// SUBIR FOTO DE PLATO (selector de archivo)
+// ============================================================
+const inputFotoPlato       = document.getElementById('inputFotoPlato');
+const previewFotoPlato     = document.getElementById('previewFotoPlato');
+const fotoUploadTexto      = document.getElementById('fotoUploadTexto');
+const labelAplicarCategoria = document.getElementById('labelAplicarCategoria');
+const checkAplicarCategoria = document.getElementById('checkAplicarCategoria');
+
+/** Sube el archivo al backend y devuelve la URL. También actualiza UI. */
+async function subirFotoSeleccionada() {
+    const archivo = inputFotoPlato.files[0];
+    if (!archivo) return null;
+
+    // Actualizamos el texto del área mientras sube
+    fotoUploadTexto.textContent = 'Subiendo...';
+
+    const formData = new FormData();
+    formData.append('foto', archivo);
+
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/platos/subir-foto', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+
+    if (!res.ok) {
+        fotoUploadTexto.textContent = 'Error al subir. Intentá de nuevo.';
+        return null;
+    }
+
+    const data = await res.json();
+
+    // Guardamos la URL en el hidden
+    document.getElementById('fotoUrlPlato').value = data.url;
+
+    // Mostramos nombre del archivo en el área
+    fotoUploadTexto.textContent = archivo.name;
+
+    // Mostramos la vista previa
+    previewFotoPlato.innerHTML = `<img src="${data.url}" alt="Vista previa" />`;
+
+    // Mostramos el checkbox de "aplicar a categoría"
+    labelAplicarCategoria.style.display = 'flex';
+
+    return data.url;
+}
+
+/** Limpia todos los campos de foto del modal */
+function limpiarCamposFoto() {
+    inputFotoPlato.value         = '';
+    document.getElementById('fotoUrlPlato').value = '';
+    previewFotoPlato.innerHTML   = '';
+    fotoUploadTexto.textContent  = 'Elegir imagen del ordenador';
+    labelAplicarCategoria.style.display = 'none';
+    checkAplicarCategoria.checked = false;
+}
+
+/** Aplica la foto a todos los platos de la categoría sin foto */
+async function aplicarFotoACategoria(fotoUrl) {
+    const categoria = document.querySelector('input[name="categoria"]').value.trim();
+    if (!categoria || !fotoUrl) return;
+
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/platos/aplicar-foto-categoria', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fotoUrl, categoria })
+    });
+
+    if (res.ok) {
+        const data = await res.json();
+        if (data.actualizados > 0) {
+            alert(`¡Foto aplicada a ${data.actualizados} plato(s) más de "${categoria}" que no tenían foto!`);
+        }
+    }
+}
+
+// Cuando el usuario elige un archivo → subir automáticamente
+inputFotoPlato.addEventListener('change', async () => {
+    const url = await subirFotoSeleccionada();
+    if (!url) {
+        fotoUploadTexto.textContent = 'Elegir imagen del ordenador';
+    }
+});
+
 // ============= BOTÓN GUARDAR PLATO ===============
 const btnGuardar = document.getElementById("btnGuardarPlato");
 const listaPlatos = document.getElementById("lista-platos");
@@ -447,22 +537,28 @@ btnGuardar.addEventListener('click', async (e) => {
     const datosForm = new FormData(formPlato);
     
     
-    const datosPlato = {
+        const datosPlato = {
         nombre: datosForm.get('nombre'),
         precio: Number(datosForm.get('precio')),
         categoria : datosForm.get('categoria'),
         descripcion: datosForm.get('descripcion'),
+        fotoUrl: datosForm.get('foto'),
         id: datosForm.get('id')
     };
 
-    const idOculto = datosPlato.id;
+        const idOculto = datosPlato.id;
 
     if (idOculto === "") {
         await crearPlato(datosPlato, formPlato);
     } else {
         await editarPlato(idOculto, datosPlato, formPlato);
     }
-    
+
+    // Si el checkbox está tildado, aplicamos la foto a toda la categoría
+    if (checkAplicarCategoria.checked && datosPlato.fotoUrl) {
+        await aplicarFotoACategoria(datosPlato.fotoUrl);
+    }
+
     cargarHTMLListaDePlatos(datosPlato);
     terminarYRedibujar(formPlato)
     
@@ -492,15 +588,26 @@ tbodyPlatos.addEventListener('click', async (e) => {
         const idPlato = btnEditar.getAttribute('data-id');
         console.log("1. Hice clic en editar. El ID de la mochila es:", idPlato);
         
-        const nombrePlato = btnEditar.getAttribute('data-nombre');
+                const nombrePlato = btnEditar.getAttribute('data-nombre');
         const precioPlato = btnEditar.getAttribute('data-precio');
         const catPlato = btnEditar.getAttribute('data-categoria');
+        const fotoPlato = btnEditar.getAttribute('data-foto') || '';
 
         // 5. Autocompletamos los inputs del modal con esos datos
         document.querySelector('input[name="id"]').value = idPlato;        
         document.querySelector('input[name="nombre"]').value = nombrePlato;
         document.querySelector('input[name="precio"]').value = precioPlato;
-        document.querySelector('input[name="categoria"]').value = catPlato;
+                document.querySelector('input[name="categoria"]').value = catPlato;
+        document.querySelector('input[name="foto"]').value = fotoPlato;
+
+        // Mostramos la vista previa si el plato ya tiene foto
+        const preview = document.getElementById('previewFotoPlato');
+        if (fotoPlato) {
+            preview.innerHTML = `<img src="${fotoPlato}" alt="Vista previa" />`;
+        } else {
+            preview.innerHTML = '';
+        }
+        limpiarCamposFoto(); // limpiamos selector, preview y checkbox
 
         // 6. Abrimos el modal
         modalOverlay.hidden = false;

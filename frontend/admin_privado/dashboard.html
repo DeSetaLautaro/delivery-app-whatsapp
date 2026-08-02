@@ -315,8 +315,21 @@
             <input type="text" name="categoria" placeholder="Ej: Pizas">
             <input type="hidden" id="platoId" name="id" value="">
 
-            <label>Descripción (opcional):</label>
+                        <label>Descripción (opcional):</label>
             <input type="text" name="descripción" placeholder="hamburguesa con lechuga tomate y cheddar" >
+
+                                                <label>Foto del plato:</label>
+            <div class="foto-upload-area" id="fotoUploadArea">
+                <span class="foto-upload-icon">📷</span>
+                <span class="foto-upload-texto" id="fotoUploadTexto">Elegir imagen del ordenador</span>
+                <input type="file" id="inputFotoPlato" accept="image/*" />
+            </div>
+            <input type="hidden" id="fotoUrlPlato" name="foto" value="">
+            <div id="previewFotoPlato" class="foto-preview"></div>
+            <label class="foto-check-label" id="labelAplicarCategoria" style="display:none">
+                <input type="checkbox" id="checkAplicarCategoria" />
+                <span class="foto-check-texto">Usar esta foto para todos los platos de la misma categoría que no tienen foto</span>
+            </label>
 
             <button type="submit" id="btnGuardarPlato">Guardar Plato</button>
         </form>

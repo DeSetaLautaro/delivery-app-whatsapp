@@ -24,7 +24,8 @@ const platoSchema = new mongoose.Schema({
     descripcion: { type: String },
     precio: { type: Number, required: true },
     categoria: { type: String, required: true },
-    disponible: { type: Boolean, default: true }
+    disponible: { type: Boolean, default: true },
+    fotoUrl: { type: String, default: '' } // URL de la foto del plato (opcional)
 });
 
 

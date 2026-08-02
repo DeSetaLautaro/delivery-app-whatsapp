@@ -24,10 +24,10 @@ const verificarToken = require('../middleware/verificarToken');
 
 router.post('/', verificarToken, async (req, res) => {
     // 1. Recibimos los datos del front
-    const { nombre, precio, categoria } = req.body;
+    const { nombre, precio, categoria, descripcion, fotoUrl } = req.body;
 
     // 2. Armamos el plato (¡Sin ID! MongoDB lo hace solo)
-    const platoNuevo = { nombre, precio, categoria };
+    const platoNuevo = { nombre, precio, categoria, descripcion: descripcion || '', fotoUrl: fotoUrl || '' };
 
     try {
         // 3. El comando mágico de MongoDB
@@ -213,8 +213,8 @@ router.patch('/:id', verificarToken, async (req, res) => {
 router.put('/:id', verificarToken, async (req, res) => {
     try {
         // 1. Capturamos el ID del plato de la URL y los datos nuevos del body
-        const idPlato = req.params.id; 
-        const { nombre, precio, categoria, descripcion } = req.body; 
+                const idPlato = req.params.id; 
+        const { nombre, precio, categoria, descripcion, fotoUrl } = req.body;  
 
         // 2. Le pedimos a MongoDB que haga la búsqueda y el reemplazo en un solo paso
         const usuarioActualizado = await Usuario.findOneAndUpdate(
@@ -225,12 +225,13 @@ router.put('/:id', verificarToken, async (req, res) => {
             { 
                 // El $set le dice "modificá solo estos campos"
                 // El símbolo $ significa "el renglón exacto que coincidió en la búsqueda"
-                $set: { 
+                                $set: { 
                     "platos.$.nombre": nombre,
                     "platos.$.precio": precio,
                     "platos.$.categoria": categoria,
-                    "platos.$.descripcion": descripcion 
-                } 
+                    "platos.$.descripcion": descripcion,
+                    "platos.$.fotoUrl": fotoUrl || '' 
+                }  
             },
             { new: true } // Para que nos devuelva el documento ya actualizado
         );
@@ -276,9 +277,78 @@ router.delete('/:id', verificarToken, async (req, res) => {
         // 3. Todo salió perfecto
         res.status(200).json({ mensaje: "Plato eliminado con éxito" });
 
-    } catch (error) {
+        } catch (error) {
         console.error("Error al borrar el plato:", error);
         res.status(500).json({ error: "No se pudo borrar el plato" });
+    }
+});
+
+
+// ============================================================
+// SUBIR FOTO DE PLATO
+// ============================================================
+// Guarda la imagen en /uploads y devuelve la URL pública.
+// BODY: form-data con campo "foto" (archivo de imagen).
+const uploadFoto = multer({ dest: 'uploads/' });
+
+router.post('/subir-foto', verificarToken, uploadFoto.single('foto'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se recibió ningún archivo' });
+        }
+
+        // Renombramos el archivo a un nombre único pero con extensión correcta
+        const ext = path.extname(req.file.originalname) || '.jpg';
+        const nuevoNombre = `${req.file.filename}${ext}`;
+        const rutaActual = path.join(__dirname, '..', '..', req.file.path);
+        const rutaFinal  = path.join(__dirname, '..', '..', 'uploads', nuevoNombre);
+
+        // Si el nombre ya quedó correcto (multer no agrega ext), no movemos
+        if (path.join(__dirname, '..', '..', 'uploads', req.file.filename) !== rutaFinal) {
+            fs.renameSync(rutaActual, rutaFinal);
+        }
+
+        const url = `/uploads/${nuevoNombre}`;
+        res.status(200).json({ url });
+    } catch (error) {
+        console.error('Error al subir la foto:', error);
+        res.status(500).json({ error: 'No se pudo subir la foto' });
+    }
+});
+
+
+// ============================================================
+// APLICAR FOTO A TODOS LOS PLATOS SIN FOTO DE UNA CATEGORÍA
+// ============================================================
+// BODY: { fotoUrl, categoria }
+router.post('/aplicar-foto-categoria', verificarToken, async (req, res) => {
+    try {
+        const { fotoUrl, categoria } = req.body;
+        if (!fotoUrl || !categoria) {
+            return res.status(400).json({ error: 'Faltan datos (fotoUrl y categoria)' });
+        }
+
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        // Actualizamos solo los platos de esa categoría que no tienen foto
+        const bulkOps = usuario.platos
+            .filter(p => p.categoria === categoria && !p.fotoUrl)
+            .map(p => ({
+                updateOne: {
+                    filter: { _id: usuario._id, "platos._id": p._id },
+                    update: { $set: { "platos.$.fotoUrl": fotoUrl } }
+                }
+            }));
+
+        if (bulkOps.length > 0) {
+            await Usuario.bulkWrite(bulkOps);
+        }
+
+        res.status(200).json({ mensaje: `Foto aplicada a ${bulkOps.length} platos`, actualizados: bulkOps.length });
+    } catch (error) {
+        console.error('Error al aplicar foto por categoría:', error);
+        res.status(500).json({ error: 'No se pudo aplicar la foto' });
     }
 });
 
