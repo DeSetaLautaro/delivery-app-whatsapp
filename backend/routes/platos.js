@@ -13,12 +13,58 @@ const verificarToken = require('../middleware/verificarToken');
 
 
 
+
+
+
+
+const uploadFoto = multer({ dest: 'uploads/' });
+
+// Agregamos una función espía justo después de '/subir-foto'
+router.post('/subir-foto', 
+    (req, res, next) => {
+        console.log("🚨 1. LA PETICIÓN LLEGÓ A LA RUTA CORRECTA");
+        next();
+    }, 
+    verificarToken, 
+    (req, res, next) => {
+        console.log("✅ 2. EL TOKEN SE VERIFICÓ CORRECTAMENTE");
+        next();
+    },
+    uploadFoto.single('foto'), 
+    async (req, res) => {
+        console.log("📸 3. MULTER PROCESÓ LA FOTO. Entrando al try/catch...");
+        try {
+            if (!req.file) {
+                console.log("❌ Error: No llegó req.file");
+                return res.status(400).json({ error: 'No se recibió archivo' });
+            }
+
+            const ext = path.extname(req.file.originalname) || '.jpg';
+            const nuevoNombre = `${req.file.filename}${ext}`;
+            const rutaActual = req.file.path;
+            const rutaFinal  = path.join(__dirname, '../uploads', nuevoNombre); 
+
+            fs.renameSync(rutaActual, rutaFinal);
+            
+            console.log("✅ 4. LA FOTO SE MOVIÓ CON ÉXITO");
+            const url = `/uploads/${nuevoNombre}`;
+            res.status(200).json({ url });
+
+        } catch (error) {
+            console.error('🔥 ERROR CRÍTICO AL SUBIR LA FOTO:', error);
+            res.status(500).json({ error: 'No se pudo subir la foto' });
+        }
+});
+
+
 /*
 -PROPÓSITO: se envía el plato nuevo que se agrega en la DB
 */
 
 // Asegurate de importar tu modelo arriba: const Usuario = require('../models/User');
 // RUTA PUT: Guardar los cambios de un grupo editado
+
+
 
 
 
@@ -251,6 +297,8 @@ router.put('/:id', verificarToken, async (req, res) => {
 });
 
 
+
+
 // Atrapamos las peticiones DELETE que apuntan a un ID específico
 // Acordate de que este archivo ya tiene que tener importado Usuario y verificarToken
 
@@ -284,73 +332,8 @@ router.delete('/:id', verificarToken, async (req, res) => {
 });
 
 
-// ============================================================
-// SUBIR FOTO DE PLATO
-// ============================================================
-// Guarda la imagen en /uploads y devuelve la URL pública.
-// BODY: form-data con campo "foto" (archivo de imagen).
-const uploadFoto = multer({ dest: 'uploads/' });
-
-router.post('/subir-foto', verificarToken, uploadFoto.single('foto'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No se recibió ningún archivo' });
-        }
-
-        // Renombramos el archivo a un nombre único pero con extensión correcta
-        const ext = path.extname(req.file.originalname) || '.jpg';
-        const nuevoNombre = `${req.file.filename}${ext}`;
-        const rutaActual = path.join(__dirname, '..', '..', req.file.path);
-        const rutaFinal  = path.join(__dirname, '..', '..', 'uploads', nuevoNombre);
-
-        // Si el nombre ya quedó correcto (multer no agrega ext), no movemos
-        if (path.join(__dirname, '..', '..', 'uploads', req.file.filename) !== rutaFinal) {
-            fs.renameSync(rutaActual, rutaFinal);
-        }
-
-        const url = `/uploads/${nuevoNombre}`;
-        res.status(200).json({ url });
-    } catch (error) {
-        console.error('Error al subir la foto:', error);
-        res.status(500).json({ error: 'No se pudo subir la foto' });
-    }
-});
 
 
-// ============================================================
-// APLICAR FOTO A TODOS LOS PLATOS SIN FOTO DE UNA CATEGORÍA
-// ============================================================
-// BODY: { fotoUrl, categoria }
-router.post('/aplicar-foto-categoria', verificarToken, async (req, res) => {
-    try {
-        const { fotoUrl, categoria } = req.body;
-        if (!fotoUrl || !categoria) {
-            return res.status(400).json({ error: 'Faltan datos (fotoUrl y categoria)' });
-        }
-
-        const usuario = await Usuario.findById(req.usuario.id);
-        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
-
-        // Actualizamos solo los platos de esa categoría que no tienen foto
-        const bulkOps = usuario.platos
-            .filter(p => p.categoria === categoria && !p.fotoUrl)
-            .map(p => ({
-                updateOne: {
-                    filter: { _id: usuario._id, "platos._id": p._id },
-                    update: { $set: { "platos.$.fotoUrl": fotoUrl } }
-                }
-            }));
-
-        if (bulkOps.length > 0) {
-            await Usuario.bulkWrite(bulkOps);
-        }
-
-        res.status(200).json({ mensaje: `Foto aplicada a ${bulkOps.length} platos`, actualizados: bulkOps.length });
-    } catch (error) {
-        console.error('Error al aplicar foto por categoría:', error);
-        res.status(500).json({ error: 'No se pudo aplicar la foto' });
-    }
-});
 
 
 

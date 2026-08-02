@@ -526,8 +526,8 @@ const btnGuardar = document.getElementById("btnGuardarPlato");
 const listaPlatos = document.getElementById("lista-platos");
 
 /**
- * PROPÓSITO: Al hacer clicj en guardar plato este se guarda en la BD y además se mostrará en pantalla 
- * la lista de los platos del dashbord
+ * PROPÓSITO: Al hacer clic en guardar plato, este se guarda en la BD
+ * y además se mostrará en pantalla la lista de los platos del dashboard
  */
 
 btnGuardar.addEventListener('click', async (e) => {
@@ -536,17 +536,27 @@ btnGuardar.addEventListener('click', async (e) => {
     const formPlato = document.getElementById("formCrearPlato");
     const datosForm = new FormData(formPlato);
     
+    // Capturamos la URL que generó la subida (si es que hubo) o la vieja
+    const urlFotoSubida = document.getElementById('fotoUrlPlato').value;
     
-        const datosPlato = {
+    // Obtenemos la foto que ya tenía el plato antes de ser editado 
+    // Ojo: Asegurate de que tu input hidden para recuperar fotos viejas se llame 'foto' 
+    // en tu HTML (o cambialo por el nombre que estés usando)
+    const fotoExistente = datosForm.get('foto'); 
+
+    // El flujo correcto:
+    const datosPlato = {
         nombre: datosForm.get('nombre'),
         precio: Number(datosForm.get('precio')),
-        categoria : datosForm.get('categoria'),
+        categoria: datosForm.get('categoria'),
         descripcion: datosForm.get('descripcion'),
-        fotoUrl: datosForm.get('foto'),
+        // Si hay una foto subida recientemente, usamos esa.
+        // Si no, usamos la foto que ya existía (si estaba editando un plato).
+        fotoUrl: urlFotoSubida || fotoExistente || "",
         id: datosForm.get('id')
     };
 
-        const idOculto = datosPlato.id;
+    const idOculto = datosPlato.id;
 
     if (idOculto === "") {
         await crearPlato(datosPlato, formPlato);
@@ -560,8 +570,7 @@ btnGuardar.addEventListener('click', async (e) => {
     }
 
     cargarHTMLListaDePlatos(datosPlato);
-    terminarYRedibujar(formPlato)
-    
+    terminarYRedibujar(formPlato);
 });
 
 
@@ -607,7 +616,7 @@ tbodyPlatos.addEventListener('click', async (e) => {
         } else {
             preview.innerHTML = '';
         }
-        limpiarCamposFoto(); // limpiamos selector, preview y checkbox
+        //limpiarCamposFoto(); // limpiamos selector, preview y checkbox
 
         // 6. Abrimos el modal
         modalOverlay.hidden = false;
