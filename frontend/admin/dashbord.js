@@ -100,9 +100,7 @@ async function borrarPlato(idPlato) {
 
 // =============== FUNCIÓN OCULTAR PLATO ===========================
 
-async function ocultarPlato(idPlato)
-{
-   async function ocultarPlato(idPlato) {
+async function ocultarPlato(idPlato) {
     try {
         const res = await peticionAPI(`/api/platos/${idPlato}`, 'PATCH');
         
@@ -117,8 +115,6 @@ async function ocultarPlato(idPlato)
         console.error("Error en ocultarPlato:", error);
         return false;
     }
-}
-
 }
 
 async function cargarGruposEnSelect() {

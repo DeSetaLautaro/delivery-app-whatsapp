@@ -285,14 +285,26 @@ router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
 
 // OCULTAR PLATO
 router.patch('/:id', verificarToken, async (req, res) => {
-    const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id }); // "platos._id": Traeme al usuario SOLO SI ese usuario es realmente el dueño de un plato con ese ID exacto". Es un escudo.
-    const plato = usuario.platos.id(req.params.id);
+    try {
+        const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id });
+        if (!usuario) {
+            return res.status(404).json({ error: 'Plato no encontrado' });
+        }
 
-    // El backend decide por sí solo invertir el estado
-    plato.disponible = !plato.disponible;
-    await usuario.save();
+        const plato = usuario.platos.id(req.params.id);
+        if (!plato) {
+            return res.status(404).json({ error: 'Plato no encontrado' });
+        }
 
-    res.json({ disponible: plato.disponible });
+        // El backend decide por sí solo invertir el estado
+        plato.disponible = !plato.disponible;
+        await usuario.save();
+
+        res.json({ disponible: plato.disponible });
+    } catch (error) {
+        console.error('Error al cambiar disponibilidad:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
 
