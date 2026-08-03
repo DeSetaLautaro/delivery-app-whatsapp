@@ -10,7 +10,7 @@ const codigoPaisSelect = document.getElementById('codigoPais');
 const flagPais = document.getElementById('flagPais');
 
 function validarFormatoEmail(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     return regex.test(email);
 }
 
@@ -69,8 +69,8 @@ emailInput.addEventListener('blur', async () => {
     }
 
     const existe = await verificarEmailExiste(email);
-    if (existe === false) {
-        marcarError(emailInput, errorEmailSpan, 'Email no encontrado');
+    if (existe === true) {
+        marcarError(emailInput, errorEmailSpan, 'Ese email ya está registrado');
     }
 });
 
@@ -128,10 +128,10 @@ formRegistro.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Verificar que el email exista (según lo pedido)
+    // Verificar que el email no esté ya registrado
     const existe = await verificarEmailExiste(email);
-    if (existe === false) {
-        marcarError(emailInput, errorEmailSpan, 'Email no encontrado');
+    if (existe === true) {
+        marcarError(emailInput, errorEmailSpan, 'Ese email ya está registrado');
         return;
     }
 
