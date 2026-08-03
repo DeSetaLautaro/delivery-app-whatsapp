@@ -180,17 +180,17 @@ async function cargarHTMLListaDePlatos(datosPlato){
                     data-foto="${datosPlato.fotoUrl || ''}">
                     Editar
                 </button>
+                <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
+                    data-id="${datosPlato._id}"
+                    data-disponible="${estaDisponible}">
+                    ${textoBotonOcultar}
+                </button>
                 <button class="btn-accion btn-borrar"
                     data-id="${datosPlato._id}"
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
                     data-categoria="${datosPlato.categoria}">
                     Eliminar
-                </button>
-                <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
-                    data-id="${datosPlato._id}"
-                    data-disponible="${estaDisponible}">
-                    ${textoBotonOcultar}
                 </button>
             </div>
             <!-- Mobile: tres puntos -->
@@ -205,18 +205,18 @@ async function cargarHTMLListaDePlatos(datosPlato){
                         data-foto="${datosPlato.fotoUrl || ''}">
                         ✏️ Editar
                     </button>
-                    <button class="btn-accion btn-borrar"
+                   <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
+                    data-id="${datosPlato._id}"
+                    data-disponible="${estaDisponible}">
+                    ${emojiBotonOcultar}
+                </button>
+                <button class="btn-accion btn-borrar"
                         data-id="${datosPlato._id}"
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
                         data-categoria="${datosPlato.categoria}">
                         🗑️ Eliminar
                     </button>
-                   <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
-                    data-id="${datosPlato._id}"
-                    data-disponible="${estaDisponible}">
-                    ${emojiBotonOcultar}
-                </button>
                 </div>
             </div>
         </td>
