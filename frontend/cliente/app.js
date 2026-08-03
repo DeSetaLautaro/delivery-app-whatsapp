@@ -178,7 +178,7 @@ function crearTarjetaPlato(plato, categoria) {
             ${fotoHTML}
             <div class="product-info">
                 <h3 class="product-name">${nombreDelPlato}</h3>
-                ${plato.descripcion ? `<p class="product-desc">${plato.descripcion}</p>` : ''}
+                <p class="product-desc">${plato.descripcion || 'Sin descripción'}</p>
                 <div class="product-bottom">
                     <p class="product-price">$${precioSeguro}</p>
                     <button

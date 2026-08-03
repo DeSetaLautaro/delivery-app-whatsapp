@@ -110,8 +110,11 @@ body {
 
 .products-grid {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
 }
 
 .product-card {
@@ -119,19 +122,21 @@ body {
     border-radius: 12px;
     overflow: hidden;
     display: flex;
-    align-items: stretch;          /* la foto estira toda la altura de la tarjeta */
-    min-height: 96px;
+    flex-direction: column;
+    min-width: 230px;
+    max-width: 230px;
+    flex: 0 0 auto;
     box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     transition: box-shadow 0.2s;
+    scroll-snap-align: start;
 }
 
 .product-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
 
 /* Recuadro de la foto del plato (a la izquierda) */
 .product-img {
-    width: 104px;
-    height: 100%;
-    min-height: 96px;
+    width: 100%;
+    height: 100px;
     flex-shrink: 0;
     background: #f4f7f6;
     overflow: hidden;
@@ -173,9 +178,11 @@ body {
     font-size: 0.8rem;
     color: #777;
     margin-top: 3px;
-    white-space: nowrap;
+    /* Permitimos hasta 3 líneas y cortamos con puntos suspensivos */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Fila inferior: precio + botón */
