@@ -297,7 +297,7 @@ function abrirModalToppings(plato, grupos) {
         <div class="topping-grupo">
             <h3 class="topping-grupo-titulo">${grupo.nombre}</h3>
             <ul class="topping-opciones-lista">
-                ${grupo.opciones.map(op => `
+                ${grupo.opciones.filter(op => op.disponible !== false).map(op => `
                     <li class="topping-opcion-item">
                         <label class="topping-opcion-label">
                             <input

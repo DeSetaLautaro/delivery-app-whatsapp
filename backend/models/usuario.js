@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 // A. El esquema para una opción individual (Ej: "Cheddar" - $500)
 const opcionToppingSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
-    precio: { type: Number, default: 0 }
+    precio: { type: Number, default: 0 },
+    disponible: { type: Boolean, default: true }
 });
 
 // B. El esquema para el grupo entero (Ej: "Agregados para Hamburguesas")

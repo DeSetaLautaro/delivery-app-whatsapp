@@ -1249,10 +1249,14 @@ selectEditarGrupo.addEventListener('change', (e) => {
     contenedorOpciones.innerHTML = ''; // Limpiamos
 
     grupo.opciones.forEach(opcion => {
+        const disponible = opcion.disponible !== false;
         contenedorOpciones.insertAdjacentHTML('beforeend', `
-            <div class="fila-opcion">
+            <div class="fila-opcion ${disponible ? '' : 'inactiva'}">
                 <input type="text" class="topping-nombre" value="${opcion.nombre}" required />
                 <input type="number" class="topping-precio" value="${opcion.precio}" min="0" required />
+                <button type="button" class="btn-toggle-disponibilidad-topping" data-id-grupo="${grupo._id}" data-id-opcion="${opcion._id}" data-disponible="${disponible}" title="${disponible ? 'Ocultar opción' : 'Mostrar opción'}">
+                    ${disponible ? '👁️' : '🙈'}
+                </button>
                 <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
             </div>
         `);
@@ -1270,10 +1274,30 @@ document.getElementById('btnAgregarFilaEditarTopping').addEventListener('click',
     `);
 });
 
-// Delegación de eventos para los botones de eliminar fila en el modal de edición
-document.getElementById('contenedorEditarOpcionesTopping').addEventListener('click', (e) => {
-    if (e.target.classList.contains('btn-eliminar-fila')) {
+// Delegación de eventos para los botones de eliminar fila y cambiar disponibilidad en el modal de edición
+document.getElementById('contenedorEditarOpcionesTopping').addEventListener('click', async (e) => {
+    const btnEliminar = e.target.closest('.btn-eliminar-fila');
+    if (btnEliminar) {
         e.target.closest('.fila-opcion').remove();
+        return;
+    }
+
+    const btnToggle = e.target.closest('.btn-toggle-disponibilidad-topping');
+    if (btnToggle) {
+        const idGrupo = btnToggle.getAttribute('data-id-grupo');
+        const idOpcion = btnToggle.getAttribute('data-id-opcion');
+
+        const respuesta = await peticionAPI(`/api/toppings/${idGrupo}/opcion/${idOpcion}`, 'PATCH');
+        if (respuesta && respuesta.ok) {
+            const data = await respuesta.json();
+            btnToggle.setAttribute('data-disponible', data.disponible);
+            btnToggle.textContent = data.disponible ? '👁️' : '🙈';
+            btnToggle.title = data.disponible ? 'Ocultar opción' : 'Mostrar opción';
+            const fila = btnToggle.closest('.fila-opcion');
+            fila.classList.toggle('inactiva', data.disponible === false);
+        } else {
+            alert('No se pudo cambiar la disponibilidad de la opción.');
+        }
     }
 });
 
