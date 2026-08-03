@@ -80,8 +80,28 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const userData = JSON.parse(userDataJS);
 
     // Si el local ya tiene una foto guardada, la mostramos en el avatar
+    // (ya sea que venga en el localStorage o la busquemos desde el servidor)
+    function actAvatar(foto) {
+        if (foto) {
+            const img = document.getElementById('avatarImg');
+            img.src = foto;
+            // Guardamos en localStorage para que quede fresco
+            const userGuardado = JSON.parse(localStorage.getItem('user'));
+            userGuardado.fotoPerfil = foto;
+            localStorage.setItem('user', JSON.stringify(userGuardado));
+        }
+    }
+
     if (userData.fotoPerfil) {
-        document.getElementById('avatarImg').src = userData.fotoPerfil;
+        actAvatar(userData.fotoPerfil);
+    } else if (userData.slug) {
+        // Intentamos obtenerla desde el perfil público (sin token, igual funciona)
+        peticionAPI(`/api/publico/perfil/${userData.slug}`, 'GET')
+            .then(resp => resp && resp.ok ? resp.json() : null)
+            .then(data => {
+                if (data && data.fotoPerfil) actAvatar(data.fotoPerfil);
+            })
+            .catch(() => {});
     }
 
     // Modificar los placeholder con la información del local
