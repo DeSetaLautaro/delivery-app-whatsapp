@@ -16,6 +16,50 @@ function separarTelefono(telefono, codigoPais) {
     return txt;
 }
 
+// ============================================================
+// Cargar TODOS los datos del perfil directamente desde la BD
+// ============================================================
+async function cargarDatosDesdeBD() {
+    const respuesta = await peticionAPI('/api/usuarios/perfil', 'GET');
+    if (!respuesta || !respuesta.ok) return;
+
+    const datos = await respuesta.json();
+
+    // Datos básicos
+    document.getElementById('nombreUsuario').value = datos.nombre || '';
+    document.getElementById('nombreLocal').value = datos.nombreDelLocal || '';
+    const inputEmail = document.getElementById('inputEmail');
+    if (inputEmail) inputEmail.value = datos.email || '';
+
+    // Teléfono separado: código de país + número
+    const codigoPaisDefecto = datos.codigoPais || '+54';
+    document.getElementById('codigoPaisPerfil').value = codigoPaisDefecto;
+    document.getElementById('whatsappNumero').value = separarTelefono(datos.telefono || '', codigoPaisDefecto);
+
+    document.getElementById('direccion').value = datos.direccion || '';
+
+    // Nombre del local en la tarjeta de identidad
+    const nombreLocalDisplay = document.getElementById('nombreLocalDisplay');
+    if (nombreLocalDisplay) nombreLocalDisplay.textContent = datos.nombreDelLocal || '';
+
+    // URL del local
+    const baseUrl = window.location.origin;
+    document.getElementById('url').value = datos.slug ? `${baseUrl}/${datos.slug}` : '';
+
+    // Foto de perfil (logo) en el círculo del avatar
+    if (datos.fotoPerfil) {
+        const avatarImg = document.getElementById('avatarImg');
+        if (avatarImg) avatarImg.src = datos.fotoPerfil;
+        const userGuardado = JSON.parse(localStorage.getItem('user'));
+        userGuardado.fotoPerfil = datos.fotoPerfil;
+        localStorage.setItem('user', JSON.stringify(userGuardado));
+    }
+
+    // Los métodos de pago se cargan con la función existente
+    // (evitamos duplicar código y el backend ya la soporta)
+    cargarMetodosPagoGuardados();
+}
+
 // Lee los métodos de pago guardados en la BD y los precarga en el formulario
 async function cargarMetodosPagoGuardados() {
     try {
@@ -63,7 +107,7 @@ async function leerEstadoParaElPerfil() {
 }
 
 
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
     const token = localStorage.getItem("token");
     const userDataJS = localStorage.getItem("user");
 
@@ -73,6 +117,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
 
         cargarHeader(userDataJS);
+
+    await cargarDatosDesdeBD();
 
     const btnPago = document.getElementById('btnPagoMensual');
     if (btnPago) btnPago.href = LINK_DE_MERCADO_PAGO;
