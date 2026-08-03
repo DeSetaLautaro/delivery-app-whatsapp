@@ -42,9 +42,9 @@ async function cargarDatosDesdeBD() {
     const nombreLocalDisplay = document.getElementById('nombreLocalDisplay');
     if (nombreLocalDisplay) nombreLocalDisplay.textContent = datos.nombreDelLocal || '';
 
-    // URL del local
+    // URL del local (se arma como /menu/<slug>)
     const baseUrl = window.location.origin;
-    document.getElementById('url').value = datos.slug ? `${baseUrl}/${datos.slug}` : '';
+    document.getElementById('url').value = datos.slug ? `${baseUrl}/menu/${datos.slug}` : '';
 
     // Foto de perfil (logo) en el círculo del avatar
     if (datos.fotoPerfil) {
@@ -174,8 +174,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const baseUrl = window.location.origin;
 
     if (userData.slug) {
-        // Pegamos la base + una barra + el slug
-        const urlCompleta = `${baseUrl}/${userData.slug}`;
+        // La URL pública del menú es /menu/<slug>
+        const urlCompleta = `${baseUrl}/menu/${userData.slug}`;
         document.getElementById('url').value = urlCompleta;
     } else {
         document.getElementById('url').value = '';

@@ -177,4 +177,31 @@ router.get('/metodosPago', verificarToken, async (req, res) => {
     }
 });
 
+// Ruta para leer TODOS los datos del perfil (protegida)
+// Se usa para cargar cada input con su valor al abrir la página.
+router.get('/perfil', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        res.json({
+            nombre: usuario.nombre,
+            nombreDelLocal: usuario.nombreDelLocal,
+            email: usuario.email,
+            telefono: usuario.telefono,
+            codigoPais: usuario.codigoPais,
+            direccion: usuario.direccion,
+            slug: usuario.slug,
+            fotoPerfil: usuario.fotoPerfil,
+            abierto: usuario.abierto,
+            horarios: usuario.horarios,
+            horariosEstructurados: usuario.horariosEstructurados,
+            metodosPago: usuario.metodosPago || []
+        });
+    } catch (error) {
+        console.error('Error al obtener perfil:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = router;
