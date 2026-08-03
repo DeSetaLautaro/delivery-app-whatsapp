@@ -30,7 +30,16 @@
     <h1>🛎️ Mis Pedidos</h1>
     <div style="display:flex;gap:8px;">
       <a href="/admin/dashboard" class="btn-secundario">← Volver al Dashboard</a>
-      <button id="btnCerrarCaja" class="btn">Cerrar Caja</button>
+    </div>
+  </div>
+  <div class="stats-cards" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="stat-card" style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex:1;min-width:200px;">
+      <div class="stat-label" style="font-size:0.85rem;font-weight:600;color:#888;">Facturación de Hoy</div>
+      <div id="facturacionHoy" class="stat-value" style="font-size:1.4rem;font-weight:800;color:#ff6b35;margin-top:4px;">$0</div>
+    </div>
+    <div class="stat-card" style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex:1;min-width:200px;">
+      <div class="stat-label" style="font-size:0.85rem;font-weight:600;color:#888;">Pedidos de Hoy</div>
+      <div id="pedidosHoy" class="stat-value" style="font-size:1.4rem;font-weight:800;color:#1a1a1a;margin-top:4px;">0</div>
     </div>
   </div>
   <div id="contenedorPedidos">Cargando pedidos...</div>

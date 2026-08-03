@@ -95,6 +95,22 @@ function agruparPorDia(pedidos) {
   return grupos;
 }
 
+function actualizarMetricasDiarias() {
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+  const pedidosHoy = pedidosGlobales.filter(p => {
+    const fecha = new Date(p.fecha);
+    return fecha >= hoy && fecha < new Date(hoy.getTime() + 24*60*60*1000);
+  });
+  const facturacion = pedidosHoy.reduce((sum, p) => sum + (p.total || 0), 0);
+  const totalPedidos = pedidosHoy.length;
+
+  const facturacionEl = document.getElementById('facturacionHoy');
+  const pedidosEl = document.getElementById('pedidosHoy');
+  if (facturacionEl) facturacionEl.textContent = `$${facturacion.toLocaleString('es-AR')}`;
+  if (pedidosEl) pedidosEl.textContent = String(totalPedidos);
+}
+
 function renderizarPedidos() {
   const contenedor = document.getElementById('contenedorPedidos');
   if (pedidosGlobales.length === 0) {
@@ -119,6 +135,7 @@ function renderizarPedidos() {
     return `<div class="grupo-dia"><h2>${etiqueta}</h2>${cards}</div>`;
   }).join('');
   contenedor.innerHTML = html;
+  actualizarMetricasDiarias();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -134,25 +151,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   // }
   pedidosGlobales = [...mockPedidos];
   renderizarPedidos();
-
-  document.getElementById('btnCerrarCaja').addEventListener('click', cerrarCaja);
 });
 
-function cerrarCaja() {
-  const hoy = new Date();
-  hoy.setHours(0,0,0,0);
-  const pedidosHoy = pedidosGlobales.filter(p => {
-    const fecha = new Date(p.fecha);
-    return fecha >= hoy && fecha < new Date(hoy.getTime() + 24*60*60*1000);
-  });
-
-  const totales = { Efectivo: 0, Transferencia: 0, Tarjeta: 0 };
-  pedidosHoy.forEach(p => {
-    const metodo = p.metodoPago || 'Efectivo';
-    if (totales[metodo] !== undefined) totales[metodo] += p.total;
-  });
-  const totalGeneral = Object.values(totales).reduce((a,b)=>a+b,0);
-
-  const mensaje = `Resumen de Caja de Hoy:\nEfectivo: $${totales.Efectivo.toLocaleString('es-AR')}\nTransferencia: $${totales.Transferencia.toLocaleString('es-AR')}\nTarjeta: $${totales.Tarjeta.toLocaleString('es-AR')}\nTotal General: $${totalGeneral.toLocaleString('es-AR')}`;
-  alert(mensaje);
-}
