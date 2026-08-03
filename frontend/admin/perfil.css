@@ -22,13 +22,22 @@ body {
     align-items: start;
 }
 @media (max-width: 700px) {
-    .perfil-grid { grid-template-columns: 1fr; }
+    .perfil-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-    /* Hacemos que las columnas no aporten estructura y los hijos queden sueltos */
+    /* Las columnas no aportan estructura en mobile */
     .perfil-col-izq,
     .perfil-col-der { display: contents; }
 
-    /* Orden deseado en mobile: foto -> datos del local -> suscripción -> seguridad (última) */
+    /* Orden deseado en mobile:
+       1. Foto de perfil
+       2. Datos del local
+       3. Suscripción mensual
+       4. Seguridad (última)
+    */
     .perfil-col-izq .perfil-card-identidad { order: 1; }
     .perfil-col-der .perfil-card           { order: 2; }
     .perfil-col-izq .perfil-card.suscripcion-mensual { order: 3; }
