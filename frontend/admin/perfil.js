@@ -97,6 +97,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('direccion').value = userData.direccion || '';
     userData.direccion ? document.getElementById('direccion').placeholder = '' : document.getElementById('direccion').placeholder ='Agrega una dirección';
 
+    // Mostrar nombre del local en la tarjeta de identidad
+    const nombreLocalDisplay = document.getElementById('nombreLocalDisplay');
+    if (nombreLocalDisplay) nombreLocalDisplay.textContent = userData.nombreDelLocal || '';
+
     // Email del usuario (no editable)
     const inputEmail = document.getElementById('inputEmail');
     if (inputEmail) inputEmail.value = userData.email || '';
