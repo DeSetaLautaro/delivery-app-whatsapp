@@ -136,7 +136,7 @@ formRegistro.addEventListener('submit', async (e) => {
     }
 
     const telefono = `${codigoPais} ${telefonoRaw}`.trim();
-    const payload = { nombre, email, password, telefono, nombreDelLocal };
+    const payload = { nombre, email, password, telefono, codigoPais, nombreDelLocal };
     const respuesta = await peticionAPI('/api/registro', 'POST', payload);
 
     if (respuesta && respuesta.ok) {

@@ -101,7 +101,7 @@ router.post('/login', async (req, res) => {
  *   - 500: Error interno
  */
 router.post('/registro', async (req, res) => {
-    const { nombre, email, password, telefono, nombreDelLocal } = req.body;
+    const { nombre, email, password, telefono, codigoPais, nombreDelLocal } = req.body;
 
     // Creamos el primer intento de slug (Ej: "la-esquina")
      let slugFinal = crearSlugBase(nombreDelLocal);
@@ -127,7 +127,7 @@ router.post('/registro', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         // Guardar el usuario nuevo
-        await Usuario.create({ nombre, email, password: hash, telefono, nombreDelLocal, slug: slugFinal });
+        await Usuario.create({ nombre, email, password: hash, telefono, codigoPais, nombreDelLocal, slug: slugFinal });
 
         res.status(201).json({ message: 'Usuario creado con exito' });
 
