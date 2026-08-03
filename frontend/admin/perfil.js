@@ -96,6 +96,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     document.getElementById('direccion').value = userData.direccion || '';
     userData.direccion ? document.getElementById('direccion').placeholder = '' : document.getElementById('direccion').placeholder ='Agrega una dirección';
+
+    // Email del usuario (no editable)
+    const inputEmail = document.getElementById('inputEmail');
+    if (inputEmail) inputEmail.value = userData.email || '';
     // 1. Agarramos la base de la página (Ej: "http://localhost:3000" o "https://miapp.com")
     const baseUrl = window.location.origin;
 
