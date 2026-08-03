@@ -69,6 +69,12 @@ async function cargarMenu() {
             document.getElementById('brandLogoFallback').hidden = true;
         }
 
+        // Nombre del local en el header y en la pestaña del navegador
+        const nombreLocalBar = perfilDelLocal.nombreDelLocal || perfilDelLocal.nombreLocal || '';
+        const brandNameEl = document.getElementById('brandName');
+        if (brandNameEl) brandNameEl.textContent = nombreLocalBar || 'Cargando...';
+        document.title = (nombreLocalBar ? `${nombreLocalBar} | Menú Digital` : 'Cargando menú | Menú Digital');
+
         // Guardamos en caché para usarlos en agregarAlCarrito sin refetch
         platosCache = platos;
 
