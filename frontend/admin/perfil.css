@@ -152,6 +152,13 @@ body {
     flex: 1;
 }
 
+/* Select de código de país (perfil) */
+.input-con-prefijo select.input-prefijo {
+    max-width: 110px;
+    cursor: pointer;
+    background-color: #f5f5f5;
+}
+
 /* ── Botones ───────────────────────────────────────────── */
 .btn-guardar {
     background: #ff6b35;

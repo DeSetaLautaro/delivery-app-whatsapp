@@ -5,6 +5,16 @@ function actualizarVisibilidadTransferencia() {
     document.getElementById('datosTransferencia').classList.toggle('oculto', !marcado);
 }
 
+function separarTelefono(telefono, codigoPais) {
+    if (!telefono) return '';
+    if (!codigoPais) codigoPais = '+54';
+    const txt = telefono.trim();
+    if (txt.startsWith(codigoPais)) {
+        return txt.slice(codigoPais.length).trim();
+    }
+    return txt;
+}
+
 // Lee los métodos de pago guardados en la BD y los precarga en el formulario
 async function cargarMetodosPagoGuardados() {
     try {
@@ -74,7 +84,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('nombreUsuario').value = userData.nombre || '';
     document.getElementById('nombreLocal').value = userData.nombreDelLocal || '';
     userData.nombreLocal ? document.getElementById('nombreLocal').placeholder = '' : document.getElementById('nombreLocal').placeholder ='Agrega un nombre';
-    document.getElementById('whatsappNumero').value = userData.telefono || '';
+
+    // Separar el teléfono: el código de país va en el selector, el número va sin código
+    const codigoPaisDefecto = userData.codigoPais || '+54';
+    document.getElementById('codigoPaisPerfil').value = codigoPaisDefecto;
+    document.getElementById('whatsappNumero').value = separarTelefono(userData.telefono || '', codigoPaisDefecto);
+
     document.getElementById('direccion').value = userData.direccion || '';
     userData.direccion ? document.getElementById('direccion').placeholder = '' : document.getElementById('direccion').placeholder ='Agrega una dirección';
     // 1. Agarramos la base de la página (Ej: "http://localhost:3000" o "https://miapp.com")
@@ -106,7 +121,8 @@ btnGuardar.addEventListener('click', async (e) =>{
 
     // 1. Datos del local
     const nombreLocal    = document.getElementById('nombreLocal').value;
-    const whatsappNumero = document.getElementById('whatsappNumero').value;
+    const whatsappNumero = document.getElementById('whatsappNumero').value.trim();
+    const codigoPais     = document.getElementById('codigoPaisPerfil').value;
     const direccion      = document.getElementById('direccion').value;
     const nombreUsuario = document.getElementById('nombreUsuario').value;
 
@@ -123,7 +139,7 @@ btnGuardar.addEventListener('click', async (e) =>{
     if (document.getElementById('pagoTarjeta').checked)
         metodosPago.push({ tipo: 'tarjeta' });
 
-    const datosNuevos = {nombre: nombreUsuario,  nombreDelLocal: nombreLocal, telefono: whatsappNumero, direccion, metodosPago };
+    const datosNuevos = {nombre: nombreUsuario,  nombreDelLocal: nombreLocal, telefono: whatsappNumero, codigoPais, direccion, metodosPago };
 
     try {
         const resultado = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', datosNuevos);
@@ -132,7 +148,7 @@ btnGuardar.addEventListener('click', async (e) =>{
         if (resultado.ok) {
             // Actualizamos el localStorage para que la info sea fresca
             const userGuardado = JSON.parse(localStorage.getItem('user'));
-            Object.assign(userGuardado, { nombre: nombreUsuario, nombreDelLocal: nombreLocal, telefono: whatsappNumero, direccion, metodosPago });
+            Object.assign(userGuardado, { nombre: nombreUsuario, nombreDelLocal: nombreLocal, telefono: whatsappNumero, codigoPais, direccion, metodosPago });
             localStorage.setItem('user', JSON.stringify(userGuardado));
             alert('¡Perfil actualizado con éxito!');
         } else {
