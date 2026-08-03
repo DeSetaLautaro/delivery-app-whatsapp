@@ -36,6 +36,9 @@ body {
     .perfil-col-izq,
     .perfil-col-der { display: contents; }
 
+    /* Aseguramos que cada tarjeta ocupe todo el ancho disponible */
+    .perfil-card { width: 100%; }
+
     /* Orden deseado en mobile:
        1. Foto de perfil
        2. Datos del local
