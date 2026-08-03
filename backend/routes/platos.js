@@ -340,6 +340,28 @@ router.put('/:id', verificarToken, async (req, res) => {
 
 
 
+// ============================================================
+// ELIMINAR TODOS LOS PLATOS
+// ============================================================
+router.delete('/todos', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { $set: { platos: [] } },
+            { new: true }
+        );
+
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        res.json({ mensaje: 'Todos los platos fueron eliminados', platos: usuario.platos });
+    } catch (error) {
+        console.error('Error al borrar todos los platos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // Atrapamos las peticiones DELETE que apuntan a un ID específico
 // Acordate de que este archivo ya tiene que tener importado Usuario y verificarToken
 

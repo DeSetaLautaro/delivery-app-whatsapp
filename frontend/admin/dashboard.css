@@ -416,6 +416,20 @@ body {
 }
 .btn-limpiar:hover { background: #fff5f5; border-color: #dc2626; }
 
+.btn-borrar-todos {
+    padding: 7px 14px;
+    background: #dc2626;
+    border: 1.5px solid #b91c1c;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    align-self: flex-end;
+    margin-left: 12px;
+}
+.btn-borrar-todos:hover { background: #b91c1c; }
+
 /* Tabla */
 table { width: 100%; border-collapse: collapse; margin-top: 14px; }
 th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left; font-size: 0.9rem; }

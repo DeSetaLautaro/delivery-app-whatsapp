@@ -382,7 +382,26 @@ const btnCargaManual = document.getElementById('btnCargaManual');
 const btnCerrarModal = document.getElementById('btnCerrarModal');
 const btnCerrarSesion = document.getElementById('btnCerrarSesion');
 const modalExcel = document.getElementById("modalExcel");
-    
+
+// Botón eliminar todos los platos
+const btnBorrarTodosPlatos = document.getElementById('btnBorrarTodosPlatos');
+if (btnBorrarTodosPlatos) {
+    btnBorrarTodosPlatos.addEventListener('click', async () => {
+        const confirmar = confirm('¿Estás seguro de querer borrar TODOS tus platos? Esta acción no se puede deshacer.');
+        if (!confirmar) return;
+
+        const respuesta = await peticionAPI('/api/platos/todos', 'DELETE');
+        if (respuesta && respuesta.ok) {
+            const data = await respuesta.json().catch(() => ({}));
+            alert(data.mensaje || 'Todos los platos fueron eliminados');
+            limpiarFiltros();
+            cargarListaDePlatos();
+        } else {
+            alert('No se pudo borrar los platos. Intentalo de nuevo.');
+        }
+    });
+}
+
 if (btnCerrarSesion) {
         btnCerrarSesion.addEventListener('click', () => {
             cerrarSesion(); // Llamamos a la función que guardamos en api.js
