@@ -44,12 +44,18 @@
         <div class="registro-field">
             <label>Email</label>
             <input type="text" id="Email" name="email" placeholder="Email" required />
-
+            <span class="error-text" id="errorEmail"></span>
         </div>
 
         <div class="registro-field">
             <label>Contraseña</label>
-            <input type="password"  id="Contraseña"  name="contraseña" placeholder="Contraseña" required />
+            <input type="password" id="Contraseña" name="contraseña" placeholder="Contraseña" required />
+        </div>
+
+        <div class="registro-field">
+            <label>Confirmar Contraseña</label>
+            <input type="password" id="ConfirmarContraseña" name="confirmarContraseña" placeholder="Repetir contraseña" required />
+            <span class="error-text" id="errorConfirmar"></span>
         </div>
 
         <p class="registro-error" id="registroError"></p>
@@ -61,5 +67,6 @@
 
 
     </form>
+    <script src="/api/api.js"></script>
     <script src="/admin/registro.js"></script>
   </body>

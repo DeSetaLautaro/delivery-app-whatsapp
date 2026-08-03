@@ -139,4 +139,28 @@ router.post('/registro', async (req, res) => {
 
 
 
+// ============================================================
+// GET /api/existe-email
+// ============================================================
+/**
+ * PROPOSITO:
+ *   Verifica si un email ya está registrado en la base de datos.
+ *   Se usa en el frontend para validar en vivo mientras el usuario escribe.
+ */
+router.get('/existe-email', async (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Falta el parámetro email' });
+    }
+
+    try {
+        const usuario = await Usuario.findOne({ email });
+        res.json({ existe: !!usuario });
+    } catch (error) {
+        console.error('[ERROR] Existe-email:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = router;
