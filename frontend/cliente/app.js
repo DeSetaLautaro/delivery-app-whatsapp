@@ -72,6 +72,20 @@ async function cargarMenu() {
         // Guardamos en caché para usarlos en agregarAlCarrito sin refetch
         platosCache = platos;
 
+        // Actualizamos el badge de estado en el header
+        const badgeEstado = document.getElementById('badgeEstadoLocal');
+        if (badgeEstado) {
+            if (estaAbierto.abierto) {
+                badgeEstado.textContent = '● Abierto';
+                badgeEstado.classList.add('badge-abierto');
+                badgeEstado.classList.remove('badge-cerrado');
+            } else {
+                badgeEstado.textContent = '● Cerrado';
+                badgeEstado.classList.add('badge-cerrado');
+                badgeEstado.classList.remove('badge-abierto');
+            }
+        }
+
         // 4. Le pasamos los platos a la función dibujante
         dibujarPlatos(platos, estaAbierto.abierto);
 

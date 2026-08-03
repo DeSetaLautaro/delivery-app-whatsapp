@@ -73,6 +73,15 @@ body {
     border-radius: 999px;
 }
 
+.badge-cerrado {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #b91c1c;
+    background: #fee2e2;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
 /* ============================================================
    HERO
    ============================================================ */
