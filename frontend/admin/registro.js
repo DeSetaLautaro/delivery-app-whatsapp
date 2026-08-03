@@ -60,7 +60,8 @@ formRegistro.addEventListener('submit', async (e) => {
     const email = emailInput.value.trim();
     const password = document.getElementById('Contraseña').value;
     const confirm = confirmarInput.value;
-    const telefono = document.getElementById('Telefono').value;
+    const codigoPais = document.getElementById('codigoPais').value;
+    const telefono = `${codigoPais} ${document.getElementById('Telefono').value}`.trim();
     const nombreDelLocal = document.getElementById('nombreDelLocal').value;
 
     // Validar formato de email

@@ -55,6 +55,23 @@ body {
     align-items: center;
 }
 
+.telefono-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.telefono-wrapper select.codigo-pais {
+    flex: 0 0 auto;
+    padding: 11px 8px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    background: #fff;
+    cursor: pointer;
+    max-width: 90px;
+}
+
 .error-input {
     border-color: #e74c3c !important;
     background: #fff8f8;
