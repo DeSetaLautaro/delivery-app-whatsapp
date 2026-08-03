@@ -11,3 +11,5 @@ backend/uploads/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+.aider*
+.env
