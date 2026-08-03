@@ -21,6 +21,10 @@ body {
     gap: 20px;
     align-items: start;
 }
+
+.perfil-col-izq,
+.perfil-col-der { display: flex; flex-direction: column; gap: 20px; }
+
 @media (max-width: 700px) {
     .perfil-grid {
         display: flex;
@@ -43,9 +47,6 @@ body {
     .perfil-col-izq .perfil-card.suscripcion-mensual { order: 3; }
     .perfil-col-izq .perfil-card:not(.perfil-card-identidad):not(.suscripcion-mensual) { order: 4; }
 }
-
-.perfil-col-izq,
-.perfil-col-der { display: flex; flex-direction: column; gap: 20px; }
 
 /* ── Tarjeta base ──────────────────────────────────────── */
 .perfil-card {
