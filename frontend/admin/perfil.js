@@ -1,4 +1,5 @@
 const cartelitoEstado = document.getElementById('cartelEstado');
+const LINK_DE_MERCADO_PAGO = "LINK_DE_MERCADO_PAGO_AQUI";
 
 function actualizarVisibilidadTransferencia() {
     const marcado = document.getElementById('pagoTransferencia').checked;
@@ -72,6 +73,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
 
         cargarHeader(userDataJS);
+
+    const btnPago = document.getElementById('btnPagoMensual');
+    if (btnPago) btnPago.href = LINK_DE_MERCADO_PAGO;
 
     const userData = JSON.parse(userDataJS);
 

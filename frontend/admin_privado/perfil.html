@@ -8,6 +8,51 @@
     <link rel="stylesheet" href="/features.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        .suscripcion-explicativo {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .btn-pago-mensual {
+            display: inline-block;
+            margin-top: 10px;
+            background: #009ee3;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-pago-mensual:hover {
+            background: #0085c8;
+        }
+
+        .btn-pago-mensual:active {
+            transform: scale(0.97);
+        }
+
+        /* Ajuste para mantener el botón a la derecha en escritorio */
+        .suscripcion-estado {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .suscripcion-info {
+            flex: 1 1 auto;
+        }
+    </style>
 </head>
 <body>
 
@@ -67,17 +112,18 @@
                     <button class="btn-guardar" id="btnActualizarContraseña">Actualizar contraseña</button>
                 </div>
 
-                <!-- Tarjeta: Suscripción -->
-                <div class="perfil-card">
-                    <h3 class="card-titulo">💳 Suscripción</h3>
+                <!-- Tarjeta: Suscripción Mensual -->
+                <div class="perfil-card suscripcion-mensual">
+                    <h3 class="card-titulo">Suscripción Mensual</h3>
 
                     <div class="suscripcion-estado">
                         <div class="suscripcion-info">
                             <span class="badge-activo">● Activa</span>
                             <p class="suscripcion-plan">Plan Pro — $4.999/mes</p>
                             <p class="suscripcion-renovacion">Próximo cobro: <strong>15 de agosto, 2025</strong></p>
+                            <p class="suscripcion-explicativo">Mantené tu catálogo activo y recibí pedidos ilimitados</p>
                         </div>
-                        <button class="btn-secundario">Gestionar plan</button>
+                        <a id="btnPagoMensual" class="btn-pago-mensual" href="LINK_DE_MERCADO_PAGO_AQUI" target="_blank" rel="noopener">Hacer pago mensual</a>
                     </div>
 
                     <hr class="card-divider" />
