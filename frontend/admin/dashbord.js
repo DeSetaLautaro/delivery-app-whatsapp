@@ -1164,8 +1164,18 @@ const modalGestionarToppings = document.getElementById('modalGestionarToppings')
 
 btnGestionarToppings.addEventListener('click', async (e)=>{
     e.preventDefault();
+    // Reset del modal para que no queden datos de una sesión anterior
+    resetearModalGestionarToppings();
     cargarGruposParaGestionar();
     modalGestionarToppings.removeAttribute('hidden');
+});
+
+// Al hacer clic en el fondo oscuro también se cierra y resetea
+modalGestionarToppings.addEventListener('click', (e) => {
+    if (e.target === modalGestionarToppings) {
+        modalGestionarToppings.setAttribute('hidden', '');
+        resetearModalGestionarToppings();
+    }
 });
 
 // Variable global para guardar los toppings y no tener que pedirselos al backend a cada rato
@@ -1219,6 +1229,48 @@ async function cargarGruposParaGestionar() {
         opcion.textContent = grupo.nombre;
         select.appendChild(opcion);
     });
+}
+
+/**
+ * RESETEA COMPLETAMENTE EL MODAL GESTIONAR TOPPINGS
+ * para que no queden datos de una sesión anterior.
+ */
+function resetearModalGestionarToppings() {
+    // Selector de grupo
+    const selectEditar = document.getElementById('selectEditarGrupo');
+    if (selectEditar) selectEditar.value = '';
+
+    // Checkboxes de categorías
+    document.querySelectorAll('#contenedorEditarCategoriasTopping input[type="checkbox"]')
+        .forEach(chk => chk.checked = false);
+
+    // Opciones (filas)
+    const contenedorOpciones = document.getElementById('contenedorEditarOpcionesTopping');
+    if (contenedorOpciones) contenedorOpciones.innerHTML = '';
+
+    // Resultados de la pestaña "Por Categoría"
+    const contenedorResultados = document.getElementById('contenedorResultadosCategoria');
+    if (contenedorResultados) {
+        contenedorResultados.innerHTML = '<p class="topping-hint" style="text-align: center;">Seleccioná una categoría para ver qué toppings tiene asociados.</p>';
+    }
+    const selectCategoria = document.getElementById('selectFiltroCategoria');
+    if (selectCategoria) selectCategoria.value = '';
+
+    // Reset de las pestañas a "Por Topping"
+    const tabTopping = document.getElementById('tabPorTopping');
+    const tabCategoria = document.getElementById('tabPorCategoria');
+    const vistaTopping = document.getElementById('vistaPorTopping');
+    const vistaCategoria = document.getElementById('vistaPorCategoria');
+    if (tabTopping) {
+        tabTopping.classList.add('activo');
+        tabTopping.style.opacity = '1';
+    }
+    if (tabCategoria) {
+        tabCategoria.classList.remove('activo');
+        tabCategoria.style.opacity = '0.6';
+    }
+    if (vistaTopping) vistaTopping.style.display = 'block';
+    if (vistaCategoria) vistaCategoria.style.display = 'none';
 }
 
 // 3. CUANDO EL USUARIO ELIGE UN GRUPO PARA EDITAR
