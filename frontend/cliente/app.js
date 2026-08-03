@@ -530,12 +530,36 @@ function enviarPorWhatsapp() {
 
     const mensaje = mensajeArr.join('\n');
 
-    // 5. Redirección dinámica
-    const nombreLocal = window.location.pathname.split('/').pop();
+    // 5. Guardar pedido en la base de datos y redirección dinámica
+    const slug = slugLocal;
+    const itemsParaGuardar = items.map(item => ({
+        nombrePlato: item.nombre,
+        cantidad: item.cantidad,
+        precio: item.precio
+    }));
 
-    fetch(`/api/publico/perfil/${nombreLocal}`)
-        .then(r => r.json())
-        .then(perfil => {
+    fetch(`/api/publico/perfil/${slug}`)
+        .then(resp => resp.json())
+        .then(async perfil => {
+            const localId = perfil._id || null;
+            const payloadPedido = {
+                localId,
+                slug,
+                items: itemsParaGuardar,
+                total,
+                cliente: ''
+            };
+
+            try {
+                await fetch('/api/pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadPedido)
+                });
+            } catch (error) {
+                console.error('No se pudo guardar el pedido:', error);
+            }
+
             const numero = perfil.whatsappNumero || ''; 
             const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');

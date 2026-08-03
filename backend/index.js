@@ -13,6 +13,7 @@ const adminPlatos = require('./routes/platos');
 const usuariosRouter = require('./routes/usuariosRoutes');
 const rutasToppings = require('./routes/toppings');
 const publicoRoutes = require('./routes/publicoRoutes');
+const pedidosRoutes = require('./routes/pedidos');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -27,6 +28,7 @@ app.use('/api/usuarios', usuariosRouter);
 app.use('/api/publico', publicoRoutes);
 app.use('/api', authRouter);
 app.use('/api/toppings', rutasToppings);
+app.use('/api/pedidos', pedidosRoutes);
 
 // 4. Conexión a la Base de Datos
 mongoose.connect(process.env.MONGODB_URI)
