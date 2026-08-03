@@ -121,6 +121,11 @@ function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está a
         // Si está abierto, inyectamos los platos normalmente
         contenedor.innerHTML = htmlPlatos;
     }
+
+    // Aplicar filtro de búsqueda si ya hay algo escrito
+    if (document.getElementById('buscadorPlatos')) {
+        filtrarPlatosBuscador();
+    }
 }
 
 // ============================================================
@@ -439,6 +444,26 @@ function actualizarListaModal(items, totalPrecio) {
 }
 
 
+/**
+ * PROPOSITO:
+ *   Filtra las tarjetas de productos que coincidan con el texto escrito
+ *   en la barra de búsqueda. Se ejecuta en tiempo real con el evento 'input'.
+ */
+function filtrarPlatosBuscador() {
+    const input = document.getElementById('buscadorPlatos');
+    if (!input) return;
+
+    const termino = input.value.toLowerCase().trim();
+
+    document.querySelectorAll('.product-card').forEach(tarjeta => {
+        const nombre = (tarjeta.querySelector('.product-name')?.textContent || '').toLowerCase();
+        const desc = (tarjeta.querySelector('.product-desc')?.textContent || '').toLowerCase();
+        const coincide = !termino || nombre.includes(termino) || desc.includes(termino);
+        tarjeta.style.display = coincide ? '' : 'none';
+    });
+}
+
+
 // ============================================================
 // WHATSAPP
 // ============================================================
@@ -643,6 +668,11 @@ function mostrarInfoTransferencia(mostrar) {
 // ============================================================
 // Apenas carga la pantalla del cliente...
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    cargarMenu(); 
+    // Configurar la búsqueda en vivo
+    const buscador = document.getElementById('buscadorPlatos');
+    if (buscador) {
+        buscador.addEventListener('input', filtrarPlatosBuscador);
+    }
+
+    cargarMenu();
 });

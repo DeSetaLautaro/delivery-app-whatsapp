@@ -86,6 +86,36 @@ body {
 
 .hero-subtitle { font-size: 1rem; font-weight: 500; opacity: 0.95; }
 
+/* Barra de búsqueda */
+.search-wrapper {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 12px 20px 0;
+}
+
+.search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border: 1px solid #eee;
+    border-radius: 999px;
+    background: #f1f3f5;
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+    background: #fff;
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+.search-input::placeholder { color: #999; }
+
 /* ============================================================
    CONTENIDO PRINCIPAL
    ============================================================ */
@@ -648,7 +678,8 @@ body {
    ========================================= */
 @media (min-width: 1024px) {
     .header-inner,
-    .main-content {
+    .main-content,
+    .search-wrapper {
         max-width: 1000px;
     }
 }
