@@ -91,7 +91,10 @@ body {
     width: 100%;
     max-width: 680px;
     margin: 0 auto;
-    padding: 12px 20px 0;
+    padding: 16px 20px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .search-input {
@@ -115,6 +118,13 @@ body {
 }
 
 .search-input::placeholder { color: #999; }
+
+.search-no-results {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-size: 0.95rem;
+}
 
 /* ============================================================
    CONTENIDO PRINCIPAL

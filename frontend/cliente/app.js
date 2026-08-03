@@ -179,7 +179,7 @@ function crearTarjetaPlato(plato, categoria) {
         : `<div class="product-img product-img-emoji">${emojiCategoria}</div>`;
 
     return `
-        <article class="product-card" role="listitem">
+        <article class="product-card" data-categoria="${categoria.toLowerCase()}" role="listitem">
             ${fotoHTML}
             <div class="product-info">
                 <h3 class="product-name">${nombreDelPlato}</h3>
@@ -458,9 +458,21 @@ function filtrarPlatosBuscador() {
     document.querySelectorAll('.product-card').forEach(tarjeta => {
         const nombre = (tarjeta.querySelector('.product-name')?.textContent || '').toLowerCase();
         const desc = (tarjeta.querySelector('.product-desc')?.textContent || '').toLowerCase();
-        const coincide = !termino || nombre.includes(termino) || desc.includes(termino);
+        const categoria = (tarjeta.dataset.categoria || '').toLowerCase();
+        const coincide = !termino || nombre.includes(termino) || desc.includes(termino) || categoria.includes(termino);
         tarjeta.style.display = coincide ? '' : 'none';
     });
+
+    // Ocultar las secciones de categoría que no tienen ninguna tarjeta visible
+    document.querySelectorAll('.category-section').forEach(seccion => {
+        const algunaVisible = [...seccion.querySelectorAll('.product-card')].some(c => c.style.display !== 'none');
+        seccion.style.display = algunaVisible ? '' : 'none';
+    });
+
+    // Mensaje de "no hay resultados"
+    const hayResultados = [...document.querySelectorAll('.product-card')].some(c => c.style.display !== 'none');
+    const mensaje = document.getElementById('searchNoResults');
+    if (mensaje) mensaje.hidden = hayResultados || !termino;
 }
 
 
