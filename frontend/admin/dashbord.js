@@ -432,6 +432,10 @@ botonesCerrar.forEach( boton => {
                 limpiarModalIA();
             }
             
+            if (modalPadre.id === 'modalGestionarToppings') {
+                resetearModalGestionarToppings();
+            }
+            
         }
         
     });
