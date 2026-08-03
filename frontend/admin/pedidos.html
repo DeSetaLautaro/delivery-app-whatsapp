@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis Pedidos</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#f5f5f5;color:#1a1a1a;padding:24px;}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
+  .header h1{font-size:1.6rem;font-weight:800;}
+  .btn{background:#ff6b35;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.2s;}
+  .btn:hover{background:#e55a26;}
+  .btn-secundario{background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:8px;padding:10px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.2s;}
+  .btn-secundario:hover{background:#ebebeb;}
+  .grupo-dia{margin-bottom:28px;}
+  .grupo-dia h2{font-size:1.1rem;font-weight:700;margin-bottom:12px;border-bottom:2px solid #ff6b35;padding-bottom:6px;}
+  .pedido-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.1);padding:16px 20px;margin-bottom:10px;}
+  .pedido-card .pedido-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .pedido-card .chan{font-weight:700;color:#1a1a1a;font-size:0.95rem;}
+  .pedido-card .fecha{font-size:0.82rem;color:#888;}
+  .pedido-card .items{font-size:0.85rem;color:#444;margin-bottom:8px;display:flex;flex-direction:column;gap:4px;}
+  .pedido-card .total{font-size:1rem;font-weight:800;color:#ff6b35;margin-top:6px;}
+  .pedido-card .metodo{font-size:0.8rem;font-weight:600;color:#555;margin-top:4px;}
+  #closeBox{display:flex;justify-content:flex-end;margin-bottom:20px;}
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>🛎️ Mis Pedidos</h1>
+    <div style="display:flex;gap:8px;">
+      <a href="/admin/dashboard" class="btn-secundario">← Volver al Dashboard</a>
+      <button id="btnCerrarCaja" class="btn">Cerrar Caja</button>
+    </div>
+  </div>
+  <div id="contenedorPedidos">Cargando pedidos...</div>
+  <script src="/api.js"></script>
+  <script src="/admin/pedidos.js"></script>
+</body>
+</html>

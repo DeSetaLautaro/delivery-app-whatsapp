@@ -13,6 +13,7 @@ const pedidoSchema = new mongoose.Schema({
             precio: { type: Number, default: 0 }
         }]
     }],
+    metodoPago: { type: String, default: 'Efectivo', enum: ['Efectivo', 'Transferencia', 'Tarjeta'] },
     total: { type: Number, required: true },
     estado: { type: String, default: 'pendiente' },
     fecha: { type: Date, default: Date.now }

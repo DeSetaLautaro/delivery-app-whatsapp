@@ -514,9 +514,17 @@ function enviarPorWhatsapp() {
 
     // 2. Leer el método de pago seleccionado
     const metodoPagoInput = document.querySelector('input[name="metodo_pago"]:checked');
-    const metodoPago = metodoPagoInput && metodoPagoInput.value === 'mercadopago' 
-        ? 'Mercado Pago 📱' 
-        : 'Efectivo 💵';
+    const valorMetodoPago = metodoPagoInput ? metodoPagoInput.value : 'efectivo';
+    const metodoPago = valorMetodoPago === 'transferencia' 
+        ? 'Transferencia 🏦' 
+        : valorMetodoPago === 'tarjeta' 
+            ? 'Tarjeta 💳' 
+            : 'Efectivo 💵';
+    const metodoPagoEnvio = valorMetodoPago === 'transferencia' 
+        ? 'Transferencia' 
+        : valorMetodoPago === 'tarjeta' 
+            ? 'Tarjeta' 
+            : 'Efectivo';
 
     // 3. Armar las líneas del pedido
     const lineas = items.map(item =>
@@ -562,7 +570,8 @@ function enviarPorWhatsapp() {
                 slug,
                 items: itemsParaGuardar,
                 total,
-                cliente: ''
+                cliente: '',
+                metodoPago: metodoPagoEnvio
             };
 
             try {
