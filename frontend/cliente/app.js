@@ -291,7 +291,7 @@ function _sumarAlCarrito(plato, toppings = []) {
     if (carrito[clave]) {
         carrito[clave].cantidad += 1;
     } else {
-        carrito[clave] = { ...plato, nombre: clave, precio: plato.precio + extraPrecio, cantidad: 1 };
+        carrito[clave] = { ...plato, nombre: clave, precio: plato.precio + extraPrecio, cantidad: 1, toppings: toppings.map(t => ({...t})) };
     }
 
     actualizarUI();
@@ -549,7 +549,8 @@ function enviarPorWhatsapp() {
     const itemsParaGuardar = items.map(item => ({
         nombrePlato: item.nombre,
         cantidad: item.cantidad,
-        precio: item.precio
+        precio: item.precio,
+        toppings: item.toppings || []
     }));
 
     fetch(`/api/publico/perfil/${slug}`)

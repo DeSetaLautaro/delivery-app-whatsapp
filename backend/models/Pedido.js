@@ -6,7 +6,12 @@ const pedidoSchema = new mongoose.Schema({
     items: [{
         nombrePlato: { type: String, required: true },
         cantidad: { type: Number, required: true },
-        precio: { type: Number, required: true }
+        precio: { type: Number, required: true },
+        toppings: [{
+            grupoNombre: { type: String },
+            opcionNombre: { type: String },
+            precio: { type: Number, default: 0 }
+        }]
     }],
     total: { type: Number, required: true },
     estado: { type: String, default: 'pendiente' },
