@@ -23,6 +23,14 @@ body {
 }
 @media (max-width: 700px) {
     .perfil-grid { grid-template-columns: 1fr; }
+
+    /* En mobile: datos del local primero, cambiar contraseña al final */
+    .perfil-col-der { order: -1; }
+    .perfil-col-izq { order: 2; }
+
+    .perfil-col-izq .perfil-card-identidad { order: 1; }
+    .perfil-col-izq .perfil-card.suscripcion-mensual { order: 2; }
+    .perfil-col-izq .perfil-card:not(.perfil-card-identidad):not(.suscripcion-mensual) { order: 3; }
 }
 
 .perfil-col-izq,
