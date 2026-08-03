@@ -61,6 +61,13 @@ body {
     align-items: center;
 }
 
+.telefono-wrapper .flag-phone {
+    font-size: 1.3rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transform: translateY(-1px);
+}
+
 .telefono-wrapper select.codigo-pais {
     flex: 0 0 auto;
     padding: 11px 8px;

@@ -26,6 +26,7 @@
         <div class="registro-field">
             <label>Teléfono</label>
             <div class="telefono-wrapper">
+                <span id="flagPais" class="flag-phone">🇦🇷</span>
                 <select id="codigoPais" name="codigoPais" class="codigo-pais">
                     <option value="+54" selected>🇦🇷 +54</option>
                     <option value="+56">🇨🇱 +56</option>
@@ -49,6 +50,7 @@
                 </select>
                 <input type="text" id="Telefono" name="telefono" placeholder="Ej: 11 2345 6789" required />
             </div>
+            <span class="error-text" id="errorTelefono"></span>
         </div>
         
         <div class="registro-field">

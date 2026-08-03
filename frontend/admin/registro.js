@@ -4,6 +4,10 @@ const confirmarInput = document.getElementById('ConfirmarContraseña');
 const errorEmailSpan = document.getElementById('errorEmail');
 const errorConfirmarSpan = document.getElementById('errorConfirmar');
 const registroError = document.getElementById('registroError');
+const telefonoInput = document.getElementById('Telefono');
+const errorTelefono = document.getElementById('errorTelefono');
+const codigoPaisSelect = document.getElementById('codigoPais');
+const flagPais = document.getElementById('flagPais');
 
 function validarFormatoEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,9 +22,27 @@ function marcarError(input, span, mensaje) {
 function limpiarErrores() {
     emailInput.classList.remove('error-input');
     confirmarInput.classList.remove('error-input');
+    telefonoInput.classList.remove('error-input');
     errorEmailSpan.textContent = '';
     errorConfirmarSpan.textContent = '';
+    errorTelefono.textContent = '';
     registroError.textContent = '';
+}
+
+function validarTelefono(numero) {
+    // Se eliminan espacios y guiones para quedarnos solo con los dígitos
+    const soloDigitos = numero.replace(/[\s-]/g, '');
+    return /^[0-9]{6,15}$/.test(soloDigitos);
+}
+
+function marcarErrorTelefono() {
+    telefonoInput.classList.add('error-input');
+    errorTelefono.textContent = 'Teléfono no válido';
+}
+
+function limpiarErrorTelefono() {
+    telefonoInput.classList.remove('error-input');
+    errorTelefono.textContent = '';
 }
 
 async function verificarEmailExiste(email) {
@@ -52,6 +74,30 @@ emailInput.addEventListener('blur', async () => {
     }
 });
 
+// Validar el teléfono apenas se termina de escribir
+telefonoInput.addEventListener('blur', () => {
+    const numero = telefonoInput.value.trim();
+    if (!numero) {
+        limpiarErrorTelefono();
+        return;
+    }
+    if (!validarTelefono(numero)) {
+        marcarErrorTelefono();
+    } else {
+        limpiarErrorTelefono();
+    }
+});
+
+// Actualizar la bandera visible según el país elegido
+codigoPaisSelect.addEventListener('change', () => {
+    const opcionSeleccionada = codigoPaisSelect.options[codigoPaisSelect.selectedIndex];
+    if (opcionSeleccionada) {
+        const texto = opcionSeleccionada.textContent.trim();
+        const bandera = texto.split(' ')[0] || '🌍';
+        flagPais.textContent = bandera;
+    }
+});
+
 formRegistro.addEventListener('submit', async (e) => {
     e.preventDefault();
     limpiarErrores();
@@ -61,7 +107,7 @@ formRegistro.addEventListener('submit', async (e) => {
     const password = document.getElementById('Contraseña').value;
     const confirm = confirmarInput.value;
     const codigoPais = document.getElementById('codigoPais').value;
-    const telefono = `${codigoPais} ${document.getElementById('Telefono').value}`.trim();
+    const telefonoRaw = document.getElementById('Telefono').value.trim();
     const nombreDelLocal = document.getElementById('nombreDelLocal').value;
 
     // Validar formato de email
@@ -76,6 +122,12 @@ formRegistro.addEventListener('submit', async (e) => {
         return;
     }
 
+    // Validar teléfono
+    if (!telefonoRaw || !validarTelefono(telefonoRaw)) {
+        marcarErrorTelefono();
+        return;
+    }
+
     // Verificar que el email exista (según lo pedido)
     const existe = await verificarEmailExiste(email);
     if (existe === false) {
@@ -83,6 +135,7 @@ formRegistro.addEventListener('submit', async (e) => {
         return;
     }
 
+    const telefono = `${codigoPais} ${telefonoRaw}`.trim();
     const payload = { nombre, email, password, telefono, nombreDelLocal };
     const respuesta = await peticionAPI('/api/registro', 'POST', payload);
 
