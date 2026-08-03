@@ -105,10 +105,28 @@ function actualizarMetricasDiarias() {
   const facturacion = pedidosHoy.reduce((sum, p) => sum + (p.total || 0), 0);
   const totalPedidos = pedidosHoy.length;
 
+  const conteo = {};
+  pedidosHoy.forEach(p => {
+    (p.items || []).forEach(item => {
+      const nombre = item.nombrePlato || 'Plato sin nombre';
+      conteo[nombre] = (conteo[nombre] || 0) + (item.cantidad || 1);
+    });
+  });
+  let productoEstrella = '';
+  let maxCantidad = 0;
+  for (const [nombre, cantidad] of Object.entries(conteo)) {
+    if (cantidad > maxCantidad) {
+      maxCantidad = cantidad;
+      productoEstrella = nombre;
+    }
+  }
+
   const facturacionEl = document.getElementById('facturacionHoy');
   const pedidosEl = document.getElementById('pedidosHoy');
+  const estrellaEl = document.getElementById('productoEstrella');
   if (facturacionEl) facturacionEl.textContent = `$${facturacion.toLocaleString('es-AR')}`;
   if (pedidosEl) pedidosEl.textContent = String(totalPedidos);
+  if (estrellaEl) estrellaEl.textContent = productoEstrella || '—';
 }
 
 function renderizarPedidos() {
