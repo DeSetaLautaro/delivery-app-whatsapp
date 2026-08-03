@@ -1,5 +1,74 @@
 let pedidosGlobales = [];
 
+const mockPedidos = [
+  {
+    _id: 'a1b2c',
+    fecha: new Date(Date.now() - 2 * 60 * 60 * 1000), // hace 2 horas
+    items: [
+      { cantidad: 2, nombrePlato: 'Hamburguesa Clásica', toppings: [{ opcionNombre: 'Extra queso' }], precio: 1800 },
+      { cantidad: 1, nombrePlato: 'Papas Fritas', toppings: [], precio: 500 }
+    ],
+    total: 4100,
+    metodoPago: 'Efectivo',
+    estado: 'pendiente'
+  },
+  {
+    _id: 'd4e5f',
+    fecha: new Date(Date.now() - 5 * 60 * 60 * 1000), // hace 5 horas
+    items: [
+      { cantidad: 1, nombrePlato: 'Pizza Pepperoni', toppings: [{ opcionNombre: 'Aceitunas' }], precio: 3200 },
+      { cantidad: 2, nombrePlato: 'Coca-Cola 500ml', toppings: [], precio: 700 }
+    ],
+    total: 4600,
+    metodoPago: 'Transferencia',
+    estado: 'pendiente'
+  },
+  {
+    _id: 'g6h7i',
+    fecha: new Date(Date.now() - 26 * 60 * 60 * 1000), // hace 26 horas (ayer)
+    items: [
+      { cantidad: 3, nombrePlato: 'Empanadas (docena)', toppings: [], precio: 6000 },
+      { cantidad: 1, nombrePlato: 'Salsa picante', toppings: [], precio: 300 }
+    ],
+    total: 6300,
+    metodoPago: 'Tarjeta',
+    estado: 'pendiente'
+  },
+  {
+    _id: 'j8k9l',
+    fecha: new Date(Date.now() - 30 * 60 * 60 * 1000), // hace 30 horas (ayer)
+    items: [
+      { cantidad: 1, nombrePlato: 'Milanesa napolitana', toppings: [{ opcionNombre: 'Puré' }], precio: 2500 },
+      { cantidad: 1, nombrePlato: 'Ensalada mixta', toppings: [], precio: 900 }
+    ],
+    total: 3400,
+    metodoPago: 'Efectivo',
+    estado: 'pendiente'
+  },
+  {
+    _id: 'm0n1o',
+    fecha: new Date(Date.now() - 72 * 60 * 60 * 1000), // hace 3 días
+    items: [
+      { cantidad: 1, nombrePlato: 'Lomo completo', toppings: [], precio: 2900 },
+      { cantidad: 2, nombrePlato: 'Jugo de naranja', toppings: [], precio: 500 }
+    ],
+    total: 3900,
+    metodoPago: 'Tarjeta',
+    estado: 'completado'
+  },
+  {
+    _id: 'p2q3r',
+    fecha: new Date(Date.now() - 1 * 60 * 60 * 1000), // hace 1 hora
+    items: [
+      { cantidad: 1, nombrePlato: 'Pasta a la bolognesa', toppings: [], precio: 1700 },
+      { cantidad: 2, nombrePlato: 'Pan de ajo', toppings: [], precio: 400 }
+    ],
+    total: 2500,
+    metodoPago: 'Efectivo',
+    estado: 'pendiente'
+  }
+];
+
 function formatearFecha(fecha) {
   const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
   return fecha.toLocaleDateString('es-AR', opciones);
@@ -53,15 +122,17 @@ function renderizarPedidos() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    window.location.href = '/admin/login.html';
-    return;
-  }
-  const resp = await peticionAPI('/api/pedidos', 'GET');
-  if (resp && resp.ok) {
-    pedidosGlobales = await resp.json();
-  }
+  // TODO: Borrar mock data y usar fetch
+  // const token = localStorage.getItem('token');
+  // if (!token) {
+  //   window.location.href = '/admin/login.html';
+  //   return;
+  // }
+  // const resp = await peticionAPI('/api/pedidos', 'GET');
+  // if (resp && resp.ok) {
+  //   pedidosGlobales = await resp.json();
+  // }
+  pedidosGlobales = [...mockPedidos];
   renderizarPedidos();
 
   document.getElementById('btnCerrarCaja').addEventListener('click', cerrarCaja);
