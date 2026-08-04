@@ -72,7 +72,7 @@ function renderizarPedidos() {
     const cards = grupos[etiqueta].map(p => `
       <div class="pedido-card">
         <div class="pedido-header">
-          <span class="chan">Pedido #${p._id.slice(-5)}</span>
+          <span class="chan">Pedido</span>
           <span class="fecha">${new Date(p.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
         <div class="items">
@@ -80,6 +80,7 @@ function renderizarPedidos() {
         </div>
         <div class="total">Total: $${p.total.toLocaleString('es-AR')}</div>
         <div class="metodo">Método de pago: ${p.metodoPago || 'Efectivo'}</div>
+        <div class="numero-pedido-box" style="font-size:3rem; font-weight:900; color:#2563eb; background:#eff6ff; border:3px solid #2563eb; border-radius:12px; text-align:center; margin-top:1.2rem; padding:0.8rem 0; letter-spacing:1px;">#${p.numeroDiario !== undefined ? p.numeroDiario : '?'}</div>
       </div>
     `).join('');
     return `<div class="grupo-dia"><h2>${etiqueta}</h2>${cards}</div>`;
