@@ -347,3 +347,30 @@ function actualizarLogoHeader(url) {
     }
 }
 
+// ===========================================
+//   MODAL CAMBIO DE PLAN
+// ===========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCambiarPlan = document.getElementById('btn-cambiar-plan');
+    const modalPlanes = document.getElementById('modal-planes');
+    const btnCerrarModal = document.getElementById('btn-cerrar-modal');
+
+    if (!btnCambiarPlan || !modalPlanes) return;
+
+    btnCambiarPlan.addEventListener('click', () => {
+        modalPlanes.classList.add('visible');
+    });
+
+    if (btnCerrarModal) {
+        btnCerrarModal.addEventListener('click', () => {
+            modalPlanes.classList.remove('visible');
+        });
+    }
+
+    modalPlanes.addEventListener('click', (e) => {
+        if (e.target === modalPlanes) {
+            modalPlanes.classList.remove('visible');
+        }
+    });
+});
+

@@ -124,6 +124,7 @@
                             <p class="suscripcion-explicativo">Mantené tu catálogo activo y recibí pedidos ilimitados</p>
                         </div>
                         <a id="btnPagoMensual" class="btn-pago-mensual" href="LINK_DE_MERCADO_PAGO_AQUI" target="_blank" rel="noopener">Hacer pago mensual</a>
+                        <button id="btn-cambiar-plan" class="btn-secundario" style="margin-top:10px;">Cambiar plan</button>
                     </div>
 
                     <hr class="card-divider" />
@@ -262,6 +263,45 @@
 
         </div>
     </main>
+
+    <!-- MODAL CAMBIO DE PLAN -->
+    <div id="modal-planes" aria-hidden="true">
+        <div class="modal-planes-contenido">
+            <div class="modal-planes-header">
+                <h2>Elegí el mejor plan para tu local</h2>
+                <button id="btn-cerrar-modal" class="btn-cerrar-modal" aria-label="Cerrar">×</button>
+            </div>
+            <div class="planes-container">
+                <!-- Plan Web -->
+                <div class="plan-card plan-web">
+                    <h3>🌐 Plan Web</h3>
+                    <ul>
+                        <li>Catálogo online</li>
+                        <li>Pedidos por web (JS vainilla)</li>
+                    </ul>
+                    <button class="btn-elegir-plan">Elegir este plan</button>
+                </div>
+                <!-- Plan Bot -->
+                <div class="plan-card plan-bot">
+                    <h3>🤖 Plan Bot</h3>
+                    <ul>
+                        <li>Atención automática</li>
+                        <li>Toma de pedidos por WhatsApp</li>
+                    </ul>
+                    <button class="btn-elegir-plan">Elegir este plan</button>
+                </div>
+                <!-- Plan Pro -->
+                <div class="plan-card plan-pro">
+                    <h3>🚀 Plan Pro</h3>
+                    <ul>
+                        <li>Catálogo Web</li>
+                        <li>Bot de WhatsApp integrado</li>
+                    </ul>
+                    <button class="btn-elegir-plan">Elegir este plan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="/admin/perfil.js"></script>
     <script src="/ui.js"></script>
