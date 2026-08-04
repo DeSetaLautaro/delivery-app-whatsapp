@@ -67,7 +67,13 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.direccion !== undefined) camposAActualizar.direccion = req.body.direccion;
         if (req.body.horarios !== undefined) camposAActualizar.horarios = req.body.horarios;
                 if (req.body.abierto             !== undefined) camposAActualizar.abierto             = req.body.abierto; 
-        if (req.body.horariosEstructurados !== undefined) camposAActualizar.horariosEstructurados = req.body.horariosEstructurados;
+        if (req.body.horariosEstructurados !== undefined) {
+            // Solo guardamos los días que tienen hora de apertura y de cierre
+            const horariosSinVacios = req.body.horariosEstructurados.filter(
+                h => h && h.apertura && h.cierre
+            );
+            camposAActualizar.horariosEstructurados = horariosSinVacios;
+        }
         if (req.body.metodosPago          !== undefined) camposAActualizar.metodosPago          = req.body.metodosPago;
 
         console.log("2. Cajón a actualizar en Mongo:", camposAActualizar);
