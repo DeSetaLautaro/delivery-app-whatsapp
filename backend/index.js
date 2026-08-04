@@ -2,6 +2,8 @@ require('dotenv').config();
 const express   = require('express');
 const multer    = require('multer');
 const Anthropic = require('@anthropic-ai/sdk');
+const crypto    = require('crypto');
+const jwt       = require('jsonwebtoken');
 const fs        = require('fs');
 const path      = require('path');
 const mongoose  = require('mongoose');
@@ -16,6 +18,7 @@ const publicoRoutes = require('./routes/publicoRoutes');
 const pedidosRoutes = require('./routes/pedidos');
 const analisisRoutes = require('./routes/analisis');
 const deliveryRoutes = require('./routes/delivery');
+const DeliveryToken = require('./models/DeliveryToken');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -33,6 +36,52 @@ app.use('/api/toppings', rutasToppings);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/analisis', analisisRoutes);
 app.use('/api/delivery', deliveryRoutes);
+
+// ============================================================
+// RUTAS PARA GESTIÓN DEL TOKEN DE DELIVERY (PROTEGIDAS)
+// ============================================================
+const authMiddleware = (req, res, next) => {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'No autorizado' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secreto');
+        req.usuarioId = decoded.id || decoded._id;
+        next();
+    } catch (e) {
+        return res.status(401).json({ error: 'Token inválido' });
+    }
+};
+
+app.get('/api/local/delivery-token', authMiddleware, async (req, res) => {
+    try {
+        const localId = req.usuarioId;
+        const doc = await DeliveryToken.findOne({ localId });
+        res.json({ token: doc ? doc.token : null });
+    } catch (error) {
+        console.error('Error obteniendo token:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+app.post('/api/local/regenerar-token-delivery', authMiddleware, async (req, res) => {
+    try {
+        const localId = req.usuarioId;
+        const nuevoToken = crypto.randomBytes(24).toString('hex');
+        let doc = await DeliveryToken.findOne({ localId });
+        if (doc) {
+            doc.token = nuevoToken;
+            await doc.save();
+        } else {
+            doc = new DeliveryToken({ localId, token: nuevoToken });
+            await doc.save();
+        }
+        res.json({ token: nuevoToken });
+    } catch (error) {
+        console.error('Error regenerando token:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
 
 // 4. Conexión a la Base de Datos
 mongoose.connect(process.env.MONGODB_URI)

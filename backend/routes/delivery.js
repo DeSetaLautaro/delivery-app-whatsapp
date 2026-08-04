@@ -2,13 +2,21 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Pedido = require('../models/Pedido');
+const DeliveryToken = require('../models/DeliveryToken');
 
-// GET /api/delivery/pedidos?token=ID_DEL_LOCAL
+async function getLocalIdPorToken(token) {
+    if (!token) return null;
+    const doc = await DeliveryToken.findOne({ token });
+    return doc ? doc.localId : null;
+}
+
+// GET /api/delivery/pedidos?token=TOKEN
 router.get('/pedidos', async (req, res) => {
     try {
         const { token } = req.query;
-        if (!token || !mongoose.Types.ObjectId.isValid(token)) {
-            return res.status(400).json({ error: 'Token inválido' });
+        const localId = await getLocalIdPorToken(token);
+        if (!localId) {
+            return res.status(401).json({ error: 'Token inválido o expirado' });
         }
 
         const hoy = new Date();
@@ -17,7 +25,7 @@ router.get('/pedidos', async (req, res) => {
         mañana.setDate(mañana.getDate() + 1);
 
         const pedidos = await Pedido.find({
-            localId: token,
+            localId,
             fecha: { $gte: hoy, $lt: mañana }
         }).sort({ fecha: 1 });
 
@@ -28,10 +36,11 @@ router.get('/pedidos', async (req, res) => {
     }
 });
 
-// PUT /api/delivery/pedidos/:id/estado
+// PUT /api/delivery/pedidos/:id/estado?token=TOKEN
 router.put('/pedidos/:id/estado', async (req, res) => {
     try {
         const { id } = req.params;
+        const { token } = req.query;
         const { estadoDelivery } = req.body;
 
         const estadosPermitidos = ['pendiente', 'en_viaje', 'entregado'];
@@ -42,15 +51,21 @@ router.put('/pedidos/:id/estado', async (req, res) => {
             return res.status(400).json({ error: 'Estado no válido' });
         }
 
-        const pedido = await Pedido.findByIdAndUpdate(
-            id,
-            { estadoDelivery },
-            { new: true }
-        );
+        const localId = await getLocalIdPorToken(token);
+        if (!localId) {
+            return res.status(401).json({ error: 'Token inválido o expirado' });
+        }
 
+        const pedido = await Pedido.findById(id);
         if (!pedido) {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
+        if (String(pedido.localId) !== String(localId)) {
+            return res.status(403).json({ error: 'No tenés permiso para actualizar este pedido' });
+        }
+
+        pedido.estadoDelivery = estadoDelivery;
+        await pedido.save();
 
         res.json(pedido);
     } catch (error) {

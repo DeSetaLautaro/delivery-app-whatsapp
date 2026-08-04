@@ -1,4 +1,5 @@
 const token = new URLSearchParams(window.location.search).get('token');
+let deliveryToken = token;
 
 document.addEventListener('DOMContentLoaded', cargarPedidos);
 
@@ -13,6 +14,11 @@ function cargarPedidos() {
 
     fetch(`/api/delivery/pedidos?token=${encodeURIComponent(token)}`)
         .then(res => {
+            if (res.status === 401 || res.status === 403) {
+                const error = new Error('expirado');
+                error.expirado = true;
+                throw error;
+            }
             if (!res.ok) throw new Error('Error al obtener pedidos');
             return res.json();
         })
@@ -34,6 +40,15 @@ function cargarPedidos() {
         })
         .catch(err => {
             console.error(err);
+            if (err.expirado) {
+                contenedor.innerHTML = `
+                    <div style="text-align:center; padding:60px 20px;">
+                        <div style="font-size:80px; margin-bottom:16px;">🛑</div>
+                        <h2 style="font-size:1.4rem; margin-bottom:10px;">Enlace expirado o inválido</h2>
+                        <p style="color:#888; font-size:1rem;">Por favor, pedile el nuevo link al dueño del local.</p>
+                    </div>`;
+                return;
+            }
             contenedor.innerHTML = '<p style="color:#c0392b;text-align:center;padding:20px;">No se pudieron cargar los pedidos.</p>';
         });
 }
@@ -80,7 +95,8 @@ function crearTarjeta(p) {
 }
 
 function cambiarEstado(id, nuevoEstado) {
-    fetch(`/api/delivery/pedidos/${id}/estado`, {
+    if (!deliveryToken) return;
+    fetch(`/api/delivery/pedidos/${id}/estado?token=${encodeURIComponent(deliveryToken)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estadoDelivery: nuevoEstado })
