@@ -4,14 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análisis</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: #f5f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .stat-card {
+            border: 1px solid #e8e8e8;
+        }
+        .chart-card {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .bar-row {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <!-- El header se inyecta acá mediante cargarHeader() -->
     <div id="contenedor-header"></div>
 
-    <main style="max-width: 800px; margin: 30px auto; padding: 0 20px;">
+    <main style="max-width: 1100px; margin: 30px auto; padding: 0 20px;">
         <h1>📈 Análisis de datos</h1>
-        <p>Acá vas a poder visualizar tus ventas diarias, productos más vendidos y otras métricas.</p>
+        <p style="color:#555;">Visualizá tus ventas diarias, productos más vendidos y otras métricas.</p>
+
+        <div id="contenedorAnalisis" style="margin-top: 20px;">
+            <!-- Se rellena con JS -->
+        </div>
     </main>
 
     <script src="/api/ui.js"></script>
@@ -21,6 +46,125 @@
             window.location.href = '/admin/login.html';
         } else {
             cargarHeader(userData);
+            cargarAnalisis();
+        }
+
+        async function cargarAnalisis() {
+            const contenedor = document.getElementById('contenedorAnalisis');
+            if (!contenedor) return;
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    contenedor.innerHTML = '<p>Necesitás iniciar sesión para ver el análisis.</p>';
+                    return;
+                }
+
+                const respuesta = await fetch('/api/analisis', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!respuesta.ok) {
+                    throw new Error('Error al obtener datos');
+                }
+
+                const data = await respuesta.json();
+
+                // Mostrar mensaje mientras no haya suficiente actividad
+                if (data.totalPedidos < 10 || data.totalPlatos === 0) {
+                    contenedor.innerHTML = `
+                        <div style="text-align:center; padding:60px 20px; background:#fff; border-radius:12px; border:1px solid #eee;">
+                            <div style="font-size:70px; line-height:1;">📊📉</div>
+                            <h2 style="margin-top:20px;">Aún no hay suficiente actividad</h2>
+                            <p style="color:#888; max-width:500px; margin:10px auto; font-size:16px;">
+                                Cuando tu local supere los <strong>10 pedidos</strong>, acá vas a ver
+                                gráficos con tus ventas diarias y los productos más pedidos.
+                            </p>
+                            <p style="color:#aaa; margin-top:20px;">
+                                Actualmente tenés <strong>${data.totalPedidos}</strong> pedido(s)
+                                y <strong>${data.totalPlatos}</strong> plato(s) cargado(s).
+                            </p>
+                        </div>`;
+                    return;
+                }
+
+                renderCharts(data);
+            } catch (error) {
+                console.error('Error al cargar análisis:', error);
+                contenedor.innerHTML = '<p style="color:#c0392b;">No se pudieron cargar los datos. Intentalo de nuevo.</p>';
+            }
+        }
+
+        function renderCharts(data) {
+            const contenedor = document.getElementById('contenedorAnalisis');
+
+            // ---------- Tarjetas resumen ----------
+            const tarjetas = `
+                <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:30px;">
+                    <div class="stat-card" style="flex:1; min-width:150px;">
+                        <h3 style="margin:0 0 8px; font-size:15px;">Total pedidos</h3>
+                        <div style="font-size:2em; font-weight:bold;">${data.totalPedidos}</div>
+                    </div>
+                    <div class="stat-card" style="flex:1; min-width:150px;">
+                        <h3 style="margin:0 0 8px; font-size:15px;">Ventas totales</h3>
+                        <div style="font-size:2em; font-weight:bold;">$${data.ventasTotales.toLocaleString('es-AR')}</div>
+                    </div>
+                    <div class="stat-card" style="flex:1; min-width:150px;">
+                        <h3 style="margin:0 0 8px; font-size:15px;">Productos vendidos</h3>
+                        <div style="font-size:2em; font-weight:bold;">${data.itemsVendidos}</div>
+                    </div>
+                    <div class="stat-card" style="flex:1; min-width:150px;">
+                        <h3 style="margin:0 0 8px; font-size:15px;">Platos en menú</h3>
+                        <div style="font-size:2em; font-weight:bold;">${data.totalPlatos}</div>
+                    </div>
+                </div>`;
+
+            // ---------- Gráfico de ventas por día ----------
+            const maxVentas = data.pedidosPorDia.length
+                ? Math.max(...data.pedidosPorDia.map(d => d.total))
+                : 0;
+
+            const filasDias = data.pedidosPorDia.map(d => {
+                const porcentaje = maxVentas ? (d.total / maxVentas * 100) : 0;
+                return `
+                    <div class="bar-row" style="display:flex; align-items:center; gap:10px;">
+                        <div style="min-width:105px; text-align:right; color:#555;">${d.fecha}</div>
+                        <div style="flex:1; background:#eee; border-radius:4px; height:20px;">
+                            <div style="height:100%; width:${porcentaje}%; background:#4a90d9; border-radius:4px;"></div>
+                        </div>
+                        <div style="min-width:80px;">$${d.total.toLocaleString('es-AR')}</div>
+                    </div>`;
+            }).join('');
+
+            // ---------- Productos más pedidos ----------
+            const maxProducto = data.topPlatos.length
+                ? Math.max(...data.topPlatos.map(p => p.cantidad))
+                : 0;
+
+            const filasProductos = data.topPlatos.map(p => {
+                const porcentaje = maxProducto ? (p.cantidad / maxProducto * 100) : 0;
+                return `
+                    <div class="bar-row" style="display:flex; align-items:center; gap:10px;">
+                        <div style="min-width:160px; text-align:right; color:#555;">${p.nombre}</div>
+                        <div style="flex:1; background:#eee; border-radius:4px; height:20px;">
+                            <div style="height:100%; width:${porcentaje}%; background:#f0ad4e; border-radius:4px;"></div>
+                        </div>
+                        <div style="min-width:60px;">${p.cantidad} u</div>
+                    </div>`;
+            }).join('');
+
+            contenedor.innerHTML = `
+                ${tarjetas}
+                <div style="display:flex; gap:30px; flex-wrap:wrap; margin-top:30px;">
+                    <div class="chart-card" style="flex:1; min-width:320px;">
+                        <h2 style="margin-top:0;">📅 Ventas por día</h2>
+                        ${filasDias || '<p style="color:#888;">Sin ventas todavía.</p>'}
+                    </div>
+                    <div class="chart-card" style="flex:1; min-width:320px;">
+                        <h2 style="margin-top:0;">🏆 Productos más pedidos</h2>
+                        ${filasProductos || '<p style="color:#888;">Sin productos con pedidos.</p>'}
+                    </div>
+                </div>`;
         }
     </script>
 </body>
