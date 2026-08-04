@@ -88,33 +88,40 @@ document.querySelectorAll('.fila-dia input[type="time"]').forEach(inputTiempo =>
 
 // ... Acá sigue tu Paso 3 (recolectarHorarios) y Paso 4 (guardarHorarios) exactamente igual
 
-// ── Paso 3: Recolectar string (humanos) y array (computadora) ─────────
+const DIAS_SEMANA = [
+    { id: 'lunes', label: 'Lunes' },
+    { id: 'martes', label: 'Martes' },
+    { id: 'miercoles', label: 'Miércoles' },
+    { id: 'jueves', label: 'Jueves' },
+    { id: 'viernes', label: 'Viernes' },
+    { id: 'sabado', label: 'Sábado' },
+    { id: 'domingo', label: 'Domingo' }
+];
+
 function recolectarHorarios() {
-    const filas = document.querySelectorAll('.fila-dia');
-    const partesTexto = [];        // Acá guardamos "Lunes 20:00 a 23:30"
-    const arrayEstructurado = [];  // Acá guardamos objetos { dia: "Lunes", apertura: "20:00", ... }
+    const partesTexto = [];
+    const arrayEstructurado = [];
 
-    filas.forEach(fila => {
-        const checkbox = fila.querySelector('input[type="checkbox"]');
-        if (!checkbox.checked) return; // Saltamos los días no seleccionados
+    DIAS_SEMANA.forEach(dia => {
+        const checkActivo = document.getElementById(`${dia.id}-activo`);
+        const inputDesde = document.getElementById(`${dia.id}-desde`);
+        const inputHasta = document.getElementById(`${dia.id}-hasta`);
 
-        const dia     = fila.querySelector('.dia-check span').innerText.trim();
-        const tiempos = fila.querySelectorAll('input[type="time"]');
-        const desde   = tiempos[0].value; // Ej: "20:00"
-        const hasta   = tiempos[1].value; // Ej: "23:30"
+        const activo = checkActivo && checkActivo.checked;
+        const desde = activo && inputDesde ? inputDesde.value : '';
+        const hasta = activo && inputHasta ? inputHasta.value : '';
 
-        // 1. Armamos el texto para humanos
-        partesTexto.push(`${dia} ${desde} a ${hasta}`);
+        if (activo && desde && hasta) {
+            partesTexto.push(`${dia.label} ${desde} a ${hasta}`);
+        }
 
-        // 2. Armamos el objeto para la computadora
         arrayEstructurado.push({
-            dia: dia,
-            apertura: desde,
-            cierre: hasta
+            dia: dia.label,
+            apertura: activo ? desde : '',
+            cierre: activo ? hasta : ''
         });
     });
 
-    // Devolvemos ambas cosas empaquetadas
     return {
         textoLegible: partesTexto.join(' | '),
         datosParaNode: arrayEstructurado
@@ -165,33 +172,50 @@ async function guardarHorarios() {
 //=====================
 
 function rellenarHorarios(horariosArray) {
-    // Si no hay horarios guardados o el array está vacío, no hacemos nada
+    // Primero dejamos todos los días desactivados
+    DIAS_SEMANA.forEach(dia => {
+        const check = document.getElementById(`${dia.id}-activo`);
+        const desde = document.getElementById(`${dia.id}-desde`);
+        const hasta = document.getElementById(`${dia.id}-hasta`);
+
+        if (check) {
+            check.checked = false;
+        }
+        if (desde) {
+            desde.value = '';
+            desde.disabled = true;
+        }
+        if (hasta) {
+            hasta.value = '';
+            hasta.disabled = true;
+        }
+    });
+
+    // Si no hay datos guardados, terminamos
     if (!horariosArray || horariosArray.length === 0) return;
 
-    // Recorremos la lista de días uno por uno
+    // Ahora aplicamos los datos guardados
     horariosArray.forEach(configDia => {
-        // configDia es cada objetito: { dia: "lunes", apertura: "20:00", cierre: "23:30" }
-         console.log(`el formato de horarios es:`, configDia);
-        // Nos aseguramos de que el día esté en minúsculas para que coincida con los IDs del HTML
-        const dia = configDia.dia.toLowerCase(); 
-        console.log(`pasé por acá y hoy es: ${dia}`);
+        const diaKey = (configDia.dia || '').toLowerCase();
+        const entrada = DIAS_SEMANA.find(
+            d => d.id === diaKey || d.label.toLowerCase() === diaKey
+        );
+        if (!entrada) return;
 
-        // Buscamos las 3 cajitas de ESE día en el HTML
-        const checkActivo = document.getElementById(`${dia}-activo`);
-        checkActivo.disabled = false;
-        const inputDesde = document.getElementById(`${dia}-desde`);
-        inputDesde.disabled = false;
-        const inputHasta = document.getElementById(`${dia}-hasta`);
-        inputHasta.disabled = false;
+        const check = document.getElementById(`${entrada.id}-activo`);
+        const desde = document.getElementById(`${entrada.id}-desde`);
+        const hasta = document.getElementById(`${entrada.id}-hasta`);
 
-        // 1. Rellenamos las horas usando las propiedades de tu MongoDB (apertura y cierre)
-        if (inputDesde) inputDesde.value = configDia.apertura || "";
-        if (inputHasta) inputHasta.value = configDia.cierre || "";
-
-        // 2. ¿Cómo sabemos si marcamos el Checkbox (activo)? 
-        // Lógica simple: Si tiene hora de apertura guardada, asumimos que ese día abre.
-        if (checkActivo) {
-            checkActivo.checked = configDia.apertura ? true : false;
+        if (check) {
+            check.checked = true;
+        }
+        if (desde) {
+            desde.value = configDia.apertura || '';
+            desde.disabled = false;
+        }
+        if (hasta) {
+            hasta.value = configDia.cierre || '';
+            hasta.disabled = false;
         }
     });
 }
