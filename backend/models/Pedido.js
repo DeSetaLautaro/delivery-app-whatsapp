@@ -20,6 +20,8 @@ const pedidoSchema = new mongoose.Schema({
     notas: { type: String, default: '' },
     telefonoCliente: { type: String, default: '' },
     estadoDelivery: { type: String, enum: ['pendiente', 'en_viaje', 'entregado'], default: 'pendiente' },
+    numeroDiario: { type: Number, default: null },
+    fechaTurno: { type: String, default: null },
     fecha: { type: Date, default: Date.now }
 });
 

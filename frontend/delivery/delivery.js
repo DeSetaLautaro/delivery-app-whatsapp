@@ -1,7 +1,14 @@
 const token = new URLSearchParams(window.location.search).get('token');
 let deliveryToken = token;
+let todosLosPedidos = [];
 
-document.addEventListener('DOMContentLoaded', cargarPedidos);
+document.addEventListener('DOMContentLoaded', () => {
+    const inputBusqueda = document.getElementById('buscadorPedidos');
+    if (inputBusqueda) {
+        inputBusqueda.addEventListener('input', renderPedidos);
+    }
+    cargarPedidos();
+});
 
 function cargarPedidos() {
     const contenedor = document.getElementById('contenedorRepartidor');
@@ -25,18 +32,11 @@ function cargarPedidos() {
         .then(pedidos => {
             if (!Array.isArray(pedidos) || pedidos.length === 0) {
                 contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">No hay pedidos para hoy 🌙</p>';
+                todosLosPedidos = [];
                 return;
             }
-
-            contenedor.innerHTML = pedidos.map(p => crearTarjeta(p)).join('');
-
-            document.querySelectorAll('.estado-boton').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.target.dataset.id;
-                    const estado = e.target.dataset.estado;
-                    cambiarEstado(id, estado);
-                });
-            });
+            todosLosPedidos = pedidos;
+            renderPedidos();
         })
         .catch(err => {
             console.error(err);
@@ -69,8 +69,13 @@ function crearTarjeta(p) {
         </button>
     `).join('');
 
+    const numero = p.numeroDiario ? `#${p.numeroDiario}` : '#?';
+    const entregado = estadoActual === 'entregado';
+    const estiloEntregado = entregado ? 'opacity:0.5; filter:grayscale(0.3);' : '';
+
     return `
-        <div class="pedido-card">
+        <div class="pedido-card ${entregado ? 'pedido-entregado' : ''}" style="${estiloEntregado}">
+            <div style="font-size:2.2rem; font-weight:800; color:#1e293b; margin-bottom:8px;">${numero}</div>
             <div class="card-head">
                 <span class="cliente">${p.cliente || 'Cliente sin nombre'}</span>
                 <span class="hora">🕑 ${hora}</span>
@@ -92,6 +97,50 @@ function crearTarjeta(p) {
             <div class="estado-botones">${botones}</div>
         </div>
     `;
+}
+
+function renderPedidos() {
+    const contenedor = document.getElementById('contenedorRepartidor');
+    if (!contenedor) return;
+
+    const inputBusqueda = document.getElementById('buscadorPedidos');
+    const term = inputBusqueda ? inputBusqueda.value.trim().toLowerCase() : '';
+
+    let filtrados = todosLosPedidos;
+    if (term) {
+        filtrados = todosLosPedidos.filter(p => {
+            const numero = p.numeroDiario ? String(p.numeroDiario) : '';
+            const cliente = (p.cliente || '').toLowerCase();
+            const direccion = (p.direccion || '').toLowerCase();
+            return numero.includes(term) || cliente.includes(term) || direccion.includes(term);
+        });
+    }
+
+    const ordenados = [...filtrados].sort((a,b) => {
+        const aEnt = a.estadoDelivery === 'entregado' ? 1 : 0;
+        const bEnt = b.estadoDelivery === 'entregado' ? 1 : 0;
+        if (aEnt !== bEnt) return aEnt - bEnt;
+        return 0;
+    });
+
+    if (ordenados.length === 0) {
+        contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">No hay pedidos para mostrar.</p>';
+        return;
+    }
+
+    contenedor.innerHTML = ordenados.map(p => crearTarjeta(p)).join('');
+
+    document.querySelectorAll('.estado-boton').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            const estado = e.target.dataset.estado;
+            cambiarEstado(id, estado);
+        });
+    });
+
+    if (inputBusqueda) {
+        inputBusqueda.focus();
+    }
 }
 
 function cambiarEstado(id, nuevoEstado) {
