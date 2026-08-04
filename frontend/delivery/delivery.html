@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Repartidor</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f3f4f6;
+            color: #111;
+            padding: 16px 12px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .wrapper {
+            max-width: 480px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+        .header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .estado-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        .estado-num {
+            font-weight: 800;
+            color: #2563eb;
+        }
+        .btn-actualizar {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pedido-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .cliente {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+        .hora {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .datos p {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 0.95rem;
+            margin: 5px 0;
+            color: #374151;
+        }
+        .datos a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .items {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin: 3px 0;
+        }
+        .total-metodo {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-weight: 700;
+        }
+        .estado-botones {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .estado-boton {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .estado-boton.active {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <h1>🛵 Entregas</h1>
+            <p>Pedidos de hoy</p>
+        </div>
+        <div id="contenedorRepartidor"></div>
+    </div>
+
+    <script src="./delivery.js"></script>
+</body>
+</html>

@@ -15,6 +15,7 @@ const rutasToppings = require('./routes/toppings');
 const publicoRoutes = require('./routes/publicoRoutes');
 const pedidosRoutes = require('./routes/pedidos');
 const analisisRoutes = require('./routes/analisis');
+const deliveryRoutes = require('./routes/delivery');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -31,6 +32,7 @@ app.use('/api', authRouter);
 app.use('/api/toppings', rutasToppings);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/analisis', analisisRoutes);
+app.use('/api/delivery', deliveryRoutes);
 
 // 4. Conexión a la Base de Datos
 mongoose.connect(process.env.MONGODB_URI)
@@ -53,6 +55,14 @@ app.use(express.static(path.join(__dirname, '../frontend/cliente')));
 
 // 3. ¡EL CAMBIO CLAVE! Ponemos todo lo del admin detrás de la puerta "/admin"
 app.use('/admin', express.static(path.join(__dirname, '../frontend/admin')));
+
+// Vista pública para repartidores
+app.use('/delivery', express.static(path.join(__dirname, '../frontend/delivery')));
+
+app.get('/delivery', (req, res) => {
+    const archivoDelivery = path.join(__dirname, '../frontend/delivery/delivery.html');
+    res.sendFile(archivoDelivery);
+});
 
 // RUTA PARA SERVIR EL HTML DEL MENÚ PÚBLICO
 app.get('/menu/:slug', (req, res) => {
