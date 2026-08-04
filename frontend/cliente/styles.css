@@ -4,6 +4,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { overflow-x: hidden; }
+html { scroll-behavior: smooth; }
 
 body {
     font-family: 'Inter', sans-serif;
@@ -133,6 +134,55 @@ body {
     padding: 20px;
     color: #888;
     font-size: 0.95rem;
+}
+
+/* ============================================================
+   CARRUSEL STICKY DE CATEGORÍAS (estilo Rappi / PedidosYa)
+   ============================================================ */
+.categorias-carrusel {
+    position: sticky;
+    top: 0;
+    z-index: 98; /* por debajo del header que usa z-index 100 */
+    background: #fff;
+    padding: 10px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE y Edge */
+}
+.categorias-carrusel::-webkit-scrollbar {
+    display: none;
+}
+.categoria-chip {
+    display: inline-block;
+    background: #f5f5f5;
+    border: 1px solid #e8e8e8;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    margin-right: 8px;
+}
+.categoria-chip:last-child {
+    margin-right: 0;
+}
+.categoria-chip:hover {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: #fff;
+}
+.categoria-chip:active {
+    transform: scale(0.97);
+}
+.category-section {
+    scroll-margin-top: 56px; /* para que el scrollIntoView no quede tapado por el carrusel sticky */
 }
 
 /* ============================================================

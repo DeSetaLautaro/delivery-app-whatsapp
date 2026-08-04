@@ -120,6 +120,21 @@ function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está a
         return grupos;
     }, {});
 
+    // Generar botones para el carrusel sticky de categorías
+    const categorias = Object.keys(porCategoria);
+    const carrusel = document.getElementById('categoriasCarrusel');
+    if (carrusel) {
+        if (categorias.length === 0) {
+            carrusel.style.display = 'none';
+        } else {
+            carrusel.style.display = '';
+            carrusel.innerHTML = categorias.map(cat => {
+                const idCat = 'cat-' + cat.toLowerCase().replace(/\s+/g, '-');
+                return `<button class="categoria-chip" data-target="${idCat}" onclick="irACategoria('${idCat}')">${obtenerEmoji(cat)} ${cat}</button>`;
+            }).join('');
+        }
+    }
+
     // Armamos SOLO el HTML de las tarjetas de los platos
     const htmlPlatos = Object.entries(porCategoria)
         .map(([categoria, items]) => crearSeccionCategoria(categoria, items))
@@ -145,6 +160,14 @@ function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está a
     // Aplicar filtro de búsqueda si ya hay algo escrito
     if (document.getElementById('buscadorPlatos')) {
         filtrarPlatosBuscador();
+    }
+}
+
+// Función global para salto suave a una categoría
+function irACategoria(id) {
+    const destino = document.getElementById(id);
+    if (destino) {
+        destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
