@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis</title>
+</head>
+<body>
+    <!-- El header se inyecta acá mediante cargarHeader() -->
+    <div id="contenedor-header"></div>
+
+    <main style="max-width: 800px; margin: 30px auto; padding: 0 20px;">
+        <h1>📈 Análisis de datos</h1>
+        <p>Acá vas a poder visualizar tus ventas diarias, productos más vendidos y otras métricas.</p>
+    </main>
+
+    <script src="/api/ui.js"></script>
+    <script>
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+            window.location.href = '/admin/login.html';
+        } else {
+            cargarHeader(userData);
+        }
+    </script>
+</body>
+</html>
