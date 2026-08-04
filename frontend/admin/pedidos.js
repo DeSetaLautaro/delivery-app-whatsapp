@@ -1,4 +1,4 @@
-let pedidosGlobales = [];
+//let pedidosGlobales = [];
 let deliveryToken = null;
 
 function formatearFecha(fecha) {
