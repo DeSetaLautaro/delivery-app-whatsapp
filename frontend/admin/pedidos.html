@@ -49,6 +49,11 @@
       <div id="productoEstrella" class="stat-value" style="font-size:1.4rem;font-weight:800;color:#28a745;margin-top:4px;">—</div>
     </div>
   </div>
+  <div class="filtros-admin" style="margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap;">
+    <button class="btn-filtro-admin" data-filtro="todos" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">Todos</button>
+    <button class="btn-filtro-admin" data-filtro="pendientes" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">Pendientes</button>
+    <button class="btn-filtro-admin" data-filtro="entregados" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">Entregados</button>
+  </div>
   <div id="contenedorPedidos">Cargando pedidos...</div>
   <script src="/api.js"></script>
   <script src="/admin/pedidos.js"></script>

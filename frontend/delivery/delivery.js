@@ -1,14 +1,48 @@
 const token = new URLSearchParams(window.location.search).get('token');
 let deliveryToken = token;
 let todosLosPedidos = [];
+let filtroDelivery = 'todos';
+
+const MOCK_PEDIDOS_DELIVERY = [
+  { _id: 'mock1', cliente: 'Juan Pérez', direccion: 'Av. Siempre Viva 742', telefonoCliente: '11-5555-1234', notas: 'Sin cebolla', items: [{ cantidad: 1, nombrePlato: 'Hamburguesa', toppings: [], precio: 1800 }], total: 1800, metodoPago: 'Efectivo', fecha: new Date(Date.now() - 1*60*60*1000), numeroDiario: 1, estadoDelivery: 'pendiente', estado: 'pendiente' },
+  { _id: 'mock2', cliente: 'María López', direccion: 'Mitre 123', telefonoCliente: '11-5555-5678', notas: '', items: [{ cantidad: 2, nombrePlato: 'Pizza', toppings: [{grupoNombre: 'Queso', opcionNombre: 'Aceitunas', precio: 200}], precio: 3200 }], total: 6600, metodoPago: 'Transferencia', fecha: new Date(Date.now() - 2*60*60*1000), numeroDiario: 2, estadoDelivery: 'entregado', estado: 'entregado' },
+  { _id: 'mock3', cliente: 'Carlos Gómez', direccion: 'Belgrano 888', telefonoCliente: '11-5555-9012', notas: 'Picante', items: [{ cantidad: 3, nombrePlato: 'Empanadas', toppings: [], precio: 6000 }], total: 18000, metodoPago: 'Tarjeta', fecha: new Date(Date.now() - 3*60*60*1000), numeroDiario: 3, estadoDelivery: 'en_viaje', estado: 'en_viaje' },
+  { _id: 'mock4', cliente: 'Ana Ruiz', direccion: 'Rivadavia 333', telefonoCliente: '11-5555-3456', notas: '', items: [{ cantidad: 1, nombrePlato: 'Lomo', toppings: [], precio: 2900 }], total: 2900, metodoPago: 'Efectivo', fecha: new Date(Date.now() - 26*60*60*1000), numeroDiario: 4, estadoDelivery: 'pendiente', estado: 'pendiente' }
+];
 
 document.addEventListener('DOMContentLoaded', () => {
     const inputBusqueda = document.getElementById('buscadorPedidos');
     if (inputBusqueda) {
         inputBusqueda.addEventListener('input', renderPedidos);
     }
+    crearFiltrosDelivery();
     cargarPedidos();
 });
+
+function crearFiltrosDelivery() {
+    const contenedor = document.getElementById('contenedorRepartidor');
+    if (!contenedor) return;
+    const filtrosHtml = `
+        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+            <button class="filtro-delivery" data-filtro="todos" style="padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; background:#e2e8f0;">Todos</button>
+            <button class="filtro-delivery" data-filtro="pendientes" style="padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; background:#e2e8f0;">Pendientes</button>
+            <button class="filtro-delivery" data-filtro="entregados" style="padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; background:#e2e8f0;">Entregados</button>
+        </div>
+    `;
+    contenedor.insertAdjacentHTML('afterbegin', filtrosHtml);
+    document.querySelectorAll('.filtro-delivery').forEach(btn => {
+        btn.addEventListener('click', () => {
+            filtroDelivery = btn.dataset.filtro;
+            document.querySelectorAll('.filtro-delivery').forEach(b => {
+                b.style.background = '#e2e8f0';
+                b.style.color = '#333';
+            });
+            btn.style.background = '#2563eb';
+            btn.style.color = '#fff';
+            renderPedidos();
+        });
+    });
+}
 
 function cargarPedidos() {
     const contenedor = document.getElementById('contenedorRepartidor');
@@ -19,38 +53,16 @@ function cargarPedidos() {
 
     contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">Cargando pedidos...</p>';
 
-    fetch(`/api/delivery/pedidos?token=${encodeURIComponent(token)}`)
-        .then(res => {
-            if (res.status === 401 || res.status === 403) {
-                const error = new Error('expirado');
-                error.expirado = true;
-                throw error;
-            }
-            if (!res.ok) throw new Error('Error al obtener pedidos');
-            return res.json();
-        })
-        .then(pedidos => {
-            if (!Array.isArray(pedidos) || pedidos.length === 0) {
-                contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">No hay pedidos para hoy 🌙</p>';
-                todosLosPedidos = [];
-                return;
-            }
-            todosLosPedidos = pedidos;
-            renderPedidos();
-        })
-        .catch(err => {
-            console.error(err);
-            if (err.expirado) {
-                contenedor.innerHTML = `
-                    <div style="text-align:center; padding:60px 20px;">
-                        <div style="font-size:80px; margin-bottom:16px;">🛑</div>
-                        <h2 style="font-size:1.4rem; margin-bottom:10px;">Enlace expirado o inválido</h2>
-                        <p style="color:#888; font-size:1rem;">Por favor, pedile el nuevo link al dueño del local.</p>
-                    </div>`;
-                return;
-            }
-            contenedor.innerHTML = '<p style="color:#c0392b;text-align:center;padding:20px;">No se pudieron cargar los pedidos.</p>';
-        });
+    // Usamos datos de prueba para visualizar el front
+    setTimeout(() => {
+        if (!Array.isArray(MOCK_PEDIDOS_DELIVERY) || MOCK_PEDIDOS_DELIVERY.length === 0) {
+            contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">No hay pedidos para hoy 🌙</p>';
+            todosLosPedidos = [];
+            return;
+        }
+        todosLosPedidos = MOCK_PEDIDOS_DELIVERY;
+        renderPedidos();
+    }, 400);
 }
 
 function crearTarjeta(p) {
@@ -63,38 +75,41 @@ function crearTarjeta(p) {
     `).join('');
 
     const estadoActual = p.estadoDelivery || 'pendiente';
-    const botones = ['pendiente', 'en_viaje', 'entregado'].map(est => `
-        <button class="estado-boton ${est === estadoActual ? 'active' : ''}" data-id="${p._id}" data-estado="${est}">
-            ${est.replace('_', ' ')}
-        </button>
-    `).join('');
-
     const numero = p.numeroDiario ? `#${p.numeroDiario}` : '#?';
     const entregado = estadoActual === 'entregado';
     const estiloEntregado = entregado ? 'opacity:0.5; filter:grayscale(0.3);' : '';
 
     return `
         <div class="pedido-card ${entregado ? 'pedido-entregado' : ''}" style="${estiloEntregado}">
-            <div style="font-size:2.2rem; font-weight:800; color:#1e293b; margin-bottom:8px;">${numero}</div>
-            <div class="card-head">
-                <span class="cliente">${p.cliente || 'Cliente sin nombre'}</span>
-                <span class="hora">🕑 ${hora}</span>
+            <div class="card-head" style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                <span class="cliente" style="font-weight:700; font-size:1.05rem;">${p.cliente || 'Cliente sin nombre'}</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                    <span class="hora" style="font-size:0.8rem; color:#6b7280;">🕑 ${hora}</span>
+                    <div style="margin-top:5px; background:#eff6ff; border:2px solid #2563eb; border-radius:8px; padding:2px 8px; font-size:1.3rem; font-weight:900; color:#2563eb;">${numero}</div>
+                </div>
             </div>
             <div class="datos">
                 <p>📍 ${p.direccion || 'Sin dirección'}</p>
                 ${p.telefonoCliente ? `<p>📞 <a href="tel:${p.telefonoCliente}">${p.telefonoCliente}</a></p>` : ''}
                 ${p.notas ? `<p>📝 ${p.notas}</p>` : ''}
             </div>
-            <div class="items">${itemsHtml}</div>
-            <div class="total-metodo">
+            <div class="items" style="background:#f9fafb; border-radius:8px; padding:10px; margin-top:8px;">
+                ${itemsHtml}
+            </div>
+            <div class="total-metodo" style="display:flex; justify-content:space-between; margin-top:12px; font-weight:700;">
                 <span>Total</span>
                 <span>$${(p.total || 0).toLocaleString('es-AR')}</span>
             </div>
-            <div class="total-metodo" style="margin-top:4px;">
+            <div class="total-metodo" style="display:flex; justify-content:space-between; margin-top:4px;">
                 <span>Pago</span>
                 <span>${p.metodoPago || 'Efectivo'}</span>
             </div>
-            <div class="estado-botones">${botones}</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:14px; border-top:1px solid #eee; padding-top:10px;">
+                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${entregado ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
+                    <span style="font-weight:600; color:#374151;">${entregado ? 'Entregado' : 'Pendiente'}</span>
+                </label>
+            </div>
         </div>
     `;
 }
@@ -115,6 +130,11 @@ function renderPedidos() {
             return numero.includes(term) || cliente.includes(term) || direccion.includes(term);
         });
     }
+    if (filtroDelivery === 'pendientes') {
+        filtrados = filtrados.filter(p => p.estadoDelivery !== 'entregado');
+    } else if (filtroDelivery === 'entregados') {
+        filtrados = filtrados.filter(p => p.estadoDelivery === 'entregado');
+    }
 
     const ordenados = [...filtrados].sort((a,b) => {
         const aEnt = a.estadoDelivery === 'entregado' ? 1 : 0;
@@ -130,11 +150,11 @@ function renderPedidos() {
 
     contenedor.innerHTML = ordenados.map(p => crearTarjeta(p)).join('');
 
-    document.querySelectorAll('.estado-boton').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.switch-entregado').forEach(chk => {
+        chk.addEventListener('change', (e) => {
             const id = e.target.dataset.id;
-            const estado = e.target.dataset.estado;
-            cambiarEstado(id, estado);
+            const nuevoEstado = e.target.checked ? 'entregado' : 'pendiente';
+            cambiarEstado(id, nuevoEstado);
         });
     });
 

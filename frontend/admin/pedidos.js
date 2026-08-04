@@ -1,5 +1,6 @@
 let pedidosGlobales = [];
 let deliveryToken = null;
+let filtroAdmin = 'todos';
 
 function formatearFecha(fecha) {
   const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
@@ -63,11 +64,17 @@ function actualizarMetricasDiarias() {
 
 function renderizarPedidos() {
   const contenedor = document.getElementById('contenedorPedidos');
-  if (pedidosGlobales.length === 0) {
-    contenedor.innerHTML = '<p style="text-align:center;color:#888;">No hay pedidos todavía.</p>';
+  let pedidosMostrados = pedidosGlobales;
+  if (filtroAdmin === 'pendientes') {
+    pedidosMostrados = pedidosGlobales.filter(p => p.estadoDelivery !== 'entregado');
+  } else if (filtroAdmin === 'entregados') {
+    pedidosMostrados = pedidosGlobales.filter(p => p.estadoDelivery === 'entregado');
+  }
+  if (pedidosMostrados.length === 0) {
+    contenedor.innerHTML = '<p style="text-align:center;color:#888;">No hay pedidos que coincidan con el filtro.</p>';
     return;
   }
-  const grupos = agruparPorDia(pedidosGlobales);
+  const grupos = agruparPorDia(pedidosMostrados);
   let html = Object.keys(grupos).map(etiqueta => {
     const cards = grupos[etiqueta].map(p => `
       <div class="pedido-card">
@@ -80,7 +87,11 @@ function renderizarPedidos() {
         </div>
         <div class="total">Total: $${p.total.toLocaleString('es-AR')}</div>
         <div class="metodo">Método de pago: ${p.metodoPago || 'Efectivo'}</div>
-        <div class="numero-pedido-box" style="font-size:3rem; font-weight:900; color:#2563eb; background:#eff6ff; border:3px solid #2563eb; border-radius:12px; text-align:center; margin-top:1.2rem; padding:0.8rem 0; letter-spacing:1px;">#${p.numeroDiario !== undefined ? p.numeroDiario : '?'}</div>
+        <div class="switch-admin" style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+          <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${p.estadoDelivery === 'entregado' ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
+          <span style="font-weight:700; color:#374151;">${p.estadoDelivery === 'entregado' ? 'Entregado' : 'Pendiente'}</span>
+        </div>
+        <div class="numero-pedido-box" style="font-size:2rem; font-weight:900; color:#2563eb; background:#eff6ff; border:2px solid #2563eb; border-radius:12px; text-align:right; margin-top:1.2rem; padding:0.6rem 1rem; letter-spacing:1px; max-width:25%; margin-left:auto;">#${p.numeroDiario !== undefined ? p.numeroDiario : '?'}</div>
       </div>
     `).join('');
     return `<div class="grupo-dia"><h2>${etiqueta}</h2>${cards}</div>`;
@@ -175,6 +186,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Error al cargar datos:', error);
     pedidosGlobales = [];
   }
+  // Listeners para filtros del admin
+  document.querySelectorAll('.btn-filtro-admin').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filtroAdmin = btn.dataset.filtro;
+      document.querySelectorAll('.btn-filtro-admin').forEach(b => {
+        b.style.background = '#f5f5f5';
+        b.style.color = '#555';
+      });
+      btn.style.background = '#ff6b35';
+      btn.style.color = '#fff';
+      renderizarPedidos();
+    });
+  });
+
+  // Listener para el switch de entregado (delegado)
+  document.addEventListener('change', async (e) => {
+    if (e.target.classList.contains('switch-entregado')) {
+      const id = e.target.dataset.id;
+      const nuevoEstado = e.target.checked ? 'entregado' : 'pendiente';
+      try {
+        const resp = await fetch(`/api/delivery/pedidos/${id}/estado?token=${encodeURIComponent(deliveryToken)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estadoDelivery: nuevoEstado })
+        });
+        if (!resp.ok) throw new Error('Error al cambiar estado');
+        const pedido = await resp.json();
+        const idx = pedidosGlobales.findIndex(p => p._id === id);
+        if (idx !== -1) pedidosGlobales[idx].estadoDelivery = pedido.estadoDelivery;
+        renderizarPedidos();
+      } catch (error) {
+        console.error(error);
+        alert('No se pudo actualizar el estado');
+      }
+    }
+  });
+
   renderizarPedidos();
 });
 
