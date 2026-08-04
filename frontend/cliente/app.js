@@ -527,12 +527,14 @@ function enviarPorWhatsapp() {
     const items = Object.values(carrito);
     if (items.length === 0) return;
 
-    // 1. Leer los inputs de Dirección y Notas
+    // 1. Leer los inputs de Dirección, Notas y Teléfono
     const direccionInput = document.getElementById('direccionEntrega');
     const notasInput     = document.getElementById('notasPedido');
+    const telefonoInput  = document.getElementById('telefonoEntrega') || document.getElementById('telefonoCliente');
 
     const direccion = direccionInput ? direccionInput.value.trim() : '';
     const notas     = notasInput ? notasInput.value.trim() : '';
+    const telefonoCliente = telefonoInput ? telefonoInput.value.trim() : '';
 
     // Validar que hayan puesto la dirección
     if (!direccion) {
@@ -600,7 +602,10 @@ function enviarPorWhatsapp() {
                 items: itemsParaGuardar,
                 total,
                 cliente: '',
-                metodoPago: metodoPagoEnvio
+                metodoPago: metodoPagoEnvio,
+                direccion,
+                notas,
+                telefonoCliente
             };
 
             try {
