@@ -166,7 +166,12 @@ async function cargarHTMLListaDePlatos(datosPlato){
     
         const bloqueHTML = `
     <tr class = ${claseFila}>
-        <td>${datosPlato.nombre}</td>
+        <td>
+            ${datosPlato.nombre}
+            ${datosPlato.enPromocion ? `<span class="badge-promo">🔥 ${datosPlato.porcentajeDescuento != null ? datosPlato.porcentajeDescuento + '% OFF' : 'En Promoción'}</span>` : ''}
+            ${datosPlato.esEspecialidad ? '<span class="badge-especialidad">⭐ Especialidad</span>' : ''}
+            ${datosPlato.esMenuDelDia ? '<span class="badge-menu-dia">☀️ Menú del Día</span>' : ''}
+        </td>
         <td>$ ${datosPlato.precio}</td>
         <td>${datosPlato.categoria}</td>
         <td class="tdBotones">
