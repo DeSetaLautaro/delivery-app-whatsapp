@@ -66,6 +66,13 @@ async function cargarMenu() {
         const temaActual = perfilDelLocal.temaMenu || 'clasico';
         document.body.classList.remove('tema-clasico', 'tema-elegante');
         document.body.classList.add(`tema-${temaActual}`);
+
+        // Forzar cambio de color de fondo si es elegante (fallback rápido)
+        if (temaActual === 'elegante') {
+            document.body.style.backgroundColor = '#F9FAFB';
+        } else {
+            document.body.style.backgroundColor = '';
+        }
         const logoHeader     = document.getElementById('brandLogoImg');
         if (perfilDelLocal.fotoPerfil) {
             logoHeader.src    = perfilDelLocal.fotoPerfil;
