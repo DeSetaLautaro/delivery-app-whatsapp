@@ -25,6 +25,8 @@ let platosCache = [];
 // Slug del local (ej: "la-esquina"), sacado una sola vez de la URL.
 const slugLocal = window.location.pathname.split('/')[2] || '';
 
+let temaActualMenu = 'clasico';
+
 // Plato que está esperando confirmación en el popup de toppings.
 let platoPendiente = null;
 
@@ -66,6 +68,7 @@ async function cargarMenu() {
         const temaActual = perfilDelLocal.temaMenu || 'clasico';
         document.body.classList.remove('tema-clasico', 'tema-elegante');
         document.body.classList.add(`tema-${temaActual}`);
+        temaActualMenu = temaActual;
 
         // Forzar cambio de color de fondo si es elegante (fallback rápido)
         if (temaActual === 'elegante') {
@@ -228,24 +231,48 @@ function crearTarjetaPlato(plato, categoria) {
 
     // 4. Foto del plato: si hay URL la mostramos, si no, el emoji de la categoría
     const emojiCategoria = obtenerEmoji(categoria || plato.categoria || '');
-    const fotoHTML = plato.fotoUrl
+    const fotoelegante = plato.fotoUrl
         ? `<div class="product-img"><img src="${plato.fotoUrl}" alt="${nombreDelPlato}" loading="lazy" /></div>`
         : `<div class="product-img product-img-emoji">${emojiCategoria}</div>`;
 
+    // 5. Construir tarjeta según el tema del local
+    if (temaActualMenu === 'elegante') {
+        return `
+            <article class="product-card" data-categoria="${categoria.toLowerCase()}" role="listitem">
+                ${fotoelegante}
+                <div class="product-info">
+                    <h3 class="product-name">${nombreDelPlato}</h3>
+                    <p class="product-desc">${plato.descripcion || 'Sin descripción'}</p>
+                    <p class="product-price">$${precioSeguro}</p>
+                </div>
+                <div class="qty-control">
+                    <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
+                    <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
+                    <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
+                </div>
+            </article>
+        `;
+    }
+
+    // Versión clásica (vertical)
+    const imgClasica = plato.fotoUrl
+        ? `<img src="${plato.fotoUrl}" alt="${nombreDelPlato}" loading="lazy" />`
+        : `<span style="font-size:2.6rem;color:#ff6b35;">${emojiCategoria}</span>`;
+
     return `
-        <article class="product-card" data-categoria="${categoria.toLowerCase()}" role="listitem">
-            ${fotoHTML}
-            <div class="product-info">
-                <h3 class="product-name">${nombreDelPlato}</h3>
-                <p class="product-desc">${plato.descripcion || 'Sin descripción'}</p>
-                <p class="product-price">$${precioSeguro}</p>
+        <div class="tarjeta-clasica" data-categoria="${categoria.toLowerCase()}">
+            <div class="clasica-img-container">${imgClasica}</div>
+            <div class="clasica-info">
+                <h3 class="clasica-nombre product-name">${nombreDelPlato}</h3>
+                <p class="clasica-desc product-desc">${plato.descripcion || 'Sin descripción'}</p>
+                <span class="clasica-precio product-price">$${precioSeguro}</span>
             </div>
-            <div class="qty-control">
+            <div class="clasica-controles">
                 <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
                 <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
                 <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
             </div>
-        </article>
+        </div>
     `;
 }
 
@@ -512,9 +539,9 @@ function filtrarPlatosBuscador() {
 
     const termino = input.value.toLowerCase().trim();
 
-    document.querySelectorAll('.product-card').forEach(tarjeta => {
-        const nombre = (tarjeta.querySelector('.product-name')?.textContent || '').toLowerCase();
-        const desc = (tarjeta.querySelector('.product-desc')?.textContent || '').toLowerCase();
+    document.querySelectorAll('.product-card, .tarjeta-clasica').forEach(tarjeta => {
+        const nombre = (tarjeta.querySelector('.product-name, .clasica-nombre')?.textContent || '').toLowerCase();
+        const desc = (tarjeta.querySelector('.product-desc, .clasica-desc')?.textContent || '').toLowerCase();
         const categoria = (tarjeta.dataset.categoria || '').toLowerCase();
         const coincide = !termino || nombre.includes(termino) || desc.includes(termino) || categoria.includes(termino);
         tarjeta.style.display = coincide ? '' : 'none';
@@ -522,12 +549,12 @@ function filtrarPlatosBuscador() {
 
     // Ocultar las secciones de categoría que no tienen ninguna tarjeta visible
     document.querySelectorAll('.category-section').forEach(seccion => {
-        const algunaVisible = [...seccion.querySelectorAll('.product-card')].some(c => c.style.display !== 'none');
+        const algunaVisible = [...seccion.querySelectorAll('.product-card, .tarjeta-clasica')].some(c => c.style.display !== 'none');
         seccion.style.display = algunaVisible ? '' : 'none';
     });
 
     // Mensaje de "no hay resultados"
-    const hayResultados = [...document.querySelectorAll('.product-card')].some(c => c.style.display !== 'none');
+    const hayResultados = [...document.querySelectorAll('.product-card, .tarjeta-clasica')].some(c => c.style.display !== 'none');
     const mensaje = document.getElementById('searchNoResults');
     if (mensaje) mensaje.hidden = hayResultados || !termino;
 }
