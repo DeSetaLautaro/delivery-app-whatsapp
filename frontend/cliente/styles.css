@@ -827,14 +827,20 @@ body {
     box-shadow: none !important;
     padding: 16px !important;
     background: #FFFFFF !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    min-width: 260px;
+    max-width: 300px;
 }
 
 .tema-elegante .product-img {
     border-radius: 50% !important;
     width: 60px !important;
     height: 60px !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     overflow: hidden !important;
+    flex-shrink: 0;
 }
 
 .tema-elegante .product-img img {
@@ -846,8 +852,9 @@ body {
 }
 
 .tema-elegante .product-info {
-    padding: 8px 0 0 !important;
-    text-align: center !important;
+    padding: 0 0 0 12px !important;
+    text-align: left !important;
+    flex: 1;
 }
 
 .tema-elegante .product-name {
