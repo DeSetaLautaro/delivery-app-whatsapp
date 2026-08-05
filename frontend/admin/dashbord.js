@@ -636,29 +636,24 @@ const inputPrecioPlato = document.querySelector('input[name="precio"]');
 const precioFinalCalcSpan = document.getElementById('precioFinalCalc');
 
 if (checkEnPromo && promoContainerDiv && inputPorcentajePromo && inputPrecioPlato && precioFinalCalcSpan) {
-    let debounceTimer = null;
     function actualizarPromoUI() {
         const enPromo = checkEnPromo.checked;
         promoContainerDiv.style.display = enPromo ? 'block' : 'none';
         const precio = parseFloat(inputPrecioPlato.value);
         const porciento = parseFloat(inputPorcentajePromo.value);
-        if (enPromo && !isNaN(precio) && !isNaN(porciento)) {
-            const final = precio - (precio * (porciento / 100));
-            precioFinalCalcSpan.textContent = 'Precio final calculado: $' + Math.round(final).toLocaleString('es-AR');
+        if (!isNaN(precio)) {
+            let mostrar = precio;
+            if (enPromo && !isNaN(porciento) && porciento > 0) {
+                mostrar = precio - (precio * (porciento / 100));
+            }
+            precioFinalCalcSpan.textContent = 'Precio final calculado: $' + mostrar.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         } else {
-            precioFinalCalcSpan.textContent = 'Precio final calculado: $0';
+            precioFinalCalcSpan.textContent = 'Precio final calculado: $0,00';
         }
     }
-    function actualizarPromoUIdebounced() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(actualizarPromoUI, 1000);
-    }
-    checkEnPromo.addEventListener('change', () => {
-        clearTimeout(debounceTimer);
-        actualizarPromoUI();
-    });
-    inputPrecioPlato.addEventListener('input', actualizarPromoUIdebounced);
-    inputPorcentajePromo.addEventListener('input', actualizarPromoUIdebounced);
+    checkEnPromo.addEventListener('change', actualizarPromoUI);
+    inputPrecioPlato.addEventListener('input', actualizarPromoUI);
+    inputPorcentajePromo.addEventListener('input', actualizarPromoUI);
     actualizarPromoUI();
 }
 
@@ -726,11 +721,14 @@ tbodyPlatos.addEventListener('click', async (e) => {
         const precioNum = parseFloat(precioPlato);
         const porcNum = parseFloat(porcentaje);
         if (precioFinalCalcEl) {
-            if (enPromocion && !isNaN(precioNum) && !isNaN(porcNum)) {
-                const finalPrecio = precioNum - (precioNum * (porcNum / 100));
-                precioFinalCalcEl.textContent = 'Precio final calculado: $' + Math.round(finalPrecio).toLocaleString('es-AR');
+            if (!isNaN(precioNum)) {
+                let mostrar = precioNum;
+                if (enPromocion && !isNaN(porcNum) && porcNum > 0) {
+                    mostrar = precioNum - (precioNum * (porcNum / 100));
+                }
+                precioFinalCalcEl.textContent = 'Precio final calculado: $' + mostrar.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             } else {
-                precioFinalCalcEl.textContent = 'Precio final calculado: $0';
+                precioFinalCalcEl.textContent = 'Precio final calculado: $0,00';
             }
         }
 
