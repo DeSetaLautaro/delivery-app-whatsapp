@@ -636,6 +636,7 @@ const inputPrecioPlato = document.querySelector('input[name="precio"]');
 const precioFinalCalcSpan = document.getElementById('precioFinalCalc');
 
 if (checkEnPromo && promoContainerDiv && inputPorcentajePromo && inputPrecioPlato && precioFinalCalcSpan) {
+    let debounceTimer = null;
     function actualizarPromoUI() {
         const enPromo = checkEnPromo.checked;
         promoContainerDiv.style.display = enPromo ? 'block' : 'none';
@@ -648,9 +649,16 @@ if (checkEnPromo && promoContainerDiv && inputPorcentajePromo && inputPrecioPlat
             precioFinalCalcSpan.textContent = 'Precio final calculado: $0';
         }
     }
-    checkEnPromo.addEventListener('change', actualizarPromoUI);
-    inputPrecioPlato.addEventListener('input', actualizarPromoUI);
-    inputPorcentajePromo.addEventListener('input', actualizarPromoUI);
+    function actualizarPromoUIdebounced() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(actualizarPromoUI, 1000);
+    }
+    checkEnPromo.addEventListener('change', () => {
+        clearTimeout(debounceTimer);
+        actualizarPromoUI();
+    });
+    inputPrecioPlato.addEventListener('input', actualizarPromoUIdebounced);
+    inputPorcentajePromo.addEventListener('input', actualizarPromoUIdebounced);
     actualizarPromoUI();
 }
 
