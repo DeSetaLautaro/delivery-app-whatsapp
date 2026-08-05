@@ -238,14 +238,12 @@ function crearTarjetaPlato(plato, categoria) {
             <div class="product-info">
                 <h3 class="product-name">${nombreDelPlato}</h3>
                 <p class="product-desc">${plato.descripcion || 'Sin descripción'}</p>
-                <div class="product-bottom">
-                    <p class="product-price">$${precioSeguro}</p>
-                    <div class="qty-control">
-                        <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
-                        <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
-                        <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
-                    </div>
-                </div>
+                <p class="product-price">$${precioSeguro}</p>
+            </div>
+            <div class="qty-control">
+                <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
+                <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
+                <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
             </div>
         </article>
     `;
