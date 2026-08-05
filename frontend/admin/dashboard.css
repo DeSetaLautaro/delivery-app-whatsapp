@@ -812,3 +812,16 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     transition: background 0.2s;
 }
 .btn-guardar-topping:hover { background: #e55a26; }
+
+.text-muted {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.marketing-checkbox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}

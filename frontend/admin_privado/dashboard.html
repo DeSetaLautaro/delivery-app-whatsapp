@@ -329,6 +329,18 @@
                         <label>Descripción (opcional):</label>
             <input type="text" name="descripción" placeholder="hamburguesa con lechuga tomate y cheddar" >
 
+                        <label>Destacar Plato (Marketing)</label>
+            <div class="marketing-checkbox">
+                <label><input type="checkbox" id="checkMenuDelDia" name="esMenuDelDia"> Menú del Día</label>
+                <label><input type="checkbox" id="checkEspecialidad" name="esEspecialidad"> Especialidad</label>
+                <label><input type="checkbox" id="checkEnPromocion" name="enPromocion"> En Promoción</label>
+            </div>
+            <div id="promoContainer" style="display:none; margin-top: 10px;">
+                <label for="porcentajeDescuento">Porcentaje de Descuento (%)</label>
+                <input type="number" id="porcentajeDescuento" name="porcentajeDescuento" step="any" min="0" max="100" placeholder="Ej: 15" />
+                <span id="precioFinalCalc" class="text-muted">Precio final calculado: $0</span>
+            </div>
+
                                                 <label>Foto del plato:</label>
             <div class="foto-upload-area" id="fotoUploadArea">
                 <span class="foto-upload-icon">📷</span>

@@ -202,7 +202,11 @@ async function cargarHTMLListaDePlatos(datosPlato){
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
                         data-categoria="${datosPlato.categoria}"
-                        data-foto="${datosPlato.fotoUrl || ''}">
+                        data-foto="${datosPlato.fotoUrl || ''}"
+                        data-menu-del-dia="${datosPlato.esMenuDelDia}"
+                        data-especialidad="${datosPlato.esEspecialidad}"
+                        data-en-promocion="${datosPlato.enPromocion}"
+                        data-porcentaje-descuento="${datosPlato.porcentajeDescuento ?? ''}">
                         ✏️ Editar
                     </button>
                    <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
@@ -408,7 +412,17 @@ if (btnCerrarSesion) {
 btnCargaManual.addEventListener('click', () => {
         document.getElementById("tituloModal").innerText = "Crear Plato";
         document.getElementById("btnGuardarPlato").innerText = "Guardar Plato";
-                modalOverlay.hidden = false;
+        // Limpiar campos de marketing
+        document.getElementById('checkMenuDelDia').checked = false;
+        document.getElementById('checkEspecialidad').checked = false;
+        document.getElementById('checkEnPromocion').checked = false;
+        const inputPorcentaje = document.getElementById('porcentajeDescuento');
+        if (inputPorcentaje) inputPorcentaje.value = '';
+        const promoContainerEl = document.getElementById('promoContainer');
+        if (promoContainerEl) promoContainerEl.style.display = 'none';
+        const precioFinalCalcEl = document.getElementById('precioFinalCalc');
+        if (precioFinalCalcEl) precioFinalCalcEl.textContent = 'Precio final calculado: $0';
+        modalOverlay.hidden = false;
         limpiarCamposFoto();
     });
 
@@ -564,11 +578,21 @@ btnGuardar.addEventListener('click', async (e) => {
     const fotoExistente = datosForm.get('foto'); 
 
     // El flujo correcto:
+    const descripcion = datosForm.get('descripción') || datosForm.get('descripcion') || '';
+    const enPromocion = document.getElementById('checkEnPromocion').checked;
+    const porcentajeDescuento = enPromocion
+        ? (parseFloat(document.getElementById('porcentajeDescuento').value) || 0)
+        : null;
+
     const datosPlato = {
         nombre: datosForm.get('nombre'),
         precio: Number(datosForm.get('precio')),
         categoria: datosForm.get('categoria'),
-        descripcion: datosForm.get('descripcion'),
+        descripcion: descripcion,
+        esMenuDelDia: document.getElementById('checkMenuDelDia').checked,
+        esEspecialidad: document.getElementById('checkEspecialidad').checked,
+        enPromocion: enPromocion,
+        porcentajeDescuento: porcentajeDescuento,
         // Si hay una foto subida recientemente, usamos esa.
         // Si no, usamos la foto que ya existía (si estaba editando un plato).
         fotoUrl: urlFotoSubida || fotoExistente || "",
@@ -592,6 +616,34 @@ btnGuardar.addEventListener('click', async (e) => {
     cargarHTMLListaDePlatos(datosPlato);
     terminarYRedibujar(formPlato);
 });
+
+// ==========================================
+// LÓGICA DE PROMOCIONES (porcentaje)
+// ==========================================
+const checkEnPromo = document.getElementById('checkEnPromocion');
+const promoContainerDiv = document.getElementById('promoContainer');
+const inputPorcentajePromo = document.getElementById('porcentajeDescuento');
+const inputPrecioPlato = document.querySelector('input[name="precio"]');
+const precioFinalCalcSpan = document.getElementById('precioFinalCalc');
+
+if (checkEnPromo && promoContainerDiv && inputPorcentajePromo && inputPrecioPlato && precioFinalCalcSpan) {
+    function actualizarPromoUI() {
+        const enPromo = checkEnPromo.checked;
+        promoContainerDiv.style.display = enPromo ? 'block' : 'none';
+        const precio = parseFloat(inputPrecioPlato.value);
+        const porciento = parseFloat(inputPorcentajePromo.value);
+        if (enPromo && !isNaN(precio) && !isNaN(porciento)) {
+            const final = precio - (precio * (porciento / 100));
+            precioFinalCalcSpan.textContent = 'Precio final calculado: $' + Math.round(final).toLocaleString('es-AR');
+        } else {
+            precioFinalCalcSpan.textContent = 'Precio final calculado: $0';
+        }
+    }
+    checkEnPromo.addEventListener('change', actualizarPromoUI);
+    inputPrecioPlato.addEventListener('input', actualizarPromoUI);
+    inputPorcentajePromo.addEventListener('input', actualizarPromoUI);
+    actualizarPromoUI();
+}
 
 
 
@@ -637,6 +689,33 @@ tbodyPlatos.addEventListener('click', async (e) => {
             preview.innerHTML = '';
         }
         //limpiarCamposFoto(); // limpiamos selector, preview y checkbox
+
+        // ---- Destacar Marketing ----
+        const menuDelDia = btnEditar.getAttribute('data-menu-del-dia') === 'true';
+        const especialidad = btnEditar.getAttribute('data-especialidad') === 'true';
+        const enPromocion = btnEditar.getAttribute('data-en-promocion') === 'true';
+        const porcentaje = btnEditar.getAttribute('data-porcentaje-descuento') || '';
+
+        document.getElementById('checkMenuDelDia').checked = menuDelDia;
+        document.getElementById('checkEspecialidad').checked = especialidad;
+        document.getElementById('checkEnPromocion').checked = enPromocion;
+        const inputPorcentaje = document.getElementById('porcentajeDescuento');
+        if (inputPorcentaje) inputPorcentaje.value = porcentaje;
+
+        const promoContainerEl = document.getElementById('promoContainer');
+        if (promoContainerEl) promoContainerEl.style.display = enPromocion ? 'block' : 'none';
+
+        const precioFinalCalcEl = document.getElementById('precioFinalCalc');
+        const precioNum = parseFloat(precioPlato);
+        const porcNum = parseFloat(porcentaje);
+        if (precioFinalCalcEl) {
+            if (enPromocion && !isNaN(precioNum) && !isNaN(porcNum)) {
+                const finalPrecio = precioNum - (precioNum * (porcNum / 100));
+                precioFinalCalcEl.textContent = 'Precio final calculado: $' + Math.round(finalPrecio).toLocaleString('es-AR');
+            } else {
+                precioFinalCalcEl.textContent = 'Precio final calculado: $0';
+            }
+        }
 
         // 6. Abrimos el modal
         modalOverlay.hidden = false;
