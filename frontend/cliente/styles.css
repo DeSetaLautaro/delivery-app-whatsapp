@@ -804,9 +804,10 @@ body {
 
 /* Carrusel de productos (dentro de cada categoría) */
 .tema-elegante .products-grid {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
     gap: 16px;
     padding-bottom: 12px;
     scroll-snap-type: x mandatory;
@@ -838,25 +839,30 @@ body {
 
 /* Tarjeta de producto - horizontal */
 .tema-elegante .product-card {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     justify-content: space-between;
+    
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    flex: 0 0 320px !important;
+    
     background-color: #ffffff;
     border: 1px solid #E5E7EB;
     border-radius: 24px;
     padding: 16px;
     min-height: 100px;
-    width: 320px;
-    flex: 0 0 320px;
     box-sizing: border-box;
     scroll-snap-align: start;
 }
 
 /* Imagen circular a la izquierda */
 .tema-elegante .product-img {
-    width: 60px;
-    height: 60px;
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -884,6 +890,7 @@ body {
     flex-grow: 1;
     margin: 0 16px;
     text-align: left;
+    overflow: hidden;
 }
 .tema-elegante .product-name {
     font-size: 16px;
@@ -923,7 +930,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    width: 36px;
+    width: 36px !important;
+    min-width: 36px !important;
     height: 80px;
     border: 1px solid #E5E7EB;
     border-radius: 20px;
