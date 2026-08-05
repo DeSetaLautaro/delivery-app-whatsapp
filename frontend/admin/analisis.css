@@ -44,3 +44,288 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     border-radius: 12px;
     border: 1px dashed rgba(255,255,255,0.1);
 }
+
+/* ==========================================
+   VISTA CATÁLOGO
+   ========================================== */
+.hidden {
+    display: none !important;
+}
+
+/* Contenedores de catálogo */
+.catalogo-grid-2col {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.catalogo-card {
+    background: #1E233B;
+    border: none;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    margin-bottom: 24px;
+}
+
+.catalogo-card h3 {
+    margin: 0 0 16px;
+    font-size: 15px;
+    color: #FFFFFF;
+}
+
+.catalogo-alerta {
+    border-left: 3px solid #FF4560;
+}
+
+/* Top 5 */
+.top-platos {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.top-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rank {
+    width: 28px;
+    height: 28px;
+    background: rgba(0,227,150,0.1);
+    color: #00E396;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .8rem;
+    flex-shrink: 0;
+}
+
+.top-info {
+    flex: 1;
+}
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    gap: 8px;
+}
+
+.top-nombre {
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: .9rem;
+}
+
+.top-stats {
+    color: #8A8D9F;
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+.barra-progreso {
+    height: 6px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.05);
+    overflow: hidden;
+}
+
+.barra-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #00E396;
+    box-shadow: 0 0 8px rgba(0,227,150,0.3);
+}
+
+/* Platos muertos */
+.plato-muerto {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: .85rem;
+}
+
+.plato-muerto:last-child {
+    border-bottom: none;
+}
+
+.dias-sin-venta {
+    color: #FF4560;
+    font-weight: 600;
+}
+
+.btn-sugerencia {
+    align-self: flex-start;
+    background: rgba(255,69,96,0.1);
+    color: #FF4560;
+    border: 1px solid rgba(255,69,96,0.3);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: .75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.btn-sugerencia:hover {
+    background: #FF4560;
+    color: #fff;
+}
+
+/* Impacto de promos */
+.impacto-promo .impacto-metrica {
+    color: #8A8D9F;
+    font-size: .9rem;
+    margin: 8px 0;
+}
+
+.impacto-promo .impacto-metrica strong {
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.comparativa-promo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 6px;
+}
+
+.comparativa-before {
+    color: #FF4560;
+    font-weight: 600;
+}
+
+.comparativa-arrow {
+    color: #8A8D9F;
+}
+
+.comparativa-after {
+    color: #00E396;
+    font-weight: 600;
+}
+
+/* Combos */
+.combos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.combo-card {
+    background: #1E233B;
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    transition: border-color .2s;
+}
+
+.combo-card:hover {
+    border-color: #00E396;
+}
+
+.combo-prod {
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.combo-mas {
+    align-self: center;
+    color: #00E396;
+    font-size: 1.4rem;
+}
+
+.coincidencia {
+    color: #8A8D9F;
+    font-size: .8rem;
+}
+
+.btn-crear-combo {
+    background: transparent;
+    border: 1.5px solid #00E396;
+    color: #00E396;
+    border-radius: 8px;
+    padding: 7px;
+    font-weight: 600;
+    font-size: .8rem;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.btn-crear-combo:hover {
+    background: #00E396;
+    color: #fff;
+}
+
+/* Heatmap */
+.heatmap-card select {
+    margin-bottom: 12px;
+}
+
+.heatmap {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+}
+
+.heatmap th {
+    color: #8A8D9F;
+    font-size: .75rem;
+    padding: 6px;
+    text-align: center;
+}
+
+.heatmap td {
+    padding: 4px;
+}
+
+.heat-cell {
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    height: 22px;
+    /* color según intensidad se setea con inline style o se puede usar data-int via JS */
+}
+
+/* Damos algunos valores de referencia para celda intensa */
+.heat-cell[data-int="0.05"] { background: rgba(0,227,150,0.03); }
+.heat-cell[data-int="0.10"] { background: rgba(0,227,150,0.08); }
+.heat-cell[data-int="0.15"] { background: rgba(0,227,150,0.10); }
+.heat-cell[data-int="0.20"] { background: rgba(0,227,150,0.15); }
+.heat-cell[data-int="0.25"] { background: rgba(0,227,150,0.18); }
+.heat-cell[data-int="0.30"] { background: rgba(0,227,150,0.22); }
+.heat-cell[data-int="0.35"] { background: rgba(0,227,150,0.27); }
+.heat-cell[data-int="0.40"] { background: rgba(0,227,150,0.32); }
+.heat-cell[data-int="0.45"] { background: rgba(0,227,150,0.38); }
+.heat-cell[data-int="0.55"] { background: rgba(0,227,150,0.45); }
+.heat-cell[data-int="0.60"] { background: rgba(0,227,150,0.50); }
+.heat-cell[data-int="0.70"] { background: rgba(0,227,150,0.60); }
+.heat-cell[data-int="0.75"] { background: rgba(0,227,150,0.65); }
+.heat-cell[data-int="0.80"] { background: rgba(0,227,150,0.70); }
+.heat-cell[data-int="0.95"] { background: rgba(0,227,150,0.85); }
+.heat-cell[data-int="1.00"] { background: rgba(0,227,150,0.9); }
+
+/* Utilidades neón */
+.text-neon-green { color: #00E396; font-weight: 600; }
+.text-neon-red { color: #FF4560; font-weight: 600; }
+
+@media (max-width: 600px) {
+    .catalogo-grid-2col {
+        grid-template-columns: 1fr;
+    }
+}

@@ -14,9 +14,9 @@
                 <h2>🍕 Mi Local</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item">📊 Dashboard</a>
-                <a href="#" class="nav-item">🍔 Catálogo</a>
-                <a href="#" class="nav-item active">📈 Analíticas</a>
+                <a href="#" class="nav-item active" data-view="general">🌐 General</a>
+                <a href="#" class="nav-item" data-view="catalogo">🍔 Catálogo</a>
+                <a href="#" class="nav-item">📈 Analíticas</a>
                 <a href="#" class="nav-item">⚙️ Configuración</a>
             </nav>
         </aside>
@@ -37,44 +37,225 @@
                 </div>
             </header>
 
-            <section class="kpi-grid">
-                <div class="kpi-card">
-                    <h3>Ingresos Brutos</h3>
-                    <div class="kpi-value">$31.800</div>
-                    <span class="badge badge-up">+15% vs mes anterior</span>
-                </div>
-                <div class="kpi-card">
-                    <h3>Pedidos Totales</h3>
-                    <div class="kpi-value">1,240</div>
-                    <span class="badge badge-up">+8% vs mes anterior</span>
-                </div>
-                <div class="kpi-card">
-                    <h3>Ticket Promedio</h3>
-                    <div class="kpi-value">$25.60</div>
-                    <span class="badge badge-down">-2% vs mes anterior</span>
-                </div>
-                <div class="kpi-card">
-                    <h3>Clientes Nuevos</h3>
-                    <div class="kpi-value">142</div>
-                    <span class="badge badge-up">+12% vs mes anterior</span>
-                </div>
+            <section id="view-general">
+                <section class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>Ingresos Brutos</h3>
+                        <div class="kpi-value">$31.800</div>
+                        <span class="badge badge-up">+15% vs mes anterior</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Pedidos Totales</h3>
+                        <div class="kpi-value">1,240</div>
+                        <span class="badge badge-up">+8% vs mes anterior</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Ticket Promedio</h3>
+                        <div class="kpi-value">$25.60</div>
+                        <span class="badge badge-down">-2% vs mes anterior</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Clientes Nuevos</h3>
+                        <div class="kpi-value">142</div>
+                        <span class="badge badge-up">+12% vs mes anterior</span>
+                    </div>
+                </section>
+
+                <section class="charts-grid">
+                    <div class="chart-card main-chart">
+                        <h3>Sales Overview</h3>
+                        <div class="chart-placeholder">
+                            <p style="color: #8A8D9F; text-align: center; margin-top: 60px;">[ Gráfico de Líneas ]</p>
+                        </div>
+                    </div>
+                    <div class="chart-card top-products">
+                        <h3>Top Products</h3>
+                        <div class="chart-placeholder">
+                            <p style="color: #8A8D9F; text-align: center; margin-top: 60px;">[ Lista de Productos ]</p>
+                        </div>
+                    </div>
+                </section>
             </section>
 
-            <section class="charts-grid">
-                <div class="chart-card main-chart">
-                    <h3>Sales Overview</h3>
-                    <div class="chart-placeholder">
-                        <p style="color: #8A8D9F; text-align: center; margin-top: 60px;">[ Gráfico de Líneas ]</p>
+            <section id="view-catalogo" class="hidden">
+                <div class="catalogo-grid-2col">
+                    <div class="catalogo-card">
+                        <h3>🏆 Top 5 Platos Más Vendidos</h3>
+                        <div class="top-platos">
+                            <div class="top-item">
+                                <span class="rank">1</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍔 Triple Bacon</span>
+                                        <span class="top-stats">145 u · $145.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 95%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">2</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍕 Muzza XL</span>
+                                        <span class="top-stats">98 u · $98.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 78%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">3</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🥗 Ensalada César</span>
+                                        <span class="top-stats">72 u · $72.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 55%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">4</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🌮 Taco Mexicano</span>
+                                        <span class="top-stats">61 u · $61.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 48%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">5</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍟 Papas Cheddar</span>
+                                        <span class="top-stats">55 u · $55.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 40%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="catalogo-card catalogo-alerta">
+                        <h3>⚠️ Platos Muertos (últimos 30 días)</h3>
+                        <div class="plato-muerto">
+                            <span>🥩 Lomo Completo</span>
+                            <span class="dias-sin-venta">Días sin ventas: 12</span>
+                            <button class="btn-sugerencia">🔥 Poner en promo</button>
+                        </div>
+                        <div class="plato-muerto">
+                            <span>🍣 Sushi Roll</span>
+                            <span class="dias-sin-venta">Días sin ventas: 8</span>
+                            <button class="btn-sugerencia">🔥 Poner en promo</button>
+                        </div>
+                        <div class="plato-muerto">
+                            <span>🍝 Fideos con Crema</span>
+                            <span class="dias-sin-venta">Días sin ventas: 5</span>
+                            <button class="btn-sugerencia">🔥 Poner en promo</button>
+                        </div>
                     </div>
                 </div>
-                <div class="chart-card top-products">
-                    <h3>Top Products</h3>
-                    <div class="chart-placeholder">
-                        <p style="color: #8A8D9F; text-align: center; margin-top: 60px;">[ Lista de Productos ]</p>
+
+                <div class="catalogo-card impacto-promo">
+                    <h3>📈 Impacto de Promociones</h3>
+                    <div class="impacto-metrica">Platos en Promo Activa: <strong>6</strong></div>
+                    <div class="impacto-metrica">Aumento de Volumen Promedio: <strong class="text-neon-green">+35%</strong></div>
+                    <div class="comparativa-promo">
+                        <span class="comparativa-before">Antes: $45.000</span>
+                        <span class="comparativa-arrow">→</span>
+                        <span class="comparativa-after">Con Promo: $61.000</span>
                     </div>
+                </div>
+
+                <div class="combos-grid">
+                    <div class="combo-card">
+                        <span class="combo-prod">🍕 Pizza Muzza</span>
+                        <span class="combo-mas">+</span>
+                        <span class="combo-prod">🥤 Coca-Cola</span>
+                        <div class="coincidencia">78% de coincidencia</div>
+                        <button class="btn-crear-combo">Crear Combo</button>
+                    </div>
+                    <div class="combo-card">
+                        <span class="combo-prod">🍔 Triple Bacon</span>
+                        <span class="combo-mas">+</span>
+                        <span class="combo-prod">🍟 Papas Cheddar</span>
+                        <div class="coincidencia">65% de coincidencia</div>
+                        <button class="btn-crear-combo">Crear Combo</button>
+                    </div>
+                    <div class="combo-card">
+                        <span class="combo-prod">🌮 Taco Mexicano</span>
+                        <span class="combo-mas">+</span>
+                        <span class="combo-prod">🥑 Guacamole</span>
+                        <div class="coincidencia">52% de coincidencia</div>
+                        <button class="btn-crear-combo">Crear Combo</button>
+                    </div>
+                </div>
+
+                <div class="catalogo-card heatmap-card">
+                    <h3>🗓️ Días y Horarios Pico</h3>
+                    <select class="neon-select" id="selectPlatoPico">
+                        <option>Todos los platos</option>
+                        <option>🍔 Triple Bacon</option>
+                        <option>🍕 Pizza Muzza</option>
+                        <option>🥗 Ensalada César</option>
+                    </select>
+                    <table class="heatmap">
+                        <thead>
+                            <tr>
+                                <th>Día</th>
+                                <th>Mediodía</th>
+                                <th>Tarde</th>
+                                <th>Noche</th>
+                                <th>Trasnoche</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Lun</td><td class="heat-cell" data-int="0.05"></td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.60"></td><td class="heat-cell" data-int="0.15"></td></tr>
+                            <tr><td>Mar</td><td class="heat-cell" data-int="0.02"></td><td class="heat-cell" data-int="0.08"></td><td class="heat-cell" data-int="0.70"></td><td class="heat-cell" data-int="0.20"></td></tr>
+                            <tr><td>Mié</td><td class="heat-cell" data-int="0.03"></td><td class="heat-cell" data-int="0.12"></td><td class="heat-cell" data-int="0.55"></td><td class="heat-cell" data-int="0.25"></td></tr>
+                            <tr><td>Jue</td><td class="heat-cell" data-int="0.04"></td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.80"></td><td class="heat-cell" data-int="0.30"></td></tr>
+                            <tr><td>Vie</td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.95"></td><td class="heat-cell" data-int="0.45"></td></tr>
+                            <tr><td>Sáb</td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.35"></td><td class="heat-cell" data-int="1.00"></td><td class="heat-cell" data-int="0.60"></td></tr>
+                            <tr><td>Dom</td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.25"></td><td class="heat-cell" data-int="0.75"></td><td class="heat-cell" data-int="0.40"></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </main>
     </div>
+<script>
+    // Navegación entre vistas General / Catálogo
+    document.addEventListener('DOMContentLoaded', () => {
+        const navGeneral = document.querySelector('a[data-view="general"]');
+        const navCatalogo = document.querySelector('a[data-view="catalogo"]');
+        const viewGeneral = document.getElementById('view-general');
+        const viewCatalogo = document.getElementById('view-catalogo');
+
+        if (!navGeneral || !navCatalogo || !viewGeneral || !viewCatalogo) return;
+
+        function setView(view) {
+            if (view === 'general') {
+                navGeneral.classList.add('active');
+                navCatalogo.classList.remove('active');
+                viewGeneral.classList.remove('hidden');
+                viewCatalogo.classList.add('hidden');
+            } else {
+                navCatalogo.classList.add('active');
+                navGeneral.classList.remove('active');
+                viewCatalogo.classList.remove('hidden');
+                viewGeneral.classList.add('hidden');
+            }
+        }
+
+        navGeneral.addEventListener('click', (e) => {
+            e.preventDefault();
+            setView('general');
+        });
+
+        navCatalogo.addEventListener('click', (e) => {
+            e.preventDefault();
+            setView('catalogo');
+        });
+    });
+</script>
 </body>
 </html>
