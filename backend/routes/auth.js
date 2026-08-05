@@ -70,6 +70,7 @@ router.post('/login', async (req, res) => {
                     telefono : usuario.telefono,
                     nombreDelLocal: usuario.nombreDelLocal,
                     slug: usuario.slug,
+                    plan: usuario.plan || 'web',
                     direccion : usuario.direccion,
                     fotoPerfil : usuario.fotoPerfil || ''
             }

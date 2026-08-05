@@ -75,6 +75,9 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
             camposAActualizar.horariosEstructurados = horariosSinVacios;
         }
         if (req.body.metodosPago          !== undefined) camposAActualizar.metodosPago          = req.body.metodosPago;
+        if (req.body.plan !== undefined && ['web', 'bot', 'pro'].includes(req.body.plan)) {
+            camposAActualizar.plan = req.body.plan;
+        }
 
         console.log("2. Cajón a actualizar en Mongo:", camposAActualizar);
 
@@ -105,6 +108,27 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
 });
 
 
+
+// ==========================================
+// RUTA PARA ACTUALIZAR EL PLAN DEL LOCAL
+// ==========================================
+router.put('/plan', verificarToken, async (req, res) => {
+    try {
+        const { plan } = req.body;
+        const planesValidos = ['web', 'bot', 'pro'];
+
+        if (!plan || !planesValidos.includes(plan)) {
+            return res.status(400).json({ error: 'Plan inválido' });
+        }
+
+        await Usuario.findByIdAndUpdate(req.usuario.id, { $set: { plan } });
+
+        res.json({ mensaje: 'Plan actualizado con éxito', plan });
+    } catch (error) {
+        console.error('Error al actualizar plan:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 router.patch('/cambiarPassword', verificarToken, async (req, res) => {
     try {
@@ -200,6 +224,7 @@ router.get('/perfil', verificarToken, async (req, res) => {
             slug: usuario.slug,
             fotoPerfil: usuario.fotoPerfil,
             abierto: usuario.abierto,
+            plan: usuario.plan || 'web',
             horarios: usuario.horarios,
             horariosEstructurados: usuario.horariosEstructurados,
             metodosPago: usuario.metodosPago || []

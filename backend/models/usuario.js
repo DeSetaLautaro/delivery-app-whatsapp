@@ -52,6 +52,7 @@ const usuarioSchema = new mongoose.Schema({
     direccion: { type: String, default: "" },
     fotoPerfil: { type: String, default: '' }, // URL de la foto/logo del local
     abierto: { type: Boolean, default: true },
+    plan: { type: String, enum: ['web', 'bot', 'pro'], default: 'web' },
     slug: { type: String, required: true, unique: true },
 
     // Métodos de pago que acepta el local

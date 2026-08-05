@@ -16,6 +16,15 @@ function separarTelefono(telefono, codigoPais) {
     return txt;
 }
 
+function getPlanLabel(plan) {
+    switch(plan) {
+        case 'web': return '🌐 Plan Web';
+        case 'bot': return '🤖 Plan Bot';
+        case 'pro': return '🚀 Plan Pro';
+        default: return '🌐 Plan Web';
+    }
+}
+
 // ============================================================
 // Cargar TODOS los datos del perfil directamente desde la BD
 // ============================================================
@@ -45,6 +54,12 @@ async function cargarDatosDesdeBD() {
     // URL del local (se arma como /menu/<slug>)
     const baseUrl = window.location.origin;
     document.getElementById('url').value = datos.slug ? `${baseUrl}/menu/${datos.slug}` : '';
+
+    // Plan de suscripción
+    if (datos.plan) {
+        const badge = document.querySelector('.badge-plan');
+        if (badge) badge.textContent = getPlanLabel(datos.plan);
+    }
 
     // Foto de perfil (logo) en el círculo del avatar
     if (datos.fotoPerfil) {
@@ -371,6 +386,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === modalPlanes) {
             modalPlanes.classList.remove('visible');
         }
+    });
+
+    // Elegir un plan nuevo
+    document.querySelectorAll('.btn-elegir-plan').forEach(boton => {
+        boton.addEventListener('click', async () => {
+            const plan = boton.dataset.plan;
+            if (!plan) return;
+
+            const respuesta = await peticionAPI('/api/usuarios/plan', 'PUT', { plan });
+            const datos = respuesta.ok ? await respuesta.json() : {};
+
+            if (respuesta.ok) {
+                // Actualizamos el localStorage
+                const userGuardado = JSON.parse(localStorage.getItem('user'));
+                userGuardado.plan = plan;
+                localStorage.setItem('user', JSON.stringify(userGuardado));
+
+                // Actualizamos el badge del perfil
+                const badge = document.querySelector('.badge-plan');
+                if (badge) badge.textContent = getPlanLabel(plan);
+
+                modalPlanes.classList.remove('visible');
+                alert('¡Plan actualizado con éxito!');
+            } else {
+                alert('No se pudo actualizar el plan: ' + (datos.error || 'Error desconocido'));
+            }
+        });
     });
 });
 
