@@ -114,7 +114,17 @@ router.post('/', verificarToken, async (req, res) => {
     const { nombre, precio, categoria, descripcion, fotoUrl } = req.body;
 
     // 2. Armamos el plato (¡Sin ID! MongoDB lo hace solo)
-    const platoNuevo = { nombre, precio, categoria, descripcion: descripcion || '', fotoUrl: fotoUrl || '' };
+    const platoNuevo = { 
+        nombre, 
+        precio, 
+        categoria, 
+        descripcion: descripcion || '', 
+        fotoUrl: fotoUrl || '',
+        esMenuDelDia: req.body.esMenuDelDia || false,
+        esEspecialidad: req.body.esEspecialidad || false,
+        enPromocion: req.body.enPromocion || false,
+        porcentajeDescuento: req.body.porcentajeDescuento || 0
+    };
 
     try {
         // 3. El comando mágico de MongoDB
@@ -329,7 +339,11 @@ router.put('/:id', verificarToken, async (req, res) => {
                     "platos.$.precio": precio,
                     "platos.$.categoria": categoria,
                     "platos.$.descripcion": descripcion,
-                    "platos.$.fotoUrl": fotoUrl || '' 
+                    "platos.$.fotoUrl": fotoUrl || '',
+                    "platos.$.esMenuDelDia": req.body.esMenuDelDia || false,
+                    "platos.$.esEspecialidad": req.body.esEspecialidad || false,
+                    "platos.$.enPromocion": req.body.enPromocion || false,
+                    "platos.$.porcentajeDescuento": req.body.porcentajeDescuento || 0
                 }  
             },
             { new: true } // Para que nos devuelva el documento ya actualizado
