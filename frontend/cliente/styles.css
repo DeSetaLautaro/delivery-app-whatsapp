@@ -841,11 +841,11 @@ body {
     border-radius: 24px !important;
     border: 1px solid #E5E7EB !important;
     box-shadow: none !important;
-    padding: 16px !important;
+    padding: 12px !important;
     background: #FFFFFF !important;
     flex: 0 0 320px;
     min-width: 320px;
-    min-height: 100px;
+    min-height: 90px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -881,6 +881,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     text-align: left;
     margin: 0 16px;
     gap: 4px;
@@ -919,8 +920,8 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin-top: auto;
-    padding-top: 4px;
+    margin-top: 0;
+    padding-top: 2px;
 }
 
 /* Controles de cantidad - pastilla vertical a la derecha */
@@ -930,11 +931,11 @@ body {
     align-items: center;
     justify-content: space-between;
     width: 36px !important;
-    height: 80px !important;
+    height: 70px !important;
     flex-shrink: 0;
     border: 1px solid #E5E7EB !important;
     border-radius: 20px !important;
-    padding: 4px 0 !important;
+    padding: 2px 0 !important;
     background: #fff !important;
 }
 .tema-elegante .qty-btn {
