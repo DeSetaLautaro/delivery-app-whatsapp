@@ -62,6 +62,10 @@ async function cargarMenu() {
 
         // 4. Logo del header: si el local tiene foto, reemplazamos la pizza
         const perfilDelLocal = await (await fetch(`/api/publico/perfil/${slugDelLocal}`)).json();
+        // Aplicar tema visual elegido por el local
+        const temaActual = perfilDelLocal.temaMenu || 'clasico';
+        document.body.classList.remove('tema-clasico', 'tema-elegante');
+        document.body.classList.add(`tema-${temaActual}`);
         const logoHeader     = document.getElementById('brandLogoImg');
         if (perfilDelLocal.fotoPerfil) {
             logoHeader.src    = perfilDelLocal.fotoPerfil;
@@ -229,13 +233,11 @@ function crearTarjetaPlato(plato, categoria) {
                 <p class="product-desc">${plato.descripcion || 'Sin descripción'}</p>
                 <div class="product-bottom">
                     <p class="product-price">$${precioSeguro}</p>
-                    <button
-                        class="btn-agregar"
-                        onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')"
-                        aria-label="Agregar ${nombreSeguro} al carrito"
-                    >
-                        + Agregar
-                    </button>
+                    <div class="qty-control">
+                        <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
+                        <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
+                        <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
+                    </div>
                 </div>
             </div>
         </article>
@@ -448,6 +450,13 @@ function actualizarUI() {
     // Habilitar/deshabilitar el botón flotante según si hay items
     const fabBtn = document.getElementById('fabBtn');
     fabBtn.disabled = totalItems === 0;
+
+    // Actualizar contadores en las tarjetas del menú
+    document.querySelectorAll('.qty-value').forEach(el => {
+        const nombre = el.getAttribute('data-nombre');
+        const cantidad = carrito[nombre] ? carrito[nombre].cantidad : 0;
+        el.textContent = cantidad;
+    });
 
     // Actualizar la lista dentro del modal
     actualizarListaModal(items, totalPrecio);

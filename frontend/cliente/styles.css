@@ -755,3 +755,157 @@ body {
         max-width: 1000px;
     }
 }
+
+/* ============================================================
+   CONTROLES DE CANTIDAD (base)
+   ============================================================ */
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.qty-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.qty-btn:hover {
+    background: #ff6b35;
+    color: #fff;
+    border-color: #ff6b35;
+}
+.qty-value {
+    min-width: 22px;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* ============================================================
+   TEMA ELEGANTE (según ui-theme.md)
+   ============================================================ */
+.tema-elegante {
+    background: #F9FAFB;
+}
+
+.tema-elegante .site-header {
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.tema-elegante .hero {
+    background: linear-gradient(135deg, #111827, #1F2937);
+}
+
+.tema-elegante .categorias-carrusel {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 24px;
+    box-shadow: none;
+}
+
+.tema-elegante .categoria-chip {
+    background: #F3F4F6;
+    border: 1px solid #E5E7EB;
+    border-radius: 999px;
+}
+
+.tema-elegante .categoria-chip:hover {
+    background: #25D366;
+    border-color: #25D366;
+    color: #fff;
+}
+
+.tema-elegante .product-card {
+    border-radius: 24px;
+    border: 1px solid #E5E7EB;
+    box-shadow: none;
+    padding: 16px;
+    background: #FFFFFF;
+}
+
+.tema-elegante .product-img {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.tema-elegante .product-img img {
+    border-radius: 50%;
+}
+
+.tema-elegante .product-img-emoji {
+    font-size: 1.8rem;
+}
+
+.tema-elegante .product-info {
+    padding: 8px 0 0;
+    text-align: center;
+}
+
+.tema-elegante .product-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    white-space: normal;
+}
+
+.tema-elegante .product-desc {
+    font-size: 13px;
+    color: #6B7280;
+    -webkit-line-clamp: 2;
+}
+
+.tema-elegante .product-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.tema-elegante .product-bottom {
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.tema-elegante .qty-control {
+    flex-direction: column;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 999px;
+    padding: 4px 6px;
+}
+
+.tema-elegante .qty-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: #111827;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.tema-elegante .qty-btn:hover {
+    background: #25D366;
+    color: #fff;
+}
+
+.tema-elegante .qty-value {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.tema-elegante .fab-btn {
+    background: #25D366;
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+    border-radius: 999px;
+}

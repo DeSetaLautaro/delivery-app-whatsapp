@@ -78,6 +78,9 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.plan !== undefined && ['web', 'bot', 'pro'].includes(req.body.plan)) {
             camposAActualizar.plan = req.body.plan;
         }
+        if (req.body.temaMenu !== undefined && ['clasico', 'elegante'].includes(req.body.temaMenu)) {
+            camposAActualizar.temaMenu = req.body.temaMenu;
+        }
 
         console.log("2. Cajón a actualizar en Mongo:", camposAActualizar);
 
@@ -225,6 +228,7 @@ router.get('/perfil', verificarToken, async (req, res) => {
             fotoPerfil: usuario.fotoPerfil,
             abierto: usuario.abierto,
             plan: usuario.plan || 'web',
+            temaMenu: usuario.temaMenu || 'clasico',
             horarios: usuario.horarios,
             horariosEstructurados: usuario.horariosEstructurados,
             metodosPago: usuario.metodosPago || []

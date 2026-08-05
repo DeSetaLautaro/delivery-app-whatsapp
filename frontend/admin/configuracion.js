@@ -15,7 +15,41 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     }
     const horariosEstructurados = await res.json();
     rellenarHorarios(horariosEstructurados.horarios);
+
+    // ===== TEMA VISUAL =====
+    const resPerfil = await peticionAPI('/api/usuarios/perfil', 'GET');
+    const selectTema = document.getElementById('select-tema-menu');
+    if (resPerfil && resPerfil.ok && selectTema) {
+        const datosPerfil = await resPerfil.json();
+        selectTema.value = datosPerfil.temaMenu || 'clasico';
+
+        const restablecer = document.getElementById('restablecer-tema');
+        if (restablecer) {
+            restablecer.addEventListener('click', async () => {
+                selectTema.value = 'clasico';
+                await guardarTema('clasico');
+            });
+        }
+
+        selectTema.addEventListener('change', () => {
+            guardarTema(selectTema.value);
+        });
+    }
 });
+
+async function guardarTema(nuevoTema) {
+    const resp = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', { temaMenu: nuevoTema });
+    const resultado = await resp.json();
+
+    if (resp.ok) {
+        const userGuardado = JSON.parse(localStorage.getItem('user'));
+        userGuardado.temaMenu = nuevoTema;
+        localStorage.setItem('user', JSON.stringify(userGuardado));
+        alert('Tema actualizado correctamente');
+    } else {
+        alert('Error al actualizar tema: ' + (resultado.error || 'Error desconocido'));
+    }
+}
 
 // Seleccionamos todos los botones de variables
 const botonesVar = document.querySelectorAll('.btn-var');
