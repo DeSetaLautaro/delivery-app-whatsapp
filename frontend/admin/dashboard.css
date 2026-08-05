@@ -233,7 +233,11 @@ a.btn-gestor-pedidos:hover { background: #1ebe5a; }
     margin-bottom: 8px;
 }
 
-.modal-plato input:focus { border-color: #ff6b35; }
+.modal-plato input:focus,
+.modal-plato select:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+}
 
 /* ── Zona de subida de foto ─────────────────────────────── */
 .foto-upload-area {
@@ -824,4 +828,139 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     gap: 12px;
     margin-top: 4px;
     margin-bottom: 8px;
+}
+
+/* ── Tarjeta de marketing en modal ───────────── */
+.marketing-card {
+    margin: 12px 0 16px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+.marketing-title {
+    margin: 0 0 12px;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #334155;
+}
+.marketing-toggles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.marketing-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.marketing-toggle:hover {
+    border-color: #ff6b35;
+    background: #fff8f5;
+}
+.marketing-toggle input.toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.marketing-toggle .toggle-slider-custom {
+    width: 36px;
+    height: 20px;
+    background: #cbd5e1;
+    border-radius: 999px;
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+}
+.marketing-toggle .toggle-slider-custom::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    left: 2px;
+    top: 2px;
+    transition: transform .2s;
+}
+.marketing-toggle input.toggle-checkbox:checked + .toggle-slider-custom {
+    background: #ff6b35;
+}
+.marketing-toggle input.toggle-checkbox:checked + .toggle-slider-custom::before {
+    transform: translateX(16px);
+}
+.marketing-toggle .toggle-label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+/* ── Badge de precio final calculado ─────────── */
+.precio-final-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 6px 12px;
+    background: #dcfce7;
+    color: #15803d;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .84rem;
+    border: 1px solid #86efac;
+}
+
+/* ── Badges en la lista de platos ────────────── */
+.badge-promo,
+.badge-especialidad,
+.badge-menu-dia {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 700;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+.badge-promo {
+    background: #ff4500;
+    color: #fff;
+}
+.badge-especialidad {
+    background: #fbbf24;
+    color: #1f2937;
+}
+.badge-menu-dia {
+    background: #38bdf8;
+    color: #fff;
+}
+
+/* ── Botones inferiores del modal ────────────── */
+.modal-footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+.btn-cancelar {
+    background: transparent;
+    color: #6b7280;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+.btn-cancelar:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
 }

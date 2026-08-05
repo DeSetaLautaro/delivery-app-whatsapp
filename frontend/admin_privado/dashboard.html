@@ -93,6 +93,10 @@
                         <option value="oculto">Ocultos</option>
                     </select>
                 </div>
+                <div class="filtro-grupo">
+                    <label>🏷️ En Promoción</label>
+                    <input type="checkbox" id="filtroPromocion" onchange="filtrarTabla()" />
+                </div>
                 <button class="btn-limpiar" onclick="limpiarFiltros()">✕ Limpiar</button>
                 <button class="btn-borrar-todos" id="btnBorrarTodosPlatos" type="button">🗑️ Borrar todos los platos</button>
             </div>
@@ -176,6 +180,7 @@
                 const precMin  = parseFloat(document.getElementById('filtroPrecioMin').value) || 0;
                 const precMax  = parseFloat(document.getElementById('filtroPrecioMax').value) || Infinity;
                 const disp     = document.getElementById('filtroDisponibilidad').value;
+                const promoFiltro = document.getElementById('filtroPromocion').checked;
 
                 document.querySelectorAll('#lista-platos tr').forEach(fila => {
                     const nombre   = fila.cells[0]?.textContent.toLowerCase().trim() || '';
@@ -189,8 +194,9 @@
                     const filaOculta = fila.classList.contains('fila-oculta');
                     const okDisp  = !disp ||
                         (disp === 'disponible' ? !filaOculta : filaOculta);
+                    const okPromo = !promoFiltro || !!fila.cells[0].querySelector('.badge-promo');
 
-                    fila.style.display = (okTexto && okCat && okPrec && okDisp) ? '' : 'none';
+                    fila.style.display = (okTexto && okCat && okPrec && okDisp && okPromo) ? '' : 'none';
                 });
             }
 
@@ -329,17 +335,31 @@
                         <label>Descripción (opcional):</label>
             <input type="text" name="descripción" placeholder="hamburguesa con lechuga tomate y cheddar" >
 
-                        <label>Destacar Plato (Marketing)</label>
-            <div class="marketing-checkbox">
-                <label><input type="checkbox" id="checkMenuDelDia" name="esMenuDelDia"> Menú del Día</label>
-                <label><input type="checkbox" id="checkEspecialidad" name="esEspecialidad"> Especialidad</label>
-                <label><input type="checkbox" id="checkEnPromocion" name="enPromocion"> En Promoción</label>
-            </div>
-            <div id="promoContainer" style="display:none; margin-top: 10px;">
-                <label for="porcentajeDescuento">Porcentaje de Descuento (%)</label>
-                <input type="number" id="porcentajeDescuento" name="porcentajeDescuento" step="any" min="0" max="100" placeholder="Ej: 15" />
-                <span id="precioFinalCalc" class="text-muted">Precio final calculado: $0</span>
-            </div>
+                        <div class="marketing-card">
+                            <h4 class="marketing-title">Destacar Plato (Marketing)</h4>
+                            <div class="marketing-toggles-grid">
+                                <label class="marketing-toggle">
+                                    <input type="checkbox" id="checkMenuDelDia" name="esMenuDelDia" class="toggle-checkbox">
+                                    <span class="toggle-slider-custom"></span>
+                                    <span class="toggle-label">☀️ Menú del Día</span>
+                                </label>
+                                <label class="marketing-toggle">
+                                    <input type="checkbox" id="checkEspecialidad" name="esEspecialidad" class="toggle-checkbox">
+                                    <span class="toggle-slider-custom"></span>
+                                    <span class="toggle-label">⭐ Especialidad</span>
+                                </label>
+                                <label class="marketing-toggle">
+                                    <input type="checkbox" id="checkEnPromocion" name="enPromocion" class="toggle-checkbox">
+                                    <span class="toggle-slider-custom"></span>
+                                    <span class="toggle-label">🔥 En Promoción</span>
+                                </label>
+                            </div>
+                            <div id="promoContainer" style="display:none; margin-top: 10px;">
+                                <label for="porcentajeDescuento">Porcentaje de Descuento (%)</label>
+                                <input type="number" id="porcentajeDescuento" name="porcentajeDescuento" step="any" min="0" max="100" placeholder="Ej: 15" />
+                                <span id="precioFinalCalc" class="precio-final-badge">Precio final calculado: $0</span>
+                            </div>
+                        </div>
 
                                                 <label>Foto del plato:</label>
             <div class="foto-upload-area" id="fotoUploadArea">
@@ -354,7 +374,10 @@
                 <span class="foto-check-texto">Usar esta foto para todos los platos de la misma categoría que no tienen foto</span>
             </label>
 
-            <button type="submit" id="btnGuardarPlato">Guardar Plato</button>
+            <div class="modal-footer-buttons">
+                <button type="button" class="btn-cancelar" onclick="document.getElementById('modalOverlay').hidden = true">Cancelar</button>
+                <button type="submit" id="btnGuardarPlato">Guardar Cambios</button>
+            </div>
         </form>
 
     </div>
