@@ -802,95 +802,141 @@ body {
     background: linear-gradient(135deg, #111827, #1F2937) !important;
 }
 
+/* Carrusel de productos (dentro de cada categoría) */
+.tema-elegante .products-grid {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.tema-elegante .products-grid::-webkit-scrollbar {
+    display: none;
+}
+
+/* Chip de categoría (arriba) */
 .tema-elegante .categorias-carrusel {
     background: #FFFFFF !important;
     border: 1px solid #E5E7EB !important;
     border-radius: 24px !important;
     box-shadow: none !important;
 }
-
 .tema-elegante .categoria-chip {
     background: #F3F4F6 !important;
     border: 1px solid #E5E7EB !important;
     border-radius: 999px !important;
+    flex-shrink: 0;
 }
-
 .tema-elegante .categoria-chip:hover {
     background: #25D366 !important;
     border-color: #25D366 !important;
     color: #fff !important;
 }
 
+/* Tarjeta de producto - horizontal */
 .tema-elegante .product-card {
     border-radius: 24px !important;
     border: 1px solid #E5E7EB !important;
     box-shadow: none !important;
     padding: 16px !important;
     background: #FFFFFF !important;
+    flex: 0 0 320px;
+    min-width: 320px;
+    min-height: 100px;
+    display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 12px;
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+    justify-content: space-between;
+    scroll-snap-align: start;
 }
 
+/* Imagen circular a la izquierda */
 .tema-elegante .product-img {
-    border-radius: 50% !important;
     width: 60px !important;
     height: 60px !important;
-    margin: 0 !important;
-    overflow: hidden !important;
+    border-radius: 50% !important;
+    object-fit: cover;
     flex-shrink: 0;
+    overflow: hidden !important;
+    margin: 0 !important;
 }
-
 .tema-elegante .product-img img {
     border-radius: 50% !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
-
 .tema-elegante .product-img-emoji {
     font-size: 1.8rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* Centro: textos */
 .tema-elegante .product-info {
-    padding: 0 0 0 12px !important;
-    text-align: left !important;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin: 0 16px;
+    gap: 4px;
+    padding: 0 !important;
 }
-
 .tema-elegante .product-name {
     font-size: 16px !important;
     font-weight: 700 !important;
     color: #111827 !important;
     white-space: normal !important;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
-
 .tema-elegante .product-desc {
-    font-size: 13px !important;
+    font-size: 12px !important;
     color: #6B7280 !important;
-    -webkit-line-clamp: 2 !important;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
-
 .tema-elegante .product-price {
     font-size: 15px !important;
     font-weight: 700 !important;
     color: #111827 !important;
+    margin: 0;
 }
 
+/* Fila inferior (precio + controles) dentro del centro */
 .tema-elegante .product-bottom {
-    justify-content: space-between !important;
-    align-items: flex-end !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 4px;
 }
 
+/* Controles de cantidad - pastilla vertical a la derecha */
 .tema-elegante .qty-control {
+    display: flex !important;
     flex-direction: column !important;
-    gap: 4px !important;
-    background: #fff !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 36px !important;
+    height: 80px !important;
+    flex-shrink: 0;
     border: 1px solid #E5E7EB !important;
-    border-radius: 999px !important;
-    padding: 4px 6px !important;
+    border-radius: 20px !important;
+    padding: 4px 0 !important;
+    background: #fff !important;
 }
-
 .tema-elegante .qty-btn {
     width: 24px !important;
     height: 24px !important;
@@ -899,19 +945,19 @@ body {
     border: none !important;
     color: #111827 !important;
     font-size: 1.2rem !important;
-    line-height: 1 !important;
+    line-height: 1;
 }
-
 .tema-elegante .qty-btn:hover {
     background: #25D366 !important;
     color: #fff !important;
 }
-
 .tema-elegante .qty-value {
     font-weight: 700 !important;
     font-size: 14px !important;
+    line-height: 1;
 }
 
+/* Barra inferior fija checkout */
 .tema-elegante .fab-btn {
     background: #25D366 !important;
     box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4) !important;
