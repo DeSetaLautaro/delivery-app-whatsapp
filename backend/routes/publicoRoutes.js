@@ -55,7 +55,8 @@ router.get('/perfil/:slugLocal', async (req, res) => {
             nombre:         usuario.nombreDelLocal,
             whatsappNumero: usuario.telefono,
             metodosPago:    usuario.metodosPago || [],
-            fotoPerfil:     usuario.fotoPerfil || ''
+            fotoPerfil:     usuario.fotoPerfil || '',
+            temaMenu:       usuario.temaMenu || 'clasico'
         });
     } catch (e) {
         res.status(500).json({ error: 'Error del servidor' });
