@@ -25,6 +25,7 @@
             margin-bottom: 10px;
         }
     </style>
+    <link rel="stylesheet" href="analisis.css">
 </head>
 <body>
     <!-- El header se inyecta acá mediante cargarHeader() -->
@@ -33,6 +34,29 @@
     <main style="max-width: 1100px; margin: 30px auto; padding: 0 20px;">
         <h1>📈 Análisis de datos</h1>
         <p style="color:#555;">Visualizá tus ventas diarias, productos más vendidos y otras métricas.</p>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h3 class="kpi-title">Ingresos Brutos</h3>
+                <div class="kpi-value">$145.000</div>
+                <span class="text-neon-green">+15% vs ayer</span>
+            </div>
+            <div class="kpi-card">
+                <h3 class="kpi-title">Pedidos Totales</h3>
+                <div class="kpi-value">124</div>
+                <span class="text-neon-green">+12% vs ayer</span>
+            </div>
+            <div class="kpi-card">
+                <h3 class="kpi-title">Ticket Promedio</h3>
+                <div class="kpi-value">$1.170</div>
+                <span class="text-neon-red">-5% vs ayer</span>
+            </div>
+            <div class="kpi-card">
+                <h3 class="kpi-title">Nuevos Clientes</h3>
+                <div class="kpi-value">18</div>
+                <span class="text-neon-green">+8% vs ayer</span>
+            </div>
+        </div>
 
         <div id="contenedorAnalisis" style="margin-top: 20px;">
             <!-- Se rellena con JS -->
