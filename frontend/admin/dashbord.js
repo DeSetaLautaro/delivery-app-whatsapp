@@ -177,7 +177,11 @@ async function cargarHTMLListaDePlatos(datosPlato){
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
                     data-categoria="${datosPlato.categoria}"
-                    data-foto="${datosPlato.fotoUrl || ''}">
+                    data-foto="${datosPlato.fotoUrl || ''}"
+                    data-menu-del-dia="${datosPlato.esMenuDelDia}"
+                    data-especialidad="${datosPlato.esEspecialidad}"
+                    data-en-promocion="${datosPlato.enPromocion}"
+                    data-porcentaje-descuento="${datosPlato.porcentajeDescuento ?? ''}">
                     Editar
                 </button>
                 <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
