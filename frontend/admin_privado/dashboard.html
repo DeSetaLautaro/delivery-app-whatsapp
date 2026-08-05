@@ -95,7 +95,11 @@
                 </div>
                 <div class="filtro-grupo">
                     <label>🏷️ En Promoción</label>
-                    <input type="checkbox" id="filtroPromocion" onchange="filtrarTabla()" />
+                    <select id="filtroPromocion" onchange="filtrarTabla()">
+                        <option value="">Todos</option>
+                        <option value="si">En oferta</option>
+                        <option value="no">No en oferta</option>
+                    </select>
                 </div>
                 <button class="btn-limpiar" onclick="limpiarFiltros()">✕ Limpiar</button>
                 <button class="btn-borrar-todos" id="btnBorrarTodosPlatos" type="button">🗑️ Borrar todos los platos</button>
@@ -180,7 +184,7 @@
                 const precMin  = parseFloat(document.getElementById('filtroPrecioMin').value) || 0;
                 const precMax  = parseFloat(document.getElementById('filtroPrecioMax').value) || Infinity;
                 const disp     = document.getElementById('filtroDisponibilidad').value;
-                const promoFiltro = document.getElementById('filtroPromocion').checked;
+                const promoFiltro = document.getElementById('filtroPromocion').value;
 
                 document.querySelectorAll('#lista-platos tr').forEach(fila => {
                     const nombre   = fila.cells[0]?.textContent.toLowerCase().trim() || '';
@@ -194,7 +198,8 @@
                     const filaOculta = fila.classList.contains('fila-oculta');
                     const okDisp  = !disp ||
                         (disp === 'disponible' ? !filaOculta : filaOculta);
-                    const okPromo = !promoFiltro || !!fila.cells[0].querySelector('.badge-promo');
+                    const tienePromo = !!fila.cells[0].querySelector('.badge-promo');
+                    const okPromo = promoFiltro === '' ? true : (promoFiltro === 'si' ? tienePromo : !tienePromo);
 
                     fila.style.display = (okTexto && okCat && okPrec && okDisp && okPromo) ? '' : 'none';
                 });
@@ -213,6 +218,7 @@
                 document.getElementById('filtroPrecioMin').value  = '';
                 document.getElementById('filtroPrecioMax').value  = '';
                 document.getElementById('filtroDisponibilidad').value = '';
+                document.getElementById('filtroPromocion').value = '';
                 filtrarTabla();
             }
 

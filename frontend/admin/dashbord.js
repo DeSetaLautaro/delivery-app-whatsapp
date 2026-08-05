@@ -591,7 +591,7 @@ btnGuardar.addEventListener('click', async (e) => {
     const enPromocion = document.getElementById('checkEnPromocion').checked;
     const porcentajeDescuento = enPromocion
         ? (parseFloat(document.getElementById('porcentajeDescuento').value) || 0)
-        : null;
+        : 0;
 
     const datosPlato = {
         nombre: datosForm.get('nombre'),
