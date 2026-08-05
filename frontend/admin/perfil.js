@@ -1,6 +1,28 @@
 const cartelitoEstado = document.getElementById('cartelEstado');
 const LINK_DE_MERCADO_PAGO = "LINK_DE_MERCADO_PAGO_AQUI";
 
+let planSeleccionado = null;
+
+const PLANES_INFO = {
+    web: { nombre: '🌐 Plan Web', precio: 2000 },
+    bot: { nombre: '🤖 Plan Bot', precio: 4000 },
+    pro: { nombre: '🚀 Plan Pro', precio: 5000 }
+};
+
+function actualizarBotonPago() {
+    const btnPago = document.getElementById('btn-hacer-pago') || document.getElementById('btnPagoMensual');
+    if (!btnPago) return;
+
+    if (planSeleccionado) {
+        const info = PLANES_INFO[planSeleccionado];
+        btnPago.textContent = `Pagar ${info.nombre}`;
+        btnPago.classList.add('con-plan-seleccionado');
+    } else {
+        btnPago.textContent = 'Hacer pago mensual';
+        btnPago.classList.remove('con-plan-seleccionado');
+    }
+}
+
 function actualizarVisibilidadTransferencia() {
     const marcado = document.getElementById('pagoTransferencia').checked;
     document.getElementById('datosTransferencia').classList.toggle('oculto', !marcado);
@@ -388,31 +410,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Elegir un plan nuevo
+    // Seleccionar un plan desde el modal
     document.querySelectorAll('.btn-elegir-plan').forEach(boton => {
-        boton.addEventListener('click', async () => {
+        boton.addEventListener('click', () => {
             const plan = boton.dataset.plan;
             if (!plan) return;
 
-            const respuesta = await peticionAPI('/api/usuarios/plan', 'PUT', { plan });
-            const datos = respuesta.ok ? await respuesta.json() : {};
-
-            if (respuesta.ok) {
-                // Actualizamos el localStorage
-                const userGuardado = JSON.parse(localStorage.getItem('user'));
-                userGuardado.plan = plan;
-                localStorage.setItem('user', JSON.stringify(userGuardado));
-
-                // Actualizamos el badge del perfil
-                const badge = document.querySelector('.badge-plan');
-                if (badge) badge.textContent = getPlanLabel(plan);
-
-                modalPlanes.classList.remove('visible');
-                alert('¡Plan actualizado con éxito!');
-            } else {
-                alert('No se pudo actualizar el plan: ' + (datos.error || 'Error desconocido'));
-            }
+            planSeleccionado = plan;
+            actualizarBotonPago();
+            modalPlanes.classList.remove('visible');
         });
     });
+
+    // Botón principal de pago (usa el id nuevo si existe, si no el viejo)
+    const btnPago = document.getElementById('btn-hacer-pago') || document.getElementById('btnPagoMensual');
+    if (btnPago) {
+        btnPago.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            if (!planSeleccionado) {
+                alert('Por favor, seleccioná un plan primero');
+                return;
+            }
+
+            const userGuardado = JSON.parse(localStorage.getItem('user'));
+            const localId = userGuardado.id;
+
+            if (!localId) {
+                alert('No se encontró el ID del local en tu sesión');
+                return;
+            }
+
+            try {
+                const respuesta = await peticionAPI('/api/pagos/crear-preferencia', 'POST', {
+                    localId,
+                    planSeleccionado
+                });
+
+                const datos = await respuesta.json();
+
+                if (respuesta.ok && datos.init_point) {
+                    window.location.href = datos.init_point;
+                } else {
+                    alert('No se pudo iniciar el pago: ' + (datos.error || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('Error al pagar plan:', error);
+                alert('Error de conexión al iniciar el pago');
+            }
+        });
+    }
 });
 

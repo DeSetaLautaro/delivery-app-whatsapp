@@ -18,6 +18,7 @@ const publicoRoutes = require('./routes/publicoRoutes');
 const pedidosRoutes = require('./routes/pedidos');
 const analisisRoutes = require('./routes/analisis');
 const deliveryRoutes = require('./routes/delivery');
+const pagosRoutes = require('./routes/pagos');
 const DeliveryToken = require('./models/DeliveryToken');
 
 const app    = express();
@@ -36,6 +37,7 @@ app.use('/api/toppings', rutasToppings);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/analisis', analisisRoutes);
 app.use('/api/delivery', deliveryRoutes);
+app.use('/api/pagos', pagosRoutes);
 
 // ============================================================
 // RUTAS PARA GESTIÓN DEL TOKEN DE DELIVERY (PROTEGIDAS)
