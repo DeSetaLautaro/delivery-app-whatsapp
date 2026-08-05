@@ -859,6 +859,7 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     border-radius: 999px;
     cursor: pointer;
     transition: border-color .2s, background .2s, box-shadow .2s;
+    position: relative;
 }
 .marketing-toggle:hover {
     border-color: #ff6b35;
@@ -871,6 +872,7 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     height: 0;
 }
 .marketing-toggle .toggle-slider-custom {
+    display: inline-block;
     width: 36px;
     height: 20px;
     background: #cbd5e1;
