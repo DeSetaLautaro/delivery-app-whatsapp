@@ -194,33 +194,96 @@
                 </div>
 
                 <div class="catalogo-card heatmap-card">
-                    <h3>🗓️ Días y Horarios Pico</h3>
+                    <div class="heatmap-card-header">
+                        <h3>🗓️ Días y Horarios Pico</h3>
+                        <div class="toggle-analisis">
+                            <button type="button" id="btnAnalisisPlato" class="toggle-option active">Analizar por Plato</button>
+                            <button type="button" id="btnAnalisisDia" class="toggle-option">Analizar por Día</button>
+                        </div>
+                    </div>
                     <select class="neon-select" id="selectPlatoPico">
                         <option>Todos los platos</option>
                         <option>🍔 Triple Bacon</option>
                         <option>🍕 Pizza Muzza</option>
                         <option>🥗 Ensalada César</option>
                     </select>
-                    <table class="heatmap">
-                        <thead>
-                            <tr>
-                                <th>Día</th>
-                                <th>Mediodía</th>
-                                <th>Tarde</th>
-                                <th>Noche</th>
-                                <th>Trasnoche</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Lun</td><td class="heat-cell" data-int="0.05"></td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.60"></td><td class="heat-cell" data-int="0.15"></td></tr>
-                            <tr><td>Mar</td><td class="heat-cell" data-int="0.02"></td><td class="heat-cell" data-int="0.08"></td><td class="heat-cell" data-int="0.70"></td><td class="heat-cell" data-int="0.20"></td></tr>
-                            <tr><td>Mié</td><td class="heat-cell" data-int="0.03"></td><td class="heat-cell" data-int="0.12"></td><td class="heat-cell" data-int="0.55"></td><td class="heat-cell" data-int="0.25"></td></tr>
-                            <tr><td>Jue</td><td class="heat-cell" data-int="0.04"></td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.80"></td><td class="heat-cell" data-int="0.30"></td></tr>
-                            <tr><td>Vie</td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.95"></td><td class="heat-cell" data-int="0.45"></td></tr>
-                            <tr><td>Sáb</td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.35"></td><td class="heat-cell" data-int="1.00"></td><td class="heat-cell" data-int="0.60"></td></tr>
-                            <tr><td>Dom</td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.25"></td><td class="heat-cell" data-int="0.75"></td><td class="heat-cell" data-int="0.40"></td></tr>
-                        </tbody>
-                    </table>
+                    <div id="heatmap-container">
+                        <table class="heatmap">
+                            <thead>
+                                <tr>
+                                    <th>Día</th>
+                                    <th>Mediodía</th>
+                                    <th>Tarde</th>
+                                    <th>Noche</th>
+                                    <th>Trasnoche</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Lun</td><td class="heat-cell" data-int="0.05"></td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.60"></td><td class="heat-cell" data-int="0.15"></td></tr>
+                                <tr><td>Mar</td><td class="heat-cell" data-int="0.02"></td><td class="heat-cell" data-int="0.08"></td><td class="heat-cell" data-int="0.70"></td><td class="heat-cell" data-int="0.20"></td></tr>
+                                <tr><td>Mié</td><td class="heat-cell" data-int="0.03"></td><td class="heat-cell" data-int="0.12"></td><td class="heat-cell" data-int="0.55"></td><td class="heat-cell" data-int="0.25"></td></tr>
+                                <tr><td>Jue</td><td class="heat-cell" data-int="0.04"></td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.80"></td><td class="heat-cell" data-int="0.30"></td></tr>
+                                <tr><td>Vie</td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.95"></td><td class="heat-cell" data-int="0.45"></td></tr>
+                                <tr><td>Sáb</td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.35"></td><td class="heat-cell" data-int="1.00"></td><td class="heat-cell" data-int="0.60"></td></tr>
+                                <tr><td>Dom</td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.25"></td><td class="heat-cell" data-int="0.75"></td><td class="heat-cell" data-int="0.40"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="day-ranking-container" class="hidden">
+                        <h4>Top 5 Platos del Día</h4>
+                        <div class="day-ranking-list">
+                            <div class="top-item">
+                                <span class="rank">1</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍔 Triple Bacon</span>
+                                        <span class="top-stats">45 u · $45.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 95%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">2</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍕 Pizza Muzza</span>
+                                        <span class="top-stats">38 u · $38.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 80%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">3</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🥗 Ensalada César</span>
+                                        <span class="top-stats">29 u · $29.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 60%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">4</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🌮 Taco Mexicano</span>
+                                        <span class="top-stats">22 u · $22.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 45%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">5</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍟 Papas Cheddar</span>
+                                        <span class="top-stats">18 u · $18.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 35%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -288,6 +351,55 @@
             });
             btnToggle.textContent = expanded ? 'Ver menos' : 'Ver todos';
         });
+    });
+</script>
+<script>
+    // Lógica Toggle Días y Horarios Pico
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnPlato = document.getElementById('btnAnalisisPlato');
+        const btnDia = document.getElementById('btnAnalisisDia');
+        const select = document.getElementById('selectPlatoPico');
+        const heatmapContainer = document.getElementById('heatmap-container');
+        const dayRankingContainer = document.getElementById('day-ranking-container');
+
+        if (!btnPlato || !btnDia || !select || !heatmapContainer || !dayRankingContainer) return;
+
+        const platosOpciones = [
+            'Todos los platos',
+            '🍔 Triple Bacon',
+            '🍕 Pizza Muzza',
+            '🥗 Ensalada César'
+        ];
+        const diasOpciones = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+        function actualizarSelect(opciones) {
+            select.innerHTML = '';
+            opciones.forEach(op => {
+                const opt = document.createElement('option');
+                opt.value = op;
+                opt.textContent = op;
+                select.appendChild(opt);
+            });
+        }
+
+        function modoPlato() {
+            btnPlato.classList.add('active');
+            btnDia.classList.remove('active');
+            actualizarSelect(platosOpciones);
+            heatmapContainer.classList.remove('hidden');
+            dayRankingContainer.classList.add('hidden');
+        }
+
+        function modoDia() {
+            btnDia.classList.add('active');
+            btnPlato.classList.remove('active');
+            actualizarSelect(diasOpciones);
+            heatmapContainer.classList.add('hidden');
+            dayRankingContainer.classList.remove('hidden');
+        }
+
+        btnPlato.addEventListener('click', modoPlato);
+        btnDia.addEventListener('click', modoDia);
     });
 </script>
 </body>

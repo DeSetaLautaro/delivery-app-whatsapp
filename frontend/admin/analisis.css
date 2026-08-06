@@ -353,3 +353,56 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .top-platos .top-item.hidden-row {
     display: none !important;
 }
+
+/* ── Toggle Días y Horarios Pico ─────────────────────── */
+.heatmap-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.heatmap-card-header h3 {
+    margin: 0;
+}
+.toggle-analisis {
+    display: inline-flex;
+    background: #121527;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+}
+.toggle-option {
+    border: none;
+    background: transparent;
+    color: #8A8D9F;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.toggle-option.active {
+    background: #1E233B;
+    color: #00E396;
+    box-shadow: 0 0 12px rgba(0, 227, 150, 0.15);
+}
+.toggle-option:not(.active):hover {
+    color: #FFFFFF;
+}
+
+#day-ranking-container {
+    margin-top: 16px;
+}
+#day-ranking-container h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: #FFFFFF;
+}
+.day-ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
