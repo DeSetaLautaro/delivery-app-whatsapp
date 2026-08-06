@@ -188,6 +188,55 @@
 
     </div>
 </div>
+    <!-- ====== TARJETA GESTIÓN DE RESEÑAS ====== -->
+    <div class="tarjeta config-card" id="tarjeta-resenas">
+        <h3>💬 Gestión de Reseñas y Feedback</h3>
+        <p class="texto-descriptivo">Controlá cómo los clientes pueden opinar sobre sus pedidos.</p>
+
+        <!-- Switch 1 -->
+        <div class="opcion-resena">
+            <div class="resena-info">
+                <label for="permitirResenas" style="font-weight:600;">Permitir que los clientes envíen opiniones</label>
+                <span class="resena-descripcion">Los clientes podrán calificar su pedido con estrellas y dejar comentarios.</span>
+            </div>
+            <div class="switch-wrapper">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="permitirResenas">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Switch 2 -->
+        <div class="opcion-resena">
+            <div class="resena-info">
+                <label for="resenasPublicas" style="font-weight:600;">Mostrar reseñas públicamente en el menú</label>
+                <span class="resena-descripcion">Si está activo, los clientes podrán leer las reseñas de otros en el menú. Si está apagado, funcionará solo como buzón privado.</span>
+            </div>
+            <div class="switch-wrapper">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="resenasPublicas">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Switch 3 -->
+        <div class="opcion-resena">
+            <div class="resena-info">
+                <label for="permitirVotosResenas" style="font-weight:600;">Permitir votos comunitarios ('Estoy de acuerdo')</label>
+                <span class="resena-descripcion">Habilita los botones de pulgar arriba/abajo para validar las opiniones de la comunidad.</span>
+            </div>
+            <div class="switch-wrapper">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="permitirVotosResenas">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <button id="guardarConfigResenas" class="btn-guardar-resenas">Guardar Configuración de Reseñas</button>
+    </div>
     </section>
 
 
