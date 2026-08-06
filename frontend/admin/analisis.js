@@ -1,5 +1,6 @@
 let listaTopPlatos = [];
 let topPlatosExpandido = false;
+let listaPlatosMenos = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
@@ -56,6 +57,9 @@ async function cargarEstadisticas(token) {
 
         listaTopPlatos = data.topPlatos || [];
         renderizarTopPlatos();
+
+        listaPlatosMenos = data.platosMenosPedidos || [];
+        renderizarPlatosMenos();
 
         const formatter = new Intl.NumberFormat('es-AR', {
             style: 'currency',
@@ -124,4 +128,33 @@ function renderizarTopPlatos() {
     if (btnToggle) {
         btnToggle.textContent = topPlatosExpandido ? 'Ver menos' : 'Ver todos';
     }
+}
+
+function renderizarPlatosMenos() {
+    const contenedor = document.getElementById('lista-platos-muertos');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '';
+
+    const platos = listaPlatosMenos.slice(0, 3);
+    if (platos.length === 0) {
+        contenedor.innerHTML = '<p style="color:#8A8D9F">Todavía no hay datos para mostrar.</p>';
+        return;
+    }
+
+    platos.forEach(plato => {
+        const nombre = plato._id || 'Sin nombre';
+        let dias = 999;
+        if (plato.ultimaVenta) {
+            dias = Math.max(0, Math.floor((Date.now() - new Date(plato.ultimaVenta).getTime()) / (1000 * 60 * 60 * 24)));
+        }
+        const fila = document.createElement('div');
+        fila.className = 'plato-muerto';
+        fila.innerHTML = `
+            <span>${nombre}</span>
+            <span class="dias-sin-venta">Días sin ventas: ${dias}</span>
+            <button class="btn-sugerencia">🔥 Poner en promo</button>
+        `;
+        contenedor.appendChild(fila);
+    });
 }

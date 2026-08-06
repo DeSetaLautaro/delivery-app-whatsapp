@@ -88,13 +88,37 @@ router.get('/', verificarToken, async (req, res) => {
             { $limit: 20 }
         ]);
 
+        // 7) Platos menos pedidos (para "Platos Muertos")
+        const platosMenosPedidos = await Pedido.aggregate([
+            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.nombrePlato',
+                    totalUnidades: { $sum: '$items.cantidad' },
+                    recaudacion: {
+                        $sum: {
+                            $multiply: [
+                                '$items.cantidad',
+                                { $ifNull: ['$items.precio', 0] }
+                            ]
+                        }
+                    },
+                    ultimaVenta: { $max: '$fecha' }
+                }
+            },
+            { $sort: { totalUnidades: 1 } },
+            { $limit: 3 }
+        ]);
+
         res.status(200).json({
             totalVentas,
             cantidadPedidos,
             ticketPromedio,
             ventasRecientes,
             clientesInactivos,
-            topPlatos
+            topPlatos,
+            platosMenosPedidos
         });
     } catch (error) {
         console.error('[ERROR] Estadísticas:', error);
