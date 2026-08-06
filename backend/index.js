@@ -17,6 +17,7 @@ const rutasToppings = require('./routes/toppings');
 const publicoRoutes = require('./routes/publicoRoutes');
 const pedidosRoutes = require('./routes/pedidos');
 const analisisRoutes = require('./routes/analisis');
+const estadisticasRouter = require('./routes/estadisticas');
 const deliveryRoutes = require('./routes/delivery');
 const pagosRoutes = require('./routes/pagos');
 const DeliveryToken = require('./models/DeliveryToken');
@@ -36,6 +37,7 @@ app.use('/api', authRouter);
 app.use('/api/toppings', rutasToppings);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/analisis', analisisRoutes);
+app.use('/api/estadisticas', estadisticasRouter);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/pagos', pagosRoutes);
 
