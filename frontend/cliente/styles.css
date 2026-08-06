@@ -1041,24 +1041,26 @@ body {
    BANNER RESEÑAS
    ============================================================ */
 .review-banner {
-    background: #FEF3C7; /* amarillo suave */
-    color: #92400E;
+    background: #e0f2fe;
+    color: #374151;
     text-align: center;
-    padding: 14px 20px;
-    font-weight: 700;
-    border-radius: 14px;
-    margin: 16px 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 8px 16px;
+    font-weight: 600;
+    border-radius: 99px;
+    margin: 12px auto;
+    max-width: 90%;
+    width: fit-content;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     cursor: pointer;
     transition: background 0.2s, transform 0.1s;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
 }
 .review-banner:hover {
-    background: #FDE68A;
-    transform: scale(1.02);
+    background: #c7e7fd;
+    transform: scale(1.01);
 }
 .review-banner:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
 }
 
 /* ============================================================
