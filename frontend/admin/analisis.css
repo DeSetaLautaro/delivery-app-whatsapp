@@ -759,3 +759,90 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     font-size: 0.85rem;
     margin: 0;
 }
+
+/* Tarjetas del fondo de Predicciones AI */
+.ai-block-wrapper .ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.ai-proyeccion-card,
+.ai-calendario-card {
+    background: #1E233B;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.ai-proyeccion-card h3,
+.ai-calendario-card h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #FFFFFF;
+}
+.ai-proyeccion-sugerencia {
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid #00b8ff;
+    color: #8A8D9F;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+.ai-chart-barras {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    height: 120px;
+}
+.ai-barra {
+    flex: 1;
+    background: linear-gradient(180deg, #00E396 0%, #775DD0 100%);
+    border-radius: 4px 4px 0 0;
+    height: calc(var(--altura) * 1%);
+    min-height: 4px;
+    position: relative;
+}
+.ai-barra span {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #8A8D9F;
+    white-space: nowrap;
+}
+.ai-calendario-eventos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ai-evento-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #FFFFFF;
+}
+.ai-btn-evento {
+    background: transparent;
+    border: 1.5px solid rgba(0,227,150,0.3);
+    color: #00E396;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.ai-btn-evento:hover {
+    background: rgba(0,227,150,0.1);
+    border-color: #00E396;
+}
