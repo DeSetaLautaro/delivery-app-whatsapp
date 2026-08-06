@@ -80,7 +80,7 @@ router.get('/', verificarToken, async (req, res) => {
 
 router.post('/mock', verificarToken, async (req, res) => {
     try {
-        const localId = req.usuario.id;
+        const localId = req.usuario.id || req.usuario._id;
 
         const pedidosMock = [];
         for (let i = 0; i < 50; i++) {
