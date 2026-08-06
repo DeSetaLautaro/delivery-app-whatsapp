@@ -215,20 +215,48 @@ function renderizarExplorador(filtro = '') {
     const formatoMoneda = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
     ordenados.forEach(plato => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'explorador-item-wrapper';
+
         const item = document.createElement('div');
         item.className = 'explorador-item';
         item.innerHTML = `<span class="explorador-nombre">${plato.nombre}</span>` +
             (plato.actualmenteEnPromo ? '<span class="badge-promo">EN PROMO</span>' : '');
-        item.addEventListener('click', () => mostrarComparacion(plato, formatoMoneda));
-        contenedor.appendChild(item);
+
+        const detalle = document.createElement('div');
+        detalle.className = 'explorador-detalle';
+        detalle.style.display = 'none';
+
+        item.addEventListener('click', () => toggleComparacion(plato, detalle, formatoMoneda));
+
+        wrapper.appendChild(item);
+        wrapper.appendChild(detalle);
+        contenedor.appendChild(wrapper);
     });
 }
 
-function mostrarComparacion(plato, formatoMoneda) {
-    const sin = plato.sinPromo;
-    const con = plato.conPromo;
-    const mensaje = `Rendimiento Diario Promedio - ${plato.nombre}\n` +
-        (sin ? `SIN PROMO: Vende ${sin.promedioUnidadesPorDia.toFixed(2)} unids/día (${formatoMoneda.format(sin.promedioDineroPorDia)}/día)` : 'SIN PROMO: Sin ventas') + '\n' +
-        (con ? `CON PROMO: Vende ${con.promedioUnidadesPorDia.toFixed(2)} unids/día (${formatoMoneda.format(con.promedioDineroPorDia)}/día)` : 'CON PROMO: Sin ventas');
-    alert(mensaje);
+function toggleComparacion(plato, detalle, formatoMoneda) {
+    if (detalle.style.display === 'none') {
+        const sin = plato.sinPromo;
+        const con = plato.conPromo;
+        const html = `
+            <div class="comparacion-card">
+                <p style="font-weight:700; color:#FFFFFF; margin:0 0 6px;">Rendimiento Diario Promedio - ${plato.nombre}</p>
+                <div class="comparacion-linea ${sin ? '' : 'sin-datos'}">
+                    <span class="comparacion-tag">SIN PROMO</span>
+                    <span>${sin ? `${sin.promedioUnidadesPorDia.toFixed(2)} unids/día` : 'Sin ventas'}</span>
+                    <span>${sin ? formatoMoneda.format(sin.promedioDineroPorDia) + '/día' : ''}</span>
+                </div>
+                <div class="comparacion-linea ${con ? '' : 'sin-datos'}">
+                    <span class="comparacion-tag comparacion-tag-promo">CON PROMO</span>
+                    <span>${con ? `${con.promedioUnidadesPorDia.toFixed(2)} unids/día` : 'Sin ventas'}</span>
+                    <span>${con ? formatoMoneda.format(con.promedioDineroPorDia) + '/día' : ''}</span>
+                </div>
+            </div>
+        `;
+        detalle.innerHTML = html;
+        detalle.style.display = 'block';
+    } else {
+        detalle.style.display = 'none';
+    }
 }
