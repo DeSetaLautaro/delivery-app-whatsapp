@@ -18,6 +18,7 @@
                 <a href="#" class="nav-item" data-view="catalogo">🍔 Catálogo</a>
                 <a href="#" class="nav-item" data-view="clientes">👥 Clientes</a>
                 <a href="#" class="nav-item" data-view="resenas">💬 Reseñas</a>
+                <a href="#" class="nav-item" data-view="predicciones">🧠 Predicciones AI</a>
                 <a href="#" class="nav-item">📈 Analíticas</a>
                 <a href="#" class="nav-item">⚙️ Configuración</a>
             </nav>
@@ -440,6 +441,34 @@
                     </div>
                 </div>
             </section>
+            <section id="view-predicciones" class="hidden">
+                <div class="ai-block-wrapper">
+                    <div class="ai-grid">
+                        <div class="ai-card-placeholder">
+                            <h3>📈 Demanda Estimada Fin de Semana</h3>
+                            <div class="ai-placeholder-chart">[ 🧠 Procesando... ]</div>
+                        </div>
+                        <div class="ai-card-placeholder">
+                            <h3>⚠️ Alertas de Stock Inteligente</h3>
+                            <div class="ai-placeholder-chart">[ 🧠 Procesando... ]</div>
+                        </div>
+                        <div class="ai-card-placeholder">
+                            <h3>🎯 Promos Personalizadas (Auto-enviadas)</h3>
+                            <div class="ai-placeholder-chart">[ 🧠 Procesando... ]</div>
+                        </div>
+                    </div>
+                    <div class="ai-overlay">
+                        <div class="ai-overlay-content">
+                            <h3 class="ai-overlay-titulo">🧠 Modelo en Fase de Aprendizaje</h3>
+                            <p class="ai-overlay-descripcion">Nuestra Inteligencia Artificial necesita analizar al menos 30 días de historial de ventas de tu local para generar predicciones precisas y sugerencias de marketing automáticas.</p>
+                            <div class="ai-progress">
+                                <div class="ai-progress-bar" style="width: 15%"></div>
+                            </div>
+                            <p class="ai-progress-texto">Progreso de calibración: <strong>15%</strong> - Faltan <strong>26 días</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 <script>
@@ -450,7 +479,8 @@
             general: document.getElementById('view-general'),
             catalogo: document.getElementById('view-catalogo'),
             clientes: document.getElementById('view-clientes'),
-            resenas: document.getElementById('view-resenas')
+            resenas: document.getElementById('view-resenas'),
+            predicciones: document.getElementById('view-predicciones')
         };
 
         if (!navLinks.length || !views.general || !views.catalogo || !views.clientes) return;

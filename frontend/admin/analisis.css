@@ -665,3 +665,97 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     background: rgba(0,227,150,0.1);
     border-color: #00E396;
 }
+
+/* ==========================================
+   VISTA PREDICCIONES AI
+   ========================================== */
+.ai-block-wrapper {
+    position: relative;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    filter: blur(4px);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.ai-card-placeholder {
+    background: #1E233B;
+    border-radius: 16px;
+    padding: 24px;
+    height: 200px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.ai-card-placeholder h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #FFFFFF;
+}
+.ai-placeholder-chart {
+    flex: 1;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8A8D9F;
+    font-size: 0.9rem;
+}
+
+.ai-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+.ai-overlay-content {
+    background: #1E233B;
+    border: 1.5px solid #775DD0;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 520px;
+    width: 90%;
+    box-shadow: 0 0 30px rgba(119,93,208,0.2);
+    text-align: center;
+}
+.ai-overlay-titulo {
+    margin: 0 0 12px;
+    font-size: 1.3rem;
+    color: #FFFFFF;
+}
+.ai-overlay-descripcion {
+    color: #8A8D9F;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    margin: 0 0 20px;
+}
+.ai-progress {
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.ai-progress-bar {
+    height: 100%;
+    width: 0;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #775DD0, #00E396);
+    box-shadow: 0 0 12px rgba(0,227,150,0.3);
+}
+.ai-progress-texto {
+    color: #8A8D9F;
+    font-size: 0.85rem;
+    margin: 0;
+}
