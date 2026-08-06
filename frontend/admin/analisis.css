@@ -302,7 +302,7 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding-right: 4px;
+    padding: 10px;
 }
 .scrollable-list::-webkit-scrollbar {
     width: 6px;
@@ -330,13 +330,14 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, transform 0.1s;
     position: relative;
-    z-index: 30;
+    z-index: 1;
     overflow: visible;
 }
 .explorador-item:hover {
     background: rgba(255,255,255,0.07);
     border-color: #00E396;
     transform: translateX(2px);
+    z-index: 999;
 }
 .explorador-nombre {
     color: #FFFFFF;
@@ -371,6 +372,14 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     padding: 12px 14px;
     margin: 4px 0 8px 0;
 }
+.comparacion-card {
+    position: relative;
+    z-index: 1;
+}
+.comparacion-card:hover {
+    z-index: 999;
+}
+
 .comparacion-card p {
     font-size: 0.85rem;
 }
@@ -449,7 +458,8 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .info-tooltip::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 150%;
+    z-index: 9999;
+    bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
     width: max-content;
@@ -462,7 +472,6 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     line-height: 1.4;
     padding: 8px;
     border-radius: 6px;
-    z-index: 9999;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -470,7 +479,27 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     text-align: left;
     pointer-events: none;
 }
-.info-tooltip:hover::after {
+
+.info-tooltip::before {
+    content: '';
+    position: absolute;
+    z-index: 9999;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    background-color: #1A1F36;
+    border-right: 1px solid #3A3F58;
+    border-bottom: 1px solid #3A3F58;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+}
+
+.info-tooltip:hover::after,
+.info-tooltip:hover::before {
     opacity: 1;
     visibility: visible;
 }
