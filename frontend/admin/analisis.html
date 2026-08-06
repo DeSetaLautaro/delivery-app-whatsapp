@@ -16,6 +16,7 @@
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-view="general">🌐 General</a>
                 <a href="#" class="nav-item" data-view="catalogo">🍔 Catálogo</a>
+                <a href="#" class="nav-item" data-view="clientes">👥 Clientes</a>
                 <a href="#" class="nav-item">📈 Analíticas</a>
                 <a href="#" class="nav-item">⚙️ Configuración</a>
             </nav>
@@ -286,40 +287,113 @@
                     </div>
                 </div>
             </section>
+            <section id="view-clientes" class="hidden">
+                <div class="cliente-kpis-grid">
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Total Clientes Únicos</h3>
+                        <div class="cliente-kpi-value">340</div>
+                        <span class="cliente-kpi-badge">+12% este mes</span>
+                    </div>
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Tasa de Recompra / Retención</h3>
+                        <div class="cliente-kpi-value">42%</div>
+                        <span class="text-neon-green">vuelven en < 14 días</span>
+                    </div>
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Clientes Fieles / VIPs</h3>
+                        <div class="cliente-kpi-value">52</div>
+                        <span class="text-neon-green">clientes con > 3 pedidos</span>
+                    </div>
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Clientes Inactivos</h3>
+                        <div class="cliente-kpi-value">28</div>
+                        <span class="text-neon-red">sin pedir hace +30 días</span>
+                    </div>
+                </div>
+
+                <div class="cliente-grid-2col">
+                    <div class="cliente-card">
+                        <h3>📍 Top Clientes Frecuentes</h3>
+                        <div class="cliente-tabla-wrapper">
+                            <table class="cliente-tabla">
+                                <thead>
+                                    <tr><th>Dirección / WhatsApp</th><th>Pedidos</th><th>Total</th><th>Último</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Av. Siempre Viva 742 · 11-5555-1234</td><td>18</td><td>$248.000</td><td>Hace 2 días</td></tr>
+                                    <tr><td>Belgrano 550 · 11-4444-5678</td><td>15</td><td>$210.000</td><td>Hace 5 días</td></tr>
+                                    <tr><td>Buenos Aires 123 · 11-3333-9012</td><td>12</td><td>$168.000</td><td>Hace 8 días</td></tr>
+                                    <tr><td>Córdoba 456 · 11-2222-3456</td><td>10</td><td>$135.000</td><td>Hace 11 días</td></tr>
+                                    <tr><td>San Martín 789 · 11-1111-7890</td><td>9</td><td>$120.500</td><td>Hace 13 días</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="cliente-card">
+                        <h3>🔄 Frecuencia de Compra</h3>
+                        <div class="frecuencia-box">
+                            <p class="frecuencia-label">Los clientes recurrentes vuelven a pedir cada</p>
+                            <div class="frecuencia-valor">8.5 días</div>
+                            <div class="barra-progreso frecuencia-barra">
+                                <div class="barra-fill" style="width: 68%"></div>
+                            </div>
+                            <p class="frecuencia-note">68% de los pedidos vienen de clientes que ya compraron antes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cliente-card cliente-inactivos">
+                    <h3>⚠️ Clientes En Riesgo</h3>
+                    <div class="cliente-inactivo-item">
+                        <span>📍 Av. Corrientes 1234 · 11-6666-7890</span>
+                        <span class="dias-inactivo">Hace 42 días no pide</span>
+                        <button class="btn-action-promo">💬 Contactar Promo</button>
+                    </div>
+                    <div class="cliente-inactivo-item">
+                        <span>📍 Palermo 987 · 11-7777-2345</span>
+                        <span class="dias-inactivo">Hace 35 días no pide</span>
+                        <button class="btn-action-promo">💬 Contactar Promo</button>
+                    </div>
+                    <div class="cliente-inactivo-item">
+                        <span>📍 Microcentro 222 · 11-8888-6789</span>
+                        <span class="dias-inactivo">Hace 31 días no pide</span>
+                        <button class="btn-action-promo">💬 Contactar Promo</button>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 <script>
-    // Navegación entre vistas General / Catálogo
+    // Navegación entre vistas General / Catálogo / Clientes
     document.addEventListener('DOMContentLoaded', () => {
-        const navGeneral = document.querySelector('a[data-view="general"]');
-        const navCatalogo = document.querySelector('a[data-view="catalogo"]');
-        const viewGeneral = document.getElementById('view-general');
-        const viewCatalogo = document.getElementById('view-catalogo');
+        const navLinks = document.querySelectorAll('.sidebar-nav a[data-view]');
+        const views = {
+            general: document.getElementById('view-general'),
+            catalogo: document.getElementById('view-catalogo'),
+            clientes: document.getElementById('view-clientes')
+        };
 
-        if (!navGeneral || !navCatalogo || !viewGeneral || !viewCatalogo) return;
+        if (!navLinks.length || !views.general || !views.catalogo || !views.clientes) return;
 
         function setView(view) {
-            if (view === 'general') {
-                navGeneral.classList.add('active');
-                navCatalogo.classList.remove('active');
-                viewGeneral.classList.remove('hidden');
-                viewCatalogo.classList.add('hidden');
-            } else {
-                navCatalogo.classList.add('active');
-                navGeneral.classList.remove('active');
-                viewCatalogo.classList.remove('hidden');
-                viewGeneral.classList.add('hidden');
-            }
+            navLinks.forEach(link => link.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-nav a[data-view="${view}"]`);
+            if (link) link.classList.add('active');
+            Object.keys(views).forEach(key => {
+                if (key === view) {
+                    views[key].classList.remove('hidden');
+                } else {
+                    views[key].classList.add('hidden');
+                }
+            });
         }
 
-        navGeneral.addEventListener('click', (e) => {
-            e.preventDefault();
-            setView('general');
-        });
-
-        navCatalogo.addEventListener('click', (e) => {
-            e.preventDefault();
-            setView('catalogo');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                setView(link.dataset.view);
+            });
         });
     });
 </script>
