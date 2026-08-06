@@ -150,13 +150,17 @@
 
                 <div class="catalogo-card impacto-promo">
                     <h3>📈 Impacto de Promociones</h3>
-                    <div class="impacto-metrica">Platos en Promo Activa: <strong>6</strong></div>
-                    <div class="impacto-metrica">Aumento de Volumen Promedio: <strong class="text-neon-green">+35%</strong></div>
+                    <div class="impacto-metrica">Platos en Promo Activa: <strong id="kpi-platos-promo">6</strong></div>
+                    <div class="impacto-metrica">Aumento de Volumen Promedio: <strong class="text-neon-green" id="kpi-aumento-volumen">+35%</strong></div>
                     <div class="comparativa-promo">
-                        <span class="comparativa-before">Antes: $45.000</span>
+                        <span class="comparativa-before" id="kpi-antes-promo">Antes: $45.000</span>
                         <span class="comparativa-arrow">→</span>
-                        <span class="comparativa-after">Con Promo: $61.000</span>
+                        <span class="comparativa-after" id="kpi-despues-promo">Con Promo: $61.000</span>
                     </div>
+                    <hr style="border-color: rgba(255,255,255,0.05); margin:16px 0;">
+                    <h4 style="color:#FFFFFF; font-size:13px; margin:0 0 8px;">Buscador de Rendimiento de Platos</h4>
+                    <input type="text" id="buscador-platos" class="search-input" placeholder="Buscar plato...">
+                    <div id="lista-explorador-platos" class="scrollable-list"></div>
                 </div>
 
                 <div class="catalogo-card catalogo-rendimiento">
