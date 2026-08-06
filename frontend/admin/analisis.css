@@ -273,6 +273,84 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     color: #fff;
 }
 
+/* ========== EXPLORADOR DE PROMOCIONES ========== */
+.search-input {
+    background: #121527;
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 16px;
+    width: 100%;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.search-input::placeholder {
+    color: #6B7280;
+}
+.search-input:focus {
+    border-color: #00E396;
+    box-shadow: 0 0 0 3px rgba(0, 227, 150, 0.15);
+}
+
+.scrollable-list {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 4px;
+}
+.scrollable-list::-webkit-scrollbar {
+    width: 6px;
+}
+.scrollable-list::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.03);
+    border-radius: 99px;
+}
+.scrollable-list::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 99px;
+}
+.scrollable-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.explorador-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+.explorador-item:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: #00E396;
+    transform: translateX(2px);
+}
+.explorador-nombre {
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.badge-promo {
+    background: rgba(119,93,208,0.2);
+    color: #775DD0;
+    padding: 4px 8px;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
 /* Heatmap */
 .heatmap-card select {
     margin-bottom: 12px;

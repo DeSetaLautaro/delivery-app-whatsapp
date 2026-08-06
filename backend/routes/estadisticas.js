@@ -143,6 +143,74 @@ router.get('/', verificarToken, async (req, res) => {
     }
 });
 
+router.get('/explorador-promos', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+        const localObjId = new mongoose.Types.ObjectId(localId);
+
+        const agrupado = await Pedido.aggregate([
+            { $match: { localId: localObjId } },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: {
+                        nombre: '$items.nombrePlato',
+                        enPromo: { $ifNull: ['$items.enPromocion', false] }
+                    },
+                    totalUnidades: { $sum: '$items.cantidad' },
+                    totalDinero: { $sum: { $multiply: ['$items.cantidad', { $ifNull: ['$items.precio', 0] }] } },
+                    dias: { $addToSet: { $dateToString: { format: '%Y-%m-%d', date: '$fecha' } } }
+                }
+            },
+            {
+                $project: {
+                    nombre: '$_id.nombre',
+                    enPromo: '$_id.enPromo',
+                    totalUnidades: 1,
+                    totalDinero: 1,
+                    cantidadDias: { $size: '$dias' }
+                }
+            },
+            {
+                $project: {
+                    nombre: 1,
+                    enPromo: 1,
+                    promedioUnidadesPorDia: { $cond: [{ $eq: ['$cantidadDias', 0] }, 0, { $divide: ['$totalUnidades', '$cantidadDias'] }] },
+                    promedioDineroPorDia: { $cond: [{ $eq: ['$cantidadDias', 0] }, 0, { $divide: ['$totalDinero', '$cantidadDias'] }] }
+                }
+            }
+        ]);
+
+        const mapaPlatos = {};
+        agrupado.forEach(item => {
+            if (!mapaPlatos[item.nombre]) {
+                mapaPlatos[item.nombre] = {
+                    nombre: item.nombre,
+                    actualmenteEnPromo: false,
+                    conPromo: null,
+                    sinPromo: null
+                };
+            }
+            const plato = mapaPlatos[item.nombre];
+            const metricas = {
+                promedioUnidadesPorDia: item.promedioUnidadesPorDia,
+                promedioDineroPorDia: item.promedioDineroPorDia
+            };
+            if (item.enPromo) {
+                plato.actualmenteEnPromo = true;
+                plato.conPromo = metricas;
+            } else {
+                plato.sinPromo = metricas;
+            }
+        });
+
+        res.json(Object.values(mapaPlatos));
+    } catch (error) {
+        console.error('[ERROR] Explorador promos:', error);
+        res.status(500).json({ error: 'Error al obtener explorador de promociones' });
+    }
+});
+
 router.post('/mock', verificarToken, async (req, res) => {
     try {
         const localId = req.usuario.id || req.usuario._id;

@@ -1,6 +1,7 @@
 let listaTopPlatos = [];
 let topPlatosExpandido = false;
 let listaPlatosMenos = [];
+let datosExplorador = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
@@ -50,7 +51,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const inputExplorador = document.getElementById('buscador-platos');
+    if (inputExplorador) {
+        inputExplorador.addEventListener('input', (e) => {
+            renderizarExplorador(e.target.value.trim());
+        });
+    }
+
     await cargarEstadisticas(token, periodoActual);
+    cargarExplorador(token);
 });
 
 async function cargarEstadisticas(token, periodo = 'mes') {
@@ -166,4 +175,60 @@ function renderizarPlatosMenos() {
         `;
         contenedor.appendChild(fila);
     });
+}
+
+async function cargarExplorador(token) {
+    try {
+        const resp = await fetch('/api/estadisticas/explorador-promos', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        if (!resp.ok) throw new Error('Error al traer explorador de promos');
+        datosExplorador = await resp.json();
+        renderizarExplorador();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function renderizarExplorador(filtro = '') {
+    const contenedor = document.getElementById('lista-explorador-platos');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '';
+    let datos = datosExplorador;
+
+    if (filtro) {
+        const texto = filtro.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        datos = datos.filter(p => (p.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(texto));
+    }
+
+    const ordenados = [...datos].sort((a, b) => (b.actualmenteEnPromo === true) - (a.actualmenteEnPromo === true));
+
+    if (ordenados.length === 0) {
+        contenedor.innerHTML = '<p style="color:#8A8D9F">No hay platos para mostrar.</p>';
+        return;
+    }
+
+    const formatoMoneda = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+
+    ordenados.forEach(plato => {
+        const item = document.createElement('div');
+        item.className = 'explorador-item';
+        item.innerHTML = `<span class="explorador-nombre">${plato.nombre}</span>` +
+            (plato.actualmenteEnPromo ? '<span class="badge-promo">EN PROMO</span>' : '');
+        item.addEventListener('click', () => mostrarComparacion(plato, formatoMoneda));
+        contenedor.appendChild(item);
+    });
+}
+
+function mostrarComparacion(plato, formatoMoneda) {
+    const sin = plato.sinPromo;
+    const con = plato.conPromo;
+    const mensaje = `Rendimiento Diario Promedio - ${plato.nombre}\n` +
+        (sin ? `SIN PROMO: Vende ${sin.promedioUnidadesPorDia.toFixed(2)} unids/día (${formatoMoneda.format(sin.promedioDineroPorDia)}/día)` : 'SIN PROMO: Sin ventas') + '\n' +
+        (con ? `CON PROMO: Vende ${con.promedioUnidadesPorDia.toFixed(2)} unids/día (${formatoMoneda.format(con.promedioDineroPorDia)}/día)` : 'CON PROMO: Sin ventas');
+    alert(mensaje);
 }
