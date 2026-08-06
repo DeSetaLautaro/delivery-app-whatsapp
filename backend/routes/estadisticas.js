@@ -107,12 +107,37 @@ router.post('/mock', verificarToken, async (req, res) => {
         const localId = req.usuario.id || req.usuario._id;
 
         const pedidosMock = [];
+        const nombresPlatos = [
+            '🍔 Triple Bacon',
+            '🍕 Muzza XL',
+            '🥗 Ensalada César',
+            '🌮 Taco Mexicano',
+            '🍟 Papas Cheddar',
+            '🍝 Fideos con Crema',
+            '🥟 Empanadas de Carne',
+            '🍗 Pollo al Spiedo',
+            '🥙 Lomo Completo',
+            '🍦 Postre Helado'
+        ];
         for (let i = 0; i < 50; i++) {
-            const total = Math.floor(Math.random() * 20000) + 5000;
             const fecha = new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000);
+            const numItems = Math.floor(Math.random() * 3) + 1; // 1 a 3
+            const itemsMock = [];
+            let total = 0;
+            for (let j = 0; j < numItems; j++) {
+                const nombrePlato = nombresPlatos[Math.floor(Math.random() * nombresPlatos.length)];
+                const precioUnitario = Math.floor(Math.random() * 12000) + 3000;
+                const cantidad = Math.floor(Math.random() * 3) + 1; // 1 a 3
+                itemsMock.push({
+                    nombrePlato,
+                    cantidad,
+                    precio: precioUnitario
+                });
+                total += precioUnitario * cantidad;
+            }
             pedidosMock.push({
                 localId,
-                items: [{ nombrePlato: 'Plato de Prueba', cantidad: 1, precio: total }],
+                items: itemsMock,
                 total,
                 fecha,
                 telefonoCliente: `11-5555-${String(i).padStart(4, '0')}`,
