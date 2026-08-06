@@ -7,9 +7,28 @@ const mongoose = require('mongoose');
 router.get('/', verificarToken, async (req, res) => {
     try {
         const localId = req.usuario.id || req.usuario._id;
+        const { periodo = 'mes' } = req.query;
 
-        // Traemos todos los pedidos del local
-        const pedidos = await Pedido.find({ localId });
+        // Definir rango de fechas según periodo seleccionado
+        const fechaHoy0 = new Date();
+        fechaHoy0.setHours(0,0,0,0);
+        const fechaFin = new Date(fechaHoy0);
+        fechaFin.setDate(fechaFin.getDate() + 1); // hasta mañana (excluido)
+
+        let fechaInicio = new Date(fechaHoy0);
+        if (periodo === 'hoy') {
+            // inicio = hoy
+        } else if (periodo === '7dias') {
+            fechaInicio.setDate(fechaInicio.getDate() - 6);
+        } else { // 'mes' por defecto
+            fechaInicio = new Date(fechaHoy0.getFullYear(), fechaHoy0.getMonth(), 1);
+        }
+
+        // Traemos todos los pedidos del local dentro del periodo seleccionado
+        const pedidos = await Pedido.find({
+            localId,
+            fecha: { $gte: fechaInicio, $lt: fechaFin }
+        });
 
         // 1) Total vendido
         let totalVentas = 0;
@@ -23,25 +42,23 @@ router.get('/', verificarToken, async (req, res) => {
         // 3) Ticket promedio
         const ticketPromedio = cantidadPedidos > 0 ? totalVentas / cantidadPedidos : 0;
 
-        // 4) Ventas de los últimos 7 días
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
-
+        // 4) Ventas del período seleccionado (por día)
+        const cantidadDias = periodo === 'hoy' ? 1 : (periodo === '7dias' ? 7 : 30);
         const ventasRecientes = [];
-        for (let i = 6; i >= 0; i--) {
-            const inicio = new Date(hoy);
-            inicio.setDate(inicio.getDate() - i);
-            const fin = new Date(inicio);
-            fin.setDate(fin.getDate() + 1);
+        for (let i = cantidadDias - 1; i >= 0; i--) {
+            const inicioDia = new Date(fechaHoy0);
+            inicioDia.setDate(inicioDia.getDate() - i);
+            const finDia = new Date(inicioDia);
+            finDia.setDate(finDia.getDate() + 1);
 
             const pedidosDia = pedidos.filter(p => {
                 const fecha = new Date(p.fecha);
-                return fecha >= inicio && fecha < fin;
+                return fecha >= inicioDia && fecha < finDia;
             });
 
             const totalDia = pedidosDia.reduce((s, p) => s + (p.total || 0), 0);
             ventasRecientes.push({
-                fecha: inicio.toISOString().slice(0, 10),
+                fecha: inicioDia.toISOString().slice(0, 10),
                 total: totalDia,
                 cantidad: pedidosDia.length
             });
@@ -68,7 +85,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
-            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
+            { $match: { localId: new mongoose.Types.ObjectId(localId), fecha: { $gte: fechaInicio, $lt: fechaFin } } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -90,7 +107,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 7) Platos menos pedidos (para "Platos Muertos")
         const platosMenosPedidos = await Pedido.aggregate([
-            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
+            { $match: { localId: new mongoose.Types.ObjectId(localId), fecha: { $gte: fechaInicio, $lt: fechaFin } } },
             { $unwind: '$items' },
             {
                 $group: {

@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    const selectPeriodo = document.getElementById('select-periodo');
+    const periodoActual = selectPeriodo ? selectPeriodo.value : 'mes';
+
     const btnMock = document.getElementById('btn-generar-mock');
     if (btnMock) {
         btnMock.addEventListener('click', async (e) => {
@@ -23,13 +26,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 });
                 if (!resp.ok) throw new Error('Error al generar datos de prueba');
-                await cargarEstadisticas(token);
+                await cargarEstadisticas(token, selectPeriodo ? selectPeriodo.value : 'mes');
             } catch (err) {
                 console.error(err);
                 alert('Error al generar datos de prueba');
             } finally {
                 btnMock.textContent = '🧪 Generar Datos de Prueba';
             }
+        });
+    }
+
+    if (selectPeriodo) {
+        selectPeriodo.addEventListener('change', () => {
+            cargarEstadisticas(token, selectPeriodo.value);
         });
     }
 
@@ -41,12 +50,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    await cargarEstadisticas(token);
+    await cargarEstadisticas(token, periodoActual);
 });
 
-async function cargarEstadisticas(token) {
+async function cargarEstadisticas(token, periodo = 'mes') {
     try {
-        const resp = await fetch('/api/estadisticas', {
+        const resp = await fetch(`/api/estadisticas?periodo=${encodeURIComponent(periodo)}`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
