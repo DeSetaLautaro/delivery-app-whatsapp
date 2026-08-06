@@ -673,13 +673,17 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     position: relative;
 }
 
-.ai-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
+.ai-background-blur {
     filter: blur(4px);
     opacity: 0.6;
     pointer-events: none;
+}
+
+.ai-features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
 }
 
 .ai-card-placeholder {
@@ -845,4 +849,58 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .ai-btn-evento:hover {
     background: rgba(0,227,150,0.1);
     border-color: #00E396;
+}
+
+.ai-recomendacion {
+    background: rgba(0, 227, 150, 0.1);
+    color: #FFFFFF;
+    border-left: 3px solid #00E396;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.calendar-events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.calendar-event-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #121527;
+    border-radius: 10px;
+    color: #FFFFFF;
+    font-size: 0.85rem;
+}
+
+.btn-auto-promo {
+    background: transparent;
+    border: 1.5px solid #775DD0;
+    color: #775DD0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-auto-promo:hover {
+    background: rgba(119, 93, 208, 0.1);
+    border-color: #775DD0;
+    color: #FFFFFF;
+}
+
+@media (max-width: 700px) {
+    .ai-features-grid {
+        grid-template-columns: 1fr;
+    }
 }
