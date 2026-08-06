@@ -237,12 +237,15 @@ router.post('/mock', verificarToken, async (req, res) => {
                 const nombrePlato = nombresPlatos[Math.floor(Math.random() * nombresPlatos.length)];
                 const precioUnitario = Math.floor(Math.random() * 12000) + 3000;
                 const cantidad = Math.floor(Math.random() * 3) + 1; // 1 a 3
+                const enPromocion = Math.random() < 0.3; // 30% de probabilidad
+                const precioFinal = enPromocion ? Math.floor(precioUnitario * 0.8) : precioUnitario;
                 itemsMock.push({
                     nombrePlato,
                     cantidad,
-                    precio: precioUnitario
+                    precio: precioFinal,
+                    enPromocion
                 });
-                total += precioUnitario * cantidad;
+                total += precioFinal * cantidad;
             }
             pedidosMock.push({
                 localId,
