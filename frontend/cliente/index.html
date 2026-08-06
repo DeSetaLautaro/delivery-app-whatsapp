@@ -31,6 +31,9 @@
       </div>
     </header>
 
+    <!-- ===== BANNER RESEÑAS ===== -->
+    <div id="banner-resenas" class="review-banner">💬 ¿Cómo fue tu experiencia? Leé y dejá tu reseña anónima.</div>
+
     <!-- ===== HERO BANNER ===== -->
     <section class="hero" aria-label="Bienvenida">
       <p class="hero-subtitle">Elegí tus favoritos y envianos tu pedido por WhatsApp 🚀</p>
@@ -161,6 +164,62 @@
                 <button class="btn-whatsapp" id="btnConfirmarToppings">Confirmar y agregar al carrito 🛒</button>
             </footer>
         </div>
+    </div>
+
+    <!-- ===== MODAL FEED RESEÑAS ===== -->
+    <div id="modal-feed-resenas" class="modal-resenas" style="display:none;">
+      <div class="modal-resenas-overlay" id="overlay-feed-resenas"></div>
+      <div class="modal-resenas-content">
+        <header class="modal-header-resenas">
+          <h2>Opiniones de la Comunidad</h2>
+          <button class="modal-cerrar" onclick="cerrarModalResenas('modal-feed-resenas')" aria-label="Cerrar">✕</button>
+        </header>
+        <button class="btn-escribir-resena" onclick="abrirModalEscribirResena()">✏️ Escribir mi reseña</button>
+        <div id="lista-resenas-publicas" class="lista-resenas-publicas">
+          <!-- Tarjetas de ejemplo -->
+          <div class="tarjeta-resena">
+            <div class="resena-estrellas" data-valor="5">★★★★★</div>
+            <div class="resena-fecha">12/05/2024</div>
+            <p class="resena-texto">¡Las mejores empanadas! Llegaron súper calientes y riquísimas. El repartidor muy amable.</p>
+            <div class="resena-votos">
+              <button class="btn-voto acuerdo" data-resena="1">👍 Estoy de acuerdo (12)</button>
+              <button class="btn-voto desacuerdo" data-resena="1">👎 (1)</button>
+            </div>
+          </div>
+          <div class="tarjeta-resena">
+            <div class="resena-estrellas" data-valor="3">★★★☆☆</div>
+            <div class="resena-fecha">28/04/2024</div>
+            <p class="resena-texto">La pizza estaba buena pero la demora fue mucha. Igual la recomiendo.</p>
+            <div class="resena-votos">
+              <button class="btn-voto acuerdo" data-resena="2">👍 Estoy de acuerdo (4)</button>
+              <button class="btn-voto desacuerdo" data-resena="2">👎 (2)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL ESCRIBIR RESEÑA ===== -->
+    <div id="modal-escribir-resena" class="modal-resenas" style="display:none;">
+      <div class="modal-resenas-overlay" onclick="cerrarModalResenas('modal-escribir-resena')"></div>
+      <div class="modal-resenas-content">
+        <header class="modal-header-resenas">
+          <h2>Calificá tu pedido</h2>
+          <button class="modal-cerrar" onclick="cerrarModalResenas('modal-escribir-resena')" aria-label="Cerrar">✕</button>
+        </header>
+        <div class="estrellas-rating" id="estrellas-rating">
+          <span data-value="1">★</span>
+          <span data-value="2">★</span>
+          <span data-value="3">★</span>
+          <span data-value="4">★</span>
+          <span data-value="5">★</span>
+        </div>
+        <textarea id="texto-resena" placeholder="¡Las mejores empanadas! Llegaron súper calientes..." rows="4"></textarea>
+        <label class="checkbox-anonimo">
+          <input type="checkbox" id="publica-resena" checked> Hacer pública mi reseña (100% anónima)
+        </label>
+        <button class="btn-enviar-resena" id="enviar-resena">Enviar Reseña</button>
+      </div>
     </div>
 
     <script src="/app.js"></script>

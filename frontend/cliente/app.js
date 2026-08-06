@@ -805,6 +805,106 @@ function mostrarInfoTransferencia(mostrar) {
 }
 
 // ============================================================
+// RESEÑAS COMUNITARIAS ANÓNIMAS
+// ============================================================
+
+let votoResena = {}; // clave ej. "acuerdo_1" => true
+
+function abrirModalFeedResenas() {
+    document.getElementById('modal-feed-resenas').style.display = 'flex';
+}
+
+function cerrarModalResenas(idModal) {
+    document.getElementById(idModal).style.display = 'none';
+}
+
+function abrirModalEscribirResena() {
+    document.getElementById('modal-feed-resenas').style.display = 'none';
+    document.getElementById('modal-escribir-resena').style.display = 'flex';
+    resetearEstrellas();
+}
+
+function resetearEstrellas() {
+    document.querySelectorAll('#estrellas-rating span').forEach(span => {
+        span.classList.remove('activa');
+    });
+}
+
+function inicializarBannerResenas() {
+    const banner = document.getElementById('banner-resenas');
+    if (banner) {
+        banner.addEventListener('click', () => abrirModalFeedResenas());
+    }
+
+    const overlayFeed = document.querySelector('#modal-feed-resenas .modal-resenas-overlay');
+    if (overlayFeed) overlayFeed.addEventListener('click', () => cerrarModalResenas('modal-feed-resenas'));
+
+    const btnEscribir = document.querySelector('.btn-escribir-resena');
+    if (btnEscribir) btnEscribir.addEventListener('click', () => abrirModalEscribirResena());
+
+    const estrellas = document.querySelectorAll('#estrellas-rating span');
+    estrellas.forEach(span => {
+        span.addEventListener('click', () => {
+            const valor = Number(span.dataset.value);
+            seleccionarEstrellas(valor);
+        });
+    });
+
+    const btnEnviar = document.getElementById('enviar-resena');
+    if (btnEnviar) {
+        btnEnviar.addEventListener('click', enviarResena);
+    }
+
+    document.querySelectorAll('.btn-voto').forEach(btn => {
+        btn.addEventListener('click', (e) => votar(e.target));
+    });
+}
+
+function seleccionarEstrellas(valor) {
+    const estrellas = document.querySelectorAll('#estrellas-rating span');
+    estrellas.forEach(span => {
+        const num = Number(span.dataset.value);
+        span.classList.toggle('activa', num <= valor);
+    });
+}
+
+function votar(boton) {
+    const resenaId = boton.dataset.resena;
+    const tipo = boton.classList.contains('acuerdo') ? 'acuerdo' : 'desacuerdo';
+    const key = `${tipo}_${resenaId}`;
+    const activo = boton.classList.contains('active');
+    boton.classList.toggle('active', !activo);
+
+    const match = boton.textContent.match(/(\d+)/);
+    if (match) {
+        let num = parseInt(match[1], 10);
+        if (!activo) num += 1;
+        else num -= 1;
+        boton.textContent = boton.textContent.replace(/\d+/, num);
+    }
+
+    if (!activo) {
+        localStorage.setItem(`voto_${key}`, 'true');
+    } else {
+        localStorage.removeItem(`voto_${key}`);
+    }
+}
+
+function enviarResena() {
+    const texto = document.getElementById('texto-resena').value.trim();
+    const publica = document.getElementById('publica-resena').checked;
+    if (!texto) {
+        alert('Por favor escribí algún comentario.');
+        return;
+    }
+    alert('✅ ¡Gracias por tu reseña! Si elegiste hacerla pública, aparecerá pronto anónimamente.');
+    document.getElementById('modal-escribir-resena').style.display = 'none';
+    document.getElementById('texto-resena').value = '';
+    document.getElementById('publica-resena').checked = true;
+    resetearEstrellas();
+}
+
+// ============================================================
 // ARRANCAR LA APP
 // ============================================================
 // Apenas carga la pantalla del cliente...
@@ -826,6 +926,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     llenarCampo('telefonoEntrega', 'telefonoCliente');
     llenarCampo('direccionCliente', 'direccionCliente');
     llenarCampo('direccionEntrega', 'direccionCliente');
+
+    inicializarBannerResenas();
 
     cargarMenu();
 });
