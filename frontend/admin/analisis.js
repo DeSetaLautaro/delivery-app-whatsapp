@@ -271,6 +271,11 @@ function toggleComparacion(plato, detalle, formatoMoneda) {
     if (detalle.style.display === 'none') {
         const sin = plato.sinPromo;
         const con = plato.conPromo;
+        if (!sin && !con) {
+            detalle.innerHTML = '<p style="color:#8A8D9F">No hay datos para este plato.</p>';
+            detalle.style.display = 'block';
+            return;
+        }
         let lift = null;
         let elasticidad = null;
         if (con && sin && sin.promedioUnidadesPorDia > 0 && con.promedioUnidadesPorDia > 0 && sin.totalUnidades > 0 && con.totalUnidades > 0) {
