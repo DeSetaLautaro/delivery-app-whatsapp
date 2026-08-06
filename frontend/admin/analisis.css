@@ -395,6 +395,72 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     opacity: 0.5;
 }
 
+/* ========== METRICAS AVANZADAS + TOOLTIPS ========== */
+.explorador-item-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.metricas-avanzadas {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.metrica-badge {
+    background: rgba(255,255,255,0.05);
+    color: #8A8D9F;
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.info-tooltip {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #3A3F55;
+    color: #8A8D9F;
+    text-align: center;
+    font-size: 10px;
+    line-height: 14px;
+    cursor: help;
+    position: relative;
+}
+.info-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    background: #1E233B;
+    color: #FFFFFF;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    padding: 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    white-space: normal;
+    text-align: left;
+    pointer-events: none;
+}
+.info-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
 /* Heatmap */
 .heatmap-card select {
     margin-bottom: 12px;

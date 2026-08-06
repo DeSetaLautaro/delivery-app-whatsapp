@@ -175,6 +175,8 @@ router.get('/explorador-promos', verificarToken, async (req, res) => {
                 $project: {
                     nombre: 1,
                     enPromo: 1,
+                    totalUnidades: 1,
+                    totalDinero: 1,
                     promedioUnidadesPorDia: { $cond: [{ $eq: ['$cantidadDias', 0] }, 0, { $divide: ['$totalUnidades', '$cantidadDias'] }] },
                     promedioDineroPorDia: { $cond: [{ $eq: ['$cantidadDias', 0] }, 0, { $divide: ['$totalDinero', '$cantidadDias'] }] }
                 }
@@ -194,7 +196,9 @@ router.get('/explorador-promos', verificarToken, async (req, res) => {
             const plato = mapaPlatos[item.nombre];
             const metricas = {
                 promedioUnidadesPorDia: item.promedioUnidadesPorDia,
-                promedioDineroPorDia: item.promedioDineroPorDia
+                promedioDineroPorDia: item.promedioDineroPorDia,
+                totalUnidades: item.totalUnidades,
+                totalDinero: item.totalDinero
             };
             if (item.enPromo) {
                 plato.actualmenteEnPromo = true;
