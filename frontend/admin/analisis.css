@@ -402,12 +402,15 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     gap: 6px;
     flex-wrap: wrap;
     min-width: 0;
+    flex: 1;
 }
 .metricas-avanzadas {
     display: flex;
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
+    margin-left: auto;
+    justify-content: flex-end;
 }
 .metrica-badge {
     background: rgba(255,255,255,0.05);

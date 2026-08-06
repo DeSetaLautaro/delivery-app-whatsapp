@@ -271,9 +271,30 @@ function toggleComparacion(plato, detalle, formatoMoneda) {
     if (detalle.style.display === 'none') {
         const sin = plato.sinPromo;
         const con = plato.conPromo;
+        let lift = null;
+        let elasticidad = null;
+        if (con && sin && sin.promedioUnidadesPorDia > 0 && con.promedioUnidadesPorDia > 0 && sin.totalUnidades > 0 && con.totalUnidades > 0) {
+            lift = ((con.promedioUnidadesPorDia - sin.promedioUnidadesPorDia) / sin.promedioUnidadesPorDia) * 100;
+            const precioBase = sin.totalDinero / sin.totalUnidades;
+            const precioPromo = con.totalDinero / con.totalUnidades;
+            if (precioBase > 0 && precioPromo !== precioBase) {
+                const deltaQ = (con.promedioUnidadesPorDia - sin.promedioUnidadesPorDia) / sin.promedioUnidadesPorDia;
+                const deltaP = (precioPromo - precioBase) / precioBase;
+                if (deltaP !== 0) {
+                    elasticidad = Math.abs(deltaQ / deltaP);
+                }
+            }
+        }
+        const metricasExtra = (lift !== null && elasticidad !== null) ? `
+            <div class="metricas-avanzadas">
+                <span class="metrica-badge">Lift: ${lift.toFixed(0)}% <i class="info-tooltip" data-tooltip="Mide cuánto aumentaron tus ventas. Ej: 100% significa que vendés el doble con la promo.">?</i></span>
+                <span class="metrica-badge">Elasticidad: ${elasticidad.toFixed(1)} <i class="info-tooltip" data-tooltip="Sensibilidad al precio. Mayor a 1: ¡La promo es un éxito! Menor a 1: La gente lo compraría igual sin descuento.">?</i></span>
+            </div>
+        ` : '';
         const html = `
             <div class="comparacion-card">
                 <p style="font-weight:700; color:#FFFFFF; margin:0 0 6px;">Rendimiento Diario Promedio - ${plato.nombre}</p>
+                ${metricasExtra}
                 <div class="comparacion-linea ${sin ? '' : 'sin-datos'}">
                     <span class="comparacion-tag">SIN PROMO</span>
                     <span>${sin ? `${sin.promedioUnidadesPorDia.toFixed(2)} unids/día` : 'Sin ventas'}</span>
