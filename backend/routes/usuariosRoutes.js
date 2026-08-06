@@ -81,6 +81,9 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.temaMenu !== undefined && ['clasico', 'elegante'].includes(req.body.temaMenu)) {
             camposAActualizar.temaMenu = req.body.temaMenu;
         }
+        if (req.body.permitirResenas !== undefined) camposAActualizar.permitirResenas = req.body.permitirResenas;
+        if (req.body.resenasPublicas !== undefined) camposAActualizar.resenasPublicas = req.body.resenasPublicas;
+        if (req.body.permitirVotosResenas !== undefined) camposAActualizar.permitirVotosResenas = req.body.permitirVotosResenas;
 
         console.log("2. Cajón a actualizar en Mongo:", camposAActualizar);
 
@@ -229,6 +232,9 @@ router.get('/perfil', verificarToken, async (req, res) => {
             abierto: usuario.abierto,
             plan: usuario.plan || 'web',
             temaMenu: usuario.temaMenu || 'clasico',
+            permitirResenas: usuario.permitirResenas ?? true,
+            resenasPublicas: usuario.resenasPublicas ?? false,
+            permitirVotosResenas: usuario.permitirVotosResenas ?? true,
             horarios: usuario.horarios,
             horariosEstructurados: usuario.horariosEstructurados,
             metodosPago: usuario.metodosPago || []

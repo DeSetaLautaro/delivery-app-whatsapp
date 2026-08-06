@@ -34,6 +34,20 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         selectTema.addEventListener('change', () => {
             guardarTema(selectTema.value);
         });
+
+        // ===== CONFIGURACIÓN DE RESEÑAS =====
+        const permitirResenas = document.getElementById('permitirResenas');
+        const resenasPublicas = document.getElementById('resenasPublicas');
+        const permitirVotosResenas = document.getElementById('permitirVotosResenas');
+
+        if (permitirResenas) permitirResenas.checked = !!datosPerfil.permitirResenas;
+        if (resenasPublicas) resenasPublicas.checked = !!datosPerfil.resenasPublicas;
+        if (permitirVotosResenas) permitirVotosResenas.checked = !!datosPerfil.permitirVotosResenas;
+
+        const btnGuardarResenas = document.getElementById('guardarConfigResenas');
+        if (btnGuardarResenas) {
+            btnGuardarResenas.addEventListener('click', guardarConfigResenas);
+        }
     }
 });
 
@@ -252,4 +266,22 @@ function rellenarHorarios(horariosArray) {
             hasta.disabled = false;
         }
     });
+}
+
+async function guardarConfigResenas() {
+    const permitirResenas = document.getElementById('permitirResenas').checked;
+    const resenasPublicas = document.getElementById('resenasPublicas').checked;
+    const permitirVotosResenas = document.getElementById('permitirVotosResenas').checked;
+
+    const resp = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', {
+        permitirResenas,
+        resenasPublicas,
+        permitirVotosResenas
+    });
+    if (!resp.ok) {
+        const result = await resp.json();
+        alert('Error al guardar la configuración de reseñas: ' + (result.error || 'Error desconocido'));
+        return;
+    }
+    alert('Configuración de reseñas guardada correctamente ✅');
 }

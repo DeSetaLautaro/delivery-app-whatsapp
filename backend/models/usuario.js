@@ -58,6 +58,9 @@ const usuarioSchema = new mongoose.Schema({
     abierto: { type: Boolean, default: true },
     plan: { type: String, enum: ['web', 'bot', 'pro'], default: 'web' },
     temaMenu: { type: String, enum: ['clasico', 'elegante'], default: 'clasico' },
+    permitirResenas: { type: Boolean, default: true },
+    resenasPublicas: { type: Boolean, default: false },
+    permitirVotosResenas: { type: Boolean, default: true },
     slug: { type: String, required: true, unique: true },
 
     // Métodos de pago que acepta el local

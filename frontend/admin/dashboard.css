@@ -966,3 +966,76 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     background: #f3f4f6;
     border-color: #9ca3af;
 }
+
+/* ====== GESTIÓN DE RESEÑAS ====== */
+#tarjeta-resenas,
+.config-card {
+    background: #1E233B;
+    border: 1px solid #2A2F45;
+    border-radius: 16px;
+    color: #FFFFFF;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    padding: 20px;
+}
+#tarjeta-resenas h3 {
+    color: #FFFFFF;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+#tarjeta-resenas .texto-descriptivo {
+    color: #8A8D9F;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+}
+.opcion-resena {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #2A2F45;
+}
+.opcion-resena:last-of-type {
+    border-bottom: none;
+}
+.resena-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.resena-info label {
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    margin: 0;
+}
+.resena-descripcion {
+    color: #8A8D9F;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+#tarjeta-resenas .toggle-switch input:checked + .toggle-slider {
+    background: #00E396;
+}
+#tarjeta-resenas .toggle-switch input:not(:checked) + .toggle-slider {
+    background: #3A3F55;
+}
+#tarjeta-resenas .toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 0 3px rgba(0,227,150,0.25);
+}
+.btn-guardar-resenas {
+    width: 100%;
+    margin-top: 16px;
+    background: #008FFB;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-guardar-resenas:hover {
+    background: #0074CB;
+}
