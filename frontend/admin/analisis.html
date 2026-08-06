@@ -17,6 +17,7 @@
                 <a href="#" class="nav-item active" data-view="general">🌐 General</a>
                 <a href="#" class="nav-item" data-view="catalogo">🍔 Catálogo</a>
                 <a href="#" class="nav-item" data-view="clientes">👥 Clientes</a>
+                <a href="#" class="nav-item" data-view="resenas">💬 Reseñas</a>
                 <a href="#" class="nav-item">📈 Analíticas</a>
                 <a href="#" class="nav-item">⚙️ Configuración</a>
             </nav>
@@ -362,6 +363,83 @@
                     </div>
                 </div>
             </section>
+            <section id="view-resenas" class="hidden">
+                <div class="resenas-kpis-grid">
+                    <div class="kpi-card">
+                        <h3>Puntuación Promedio</h3>
+                        <div class="kpi-value">4.8 / 5 ⭐</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Total de Reseñas</h3>
+                        <div class="kpi-value">184</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Aprobación Comunitaria</h3>
+                        <div class="kpi-value">92%</div>
+                        <span class="text-neon-green">de votos a favor</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Críticas Validadas</h3>
+                        <div class="kpi-value">3</div>
+                        <span class="text-neon-red">reseñas críticas confirmadas</span>
+                    </div>
+                </div>
+
+                <div class="resenas-filtros">
+                    <button class="btn-filtrar-resenas active">Todas</button>
+                    <button class="btn-filtrar-resenas">Más Votadas</button>
+                    <button class="btn-filtrar-resenas">Críticas (1-2★)</button>
+                    <button class="btn-filtrar-resenas">Pendientes</button>
+                </div>
+
+                <div class="resenas-feed">
+                    <div class="resena-card">
+                        <div class="resena-header">
+                            <span class="resena-estrellas">⭐⭐⭐⭐⭐</span>
+                            <span class="resena-fecha">Hace 2 días</span>
+                            <span class="badge badge-up">Anónimo</span>
+                        </div>
+                        <p class="resena-texto">Las hamburguesas llegaron volando y súper calientes, pero se olvidaron las salsas.</p>
+                        <div class="resena-votos">
+                            <span class="voto-badge voto-acuerdo">👍 18 "Estoy de acuerdo"</span>
+                            <span class="voto-badge voto-desacuerdo">👎 1 "No estoy de acuerdo"</span>
+                        </div>
+                        <div class="resena-acciones">
+                            <button class="btn-check-resena">✔ Marcar como revisado</button>
+                        </div>
+                    </div>
+                    <div class="resena-card">
+                        <div class="resena-header">
+                            <span class="resena-estrellas">⭐⭐⭐⭐</span>
+                            <span class="resena-fecha">Hace 5 días</span>
+                            <span class="badge badge-up">Cliente</span>
+                        </div>
+                        <p class="resena-texto">La pizza estaba rica, pero la entrega demoró un poco más de lo esperado.</p>
+                        <div class="resena-votos">
+                            <span class="voto-badge voto-acuerdo">👍 12 "Estoy de acuerdo"</span>
+                            <span class="voto-badge voto-desacuerdo">👎 2 "No estoy de acuerdo"</span>
+                        </div>
+                        <div class="resena-acciones">
+                            <button class="btn-check-resena">✔ Marcar como revisado</button>
+                        </div>
+                    </div>
+                    <div class="resena-card">
+                        <div class="resena-header">
+                            <span class="resena-estrellas">⭐⭐</span>
+                            <span class="resena-fecha">Hace 9 días</span>
+                            <span class="badge badge-down">Crítica</span>
+                        </div>
+                        <p class="resena-texto">Las papas llegaron frías y la atención fue mala.</p>
+                        <div class="resena-votos">
+                            <span class="voto-badge voto-acuerdo">👍 22 "Estoy de acuerdo"</span>
+                            <span class="voto-badge voto-desacuerdo">👎 5 "No estoy de acuerdo"</span>
+                        </div>
+                        <div class="resena-acciones">
+                            <button class="btn-check-resena">✔ Marcar como revisado</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 <script>
@@ -371,7 +449,8 @@
         const views = {
             general: document.getElementById('view-general'),
             catalogo: document.getElementById('view-catalogo'),
-            clientes: document.getElementById('view-clientes')
+            clientes: document.getElementById('view-clientes'),
+            resenas: document.getElementById('view-resenas')
         };
 
         if (!navLinks.length || !views.general || !views.catalogo || !views.clientes) return;
