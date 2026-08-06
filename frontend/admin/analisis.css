@@ -329,6 +329,9 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     justify-content: space-between;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    position: relative;
+    z-index: 30;
+    overflow: visible;
 }
 .explorador-item:hover {
     background: rgba(255,255,255,0.07);
@@ -355,6 +358,8 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .explorador-item-wrapper {
     border: 1px solid transparent;
     border-radius: 10px;
+    position: relative;
+    z-index: 20;
 }
 .explorador-item-wrapper:hover {
     border-color: rgba(0,227,150,0.2);
@@ -425,6 +430,8 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     align-items: center;
     gap: 4px;
     white-space: nowrap;
+    position: relative;
+    z-index: 9000;
 }
 .info-tooltip {
     display: inline-block;
