@@ -240,7 +240,7 @@ function renderizarExplorador(filtro = '') {
             }
         }
 
-        const infoIzquierda = `<span class="explorador-nombre">${plato.nombre}</span>` +
+        const infoIzquierda = `<span class="explorador-nombre">${plato.nombre || 'Plato sin nombre'}</span>` +
             (plato.actualmenteEnPromo ? '<span class="badge-promo">EN PROMO</span>' : '');
 
         let claseLift = '';
@@ -309,7 +309,7 @@ function toggleComparacion(plato, detalle, formatoMoneda) {
         ` : '';
         const html = `
             <div class="comparacion-card">
-                <p style="font-weight:700; color:#FFFFFF; margin:0 0 6px;">Rendimiento Diario Promedio - ${plato.nombre}</p>
+                <p style="font-weight:700; color:#FFFFFF; margin:0 0 6px;">Rendimiento Diario Promedio - ${plato.nombre || 'Plato sin nombre'}</p>
                 ${metricasExtra}
                 <div class="comparacion-linea ${sin ? '' : 'sin-datos'}">
                     <span class="comparacion-tag">SIN PROMO</span>
