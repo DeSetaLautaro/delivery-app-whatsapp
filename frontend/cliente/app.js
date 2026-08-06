@@ -572,6 +572,7 @@ function enviarPorWhatsapp() {
     const direccionInput = document.getElementById('direccionEntrega');
     const notasInput     = document.getElementById('notasPedido');
     const telefonoInput  = document.getElementById('telefonoEntrega') || document.getElementById('telefonoCliente');
+    const nombreClienteInput = document.getElementById('nombreCliente');
 
     const direccion = direccionInput ? direccionInput.value.trim() : '';
     const notas     = notasInput ? notasInput.value.trim() : '';
@@ -583,6 +584,11 @@ function enviarPorWhatsapp() {
         if (direccionInput) direccionInput.focus();
         return;
     }
+
+    // Guardamos los datos en localStorage para la próxima visita
+    if (nombreClienteInput) localStorage.setItem('nombreCliente', nombreClienteInput.value.trim());
+    if (telefonoInput)      localStorage.setItem('telefonoCliente', telefonoCliente);
+    if (direccionInput)     localStorage.setItem('direccionCliente', direccion);
 
     // 2. Leer el método de pago seleccionado
     const metodoPagoInput = document.querySelector('input[name="metodo_pago"]:checked');
@@ -808,6 +814,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (buscador) {
         buscador.addEventListener('input', filtrarPlatosBuscador);
     }
+
+    // Autocompletar datos del cliente guardados en localStorage
+    const llenarCampo = (id, key) => {
+        const el = document.getElementById(id);
+        const valor = localStorage.getItem(key);
+        if (el && valor) el.value = valor;
+    };
+    llenarCampo('nombreCliente', 'nombreCliente');
+    llenarCampo('telefonoCliente', 'telefonoCliente');
+    llenarCampo('telefonoEntrega', 'telefonoCliente');
+    llenarCampo('direccionCliente', 'direccionCliente');
+    llenarCampo('direccionEntrega', 'direccionCliente');
 
     cargarMenu();
 });
