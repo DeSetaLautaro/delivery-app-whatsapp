@@ -411,7 +411,7 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 }
 .metricas-avanzadas {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     align-items: center;
     flex-wrap: wrap;
     margin-left: 0;
@@ -421,9 +421,9 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 }
 .metrica-badge {
     background: rgba(255,255,255,0.05);
-    color: #8A8D9F;
-    font-size: 0.7rem;
-    padding: 4px 8px;
+    color: #B0B7C3;
+    font-size: 13px;
+    padding: 6px 10px;
     border-radius: 8px;
     font-weight: 600;
     display: inline-flex;
@@ -452,14 +452,16 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     bottom: 150%;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px;
-    background: #1E233B;
+    width: max-content;
+    max-width: 220px;
+    background-color: #1A1F36;
     color: #FFFFFF;
+    border: 1px solid #3A3F58;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.8);
     font-size: 0.7rem;
     line-height: 1.4;
     padding: 8px;
     border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     z-index: 9999;
     opacity: 0;
     visibility: hidden;
@@ -472,6 +474,10 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     opacity: 1;
     visibility: visible;
 }
+
+.text-success { color: #10B981; font-weight: 600; }
+.text-danger { color: #EF4444; font-weight: 600; }
+.text-warning { color: #F59E0B; font-weight: 600; }
 
 /* Heatmap */
 .heatmap-card select {

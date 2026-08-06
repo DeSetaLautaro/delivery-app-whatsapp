@@ -243,10 +243,21 @@ function renderizarExplorador(filtro = '') {
         const infoIzquierda = `<span class="explorador-nombre">${plato.nombre}</span>` +
             (plato.actualmenteEnPromo ? '<span class="badge-promo">EN PROMO</span>' : '');
 
+        let claseLift = '';
+        let claseElasticidad = '';
+        if (lift !== null) {
+            if (lift > 0) claseLift = 'text-success';
+            else if (lift < 0) claseLift = 'text-danger';
+        }
+        if (elasticidad !== null) {
+            if (elasticidad > 1) claseElasticidad = 'text-success';
+            else if (elasticidad < 1) claseElasticidad = 'text-warning';
+        }
+
         const metricasHtml = (lift !== null && elasticidad !== null) ? `
             <div class="metricas-avanzadas">
-                <span class="metrica-badge">Lift: ${lift.toFixed(0)}% <i class="info-tooltip" data-tooltip="Mide cuánto aumentaron tus ventas. Ej: 100% significa que vendés el doble con la promo.">?</i></span>
-                <span class="metrica-badge">Elasticidad: ${elasticidad.toFixed(1)} <i class="info-tooltip" data-tooltip="Sensibilidad al precio. Mayor a 1: ¡La promo es un éxito! Menor a 1: La gente lo compraría igual sin descuento.">?</i></span>
+                <span class="metrica-badge">Lift: <span class="${claseLift}">${lift.toFixed(0)}%</span> <i class="info-tooltip" data-tooltip="Mide cuánto aumentaron tus ventas. Ej: 100% significa que vendés el doble con la promo.">?</i></span>
+                <span class="metrica-badge">Elasticidad: <span class="${claseElasticidad}">${elasticidad.toFixed(1)}</span> <i class="info-tooltip" data-tooltip="Sensibilidad al precio. Mayor a 1: ¡La promo es un éxito! Menor a 1: La gente lo compraría igual sin descuento.">?</i></span>
             </div>
         ` : '';
 
