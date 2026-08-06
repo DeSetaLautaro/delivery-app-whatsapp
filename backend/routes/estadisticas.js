@@ -78,4 +78,32 @@ router.get('/', verificarToken, async (req, res) => {
     }
 });
 
+router.post('/mock', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id;
+
+        const pedidosMock = [];
+        for (let i = 0; i < 50; i++) {
+            const total = Math.floor(Math.random() * 20000) + 5000;
+            const fecha = new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000);
+            pedidosMock.push({
+                localId,
+                items: [{ nombrePlato: 'Plato de Prueba', cantidad: 1, precio: total }],
+                total,
+                fecha,
+                telefonoCliente: `11-5555-${String(i).padStart(4, '0')}`,
+                direccion: 'Mock Street 123',
+                estado: 'pendiente',
+                estadoDelivery: 'pendiente'
+            });
+        }
+
+        await Pedido.insertMany(pedidosMock);
+        res.status(200).json({ ok: true, mensaje: '50 pedidos de prueba generados' });
+    } catch (error) {
+        console.error('[ERROR] Mock data:', error);
+        res.status(500).json({ error: 'Error al generar pedidos de prueba' });
+    }
+});
+
 module.exports = router;
