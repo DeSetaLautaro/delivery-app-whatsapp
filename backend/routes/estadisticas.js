@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/verificarToken');
 const Pedido = require('../models/Pedido');
+const mongoose = require('mongoose');
 
 router.get('/', verificarToken, async (req, res) => {
     try {
@@ -65,12 +66,35 @@ router.get('/', verificarToken, async (req, res) => {
             if (ultima < fechaLimiteInactivo) clientesInactivos++;
         });
 
+        // 6) Top platos más vendidos (agregación)
+        const topPlatos = await Pedido.aggregate([
+            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.nombrePlato',
+                    totalUnidades: { $sum: '$items.cantidad' },
+                    recaudacion: {
+                        $sum: {
+                            $multiply: [
+                                '$items.cantidad',
+                                { $ifNull: ['$items.precio', 0] }
+                            ]
+                        }
+                    }
+                }
+            },
+            { $sort: { totalUnidades: -1 } },
+            { $limit: 20 }
+        ]);
+
         res.status(200).json({
             totalVentas,
             cantidadPedidos,
             ticketPromedio,
             ventasRecientes,
-            clientesInactivos
+            clientesInactivos,
+            topPlatos
         });
     } catch (error) {
         console.error('[ERROR] Estadísticas:', error);
