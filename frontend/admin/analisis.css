@@ -329,3 +329,27 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
         grid-template-columns: 1fr;
     }
 }
+
+/* Botón "Ver todos" en Top Productos */
+.btn-toggle-list {
+    display: block;
+    margin: 20px auto 0;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #8A8D9F;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: color 0.2s, border-color 0.2s;
+}
+.btn-toggle-list:hover {
+    color: #00E396;
+    border-color: rgba(0,227,150,0.3);
+}
+
+/* Ocultar filas extra del Top Productos */
+.top-platos .top-item.hidden-row {
+    display: none !important;
+}

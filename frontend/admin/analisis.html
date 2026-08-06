@@ -79,9 +79,10 @@
 
             <section id="view-catalogo" class="hidden">
                 <div class="catalogo-grid-2col">
-                    <div class="catalogo-card">
+                    <div class="catalogo-card top-products">
                         <h3>🏆 Top 5 Platos Más Vendidos</h3>
-                        <div class="top-platos">
+                        <div class="top-products-list">
+                            <div class="top-platos">
                             <div class="top-item">
                                 <span class="rank">1</span>
                                 <div class="top-info">
@@ -132,7 +133,9 @@
                                     <div class="barra-progreso"><div class="barra-fill" style="width: 40%"></div></div>
                                 </div>
                             </div>
+                            </div>
                         </div>
+                        <button id="btn-toggle-top-products" class="btn-toggle-list">Ver todos</button>
                     </div>
 
                     <div class="catalogo-card catalogo-alerta">
@@ -254,6 +257,36 @@
         navCatalogo.addEventListener('click', (e) => {
             e.preventDefault();
             setView('catalogo');
+        });
+    });
+</script>
+<script>
+    // Toggle para Top Productos en vista Catálogo
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnToggle = document.getElementById('btn-toggle-top-products');
+        if (!btnToggle) return;
+
+        const list = document.querySelector('.top-products-list .top-platos');
+        if (!list) return;
+
+        const items = list.querySelectorAll('.top-item');
+        const maxVisible = 5;
+        let expanded = false;
+
+        items.forEach((item, idx) => {
+            if (idx >= maxVisible) {
+                item.classList.add('hidden-row');
+            }
+        });
+
+        btnToggle.addEventListener('click', () => {
+            expanded = !expanded;
+            items.forEach((item, idx) => {
+                if (idx >= maxVisible) {
+                    item.classList.toggle('hidden-row', !expanded);
+                }
+            });
+            btnToggle.textContent = expanded ? 'Ver menos' : 'Ver todos';
         });
     });
 </script>
