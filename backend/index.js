@@ -179,6 +179,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // __dirname es la carpeta del archivo actual (backend/)
 // El archivo se llama menu.json y vive dentro de backend/
 const MENU_PATH = path.join(__dirname, 'menu.json');
+const CALENDARIO_PATH = path.join(__dirname, 'calendario_gastronomico.json');
 
 // Claude: inicializa el cliente con la key del .env
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -341,6 +342,50 @@ app.get('/menu', (req, res) => {
     res.status(200).json(menuJSON);
 });
 
+
+// ============================================================
+// RUTA: GET /api/calendario
+// ============================================================
+app.get('/api/calendario', (req, res) => {
+    try {
+        const raw = fs.readFileSync(CALENDARIO_PATH, 'utf8');
+        const eventos = JSON.parse(raw);
+        const hoy = new Date();
+        const mesActual = hoy.getMonth() + 1;
+        const diaActual = hoy.getDate();
+
+        const enriquecido = eventos.map(ev => {
+            let diasFaltantes;
+
+            if (ev.mes === 'todos') {
+                const fechaHoy = new Date(hoy.getFullYear(), mesActual - 1, diaActual);
+                let fechaProx = new Date(hoy.getFullYear(), mesActual - 1, ev.dia);
+                if (fechaProx < fechaHoy) {
+                    const mesSiguiente = mesActual === 12 ? 1 : mesActual + 1;
+                    const anioSiguiente = mesActual === 12 ? hoy.getFullYear() + 1 : hoy.getFullYear();
+                    fechaProx = new Date(anioSiguiente, mesSiguiente - 1, ev.dia);
+                }
+                diasFaltantes = Math.ceil((fechaProx - fechaHoy) / (1000 * 60 * 60 * 24));
+            } else {
+                let anioEvento = hoy.getFullYear();
+                const fechaHoy = new Date(hoy.getFullYear(), mesActual - 1, diaActual);
+                let fechaEvento = new Date(anioEvento, ev.mes - 1, ev.dia);
+                if (fechaEvento < fechaHoy) {
+                    anioEvento++;
+                    fechaEvento = new Date(anioEvento, ev.mes - 1, ev.dia);
+                }
+                diasFaltantes = Math.ceil((fechaEvento - fechaHoy) / (1000 * 60 * 60 * 24));
+            }
+            return { ...ev, diasFaltantes };
+        });
+
+        enriquecido.sort((a, b) => a.diasFaltantes - b.diasFaltantes);
+        res.status(200).json(enriquecido);
+    } catch (error) {
+        console.error('[ERROR] Calendario gastronómico:', error.message);
+        res.status(500).json({ error: 'No se pudo leer el calendario gastronómico' });
+    }
+});
 
 // ============================================================
 // Iniciar el servidor
