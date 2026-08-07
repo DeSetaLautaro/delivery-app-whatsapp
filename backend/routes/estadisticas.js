@@ -28,7 +28,7 @@ router.get('/', verificarToken, async (req, res) => {
         // Definir rango de fechas según periodo o parámetros explícitos
         const fechaHoy0 = new Date();
         fechaHoy0.setHours(0,0,0,0);
-        const fechaFin = new Date(fechaHoy0);
+        let fechaFin = new Date(fechaHoy0);
         fechaFin.setDate(fechaFin.getDate() + 1); // hasta mañana (excluido)
 
         let fechaInicio = new Date(fechaHoy0);
