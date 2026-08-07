@@ -306,58 +306,19 @@
                 </div>
 
                 <div class="resenas-filtros">
-                    <button class="btn-filtrar-resenas active">Todas</button>
-                    <button class="btn-filtrar-resenas">Más Votadas</button>
-                    <button class="btn-filtrar-resenas">Críticas (1-2★)</button>
-                    <button class="btn-filtrar-resenas">Pendientes</button>
+                    <select id="orden-resenas" class="neon-select">
+                        <option value="cronologico">Cronológico</option>
+                        <option value="relevante">Más votadas</option>
+                    </select>
                 </div>
 
-                <div class="resenas-feed">
-                    <div class="resena-card">
-                        <div class="resena-header">
-                            <span class="resena-estrellas">⭐⭐⭐⭐⭐</span>
-                            <span class="resena-fecha">Hace 2 días</span>
-                            <span class="badge badge-up">Anónimo</span>
-                        </div>
-                        <p class="resena-texto">Las hamburguesas llegaron volando y súper calientes, pero se olvidaron las salsas.</p>
-                        <div class="resena-votos">
-                            <span class="voto-badge voto-acuerdo">👍 18 "Estoy de acuerdo"</span>
-                            <span class="voto-badge voto-desacuerdo">👎 1 "No estoy de acuerdo"</span>
-                        </div>
-                        <div class="resena-acciones">
-                            <button class="btn-check-resena">✔ Marcar como revisado</button>
-                        </div>
-                    </div>
-                    <div class="resena-card">
-                        <div class="resena-header">
-                            <span class="resena-estrellas">⭐⭐⭐⭐</span>
-                            <span class="resena-fecha">Hace 5 días</span>
-                            <span class="badge badge-up">Cliente</span>
-                        </div>
-                        <p class="resena-texto">La pizza estaba rica, pero la entrega demoró un poco más de lo esperado.</p>
-                        <div class="resena-votos">
-                            <span class="voto-badge voto-acuerdo">👍 12 "Estoy de acuerdo"</span>
-                            <span class="voto-badge voto-desacuerdo">👎 2 "No estoy de acuerdo"</span>
-                        </div>
-                        <div class="resena-acciones">
-                            <button class="btn-check-resena">✔ Marcar como revisado</button>
-                        </div>
-                    </div>
-                    <div class="resena-card">
-                        <div class="resena-header">
-                            <span class="resena-estrellas">⭐⭐</span>
-                            <span class="resena-fecha">Hace 9 días</span>
-                            <span class="badge badge-down">Crítica</span>
-                        </div>
-                        <p class="resena-texto">Las papas llegaron frías y la atención fue mala.</p>
-                        <div class="resena-votos">
-                            <span class="voto-badge voto-acuerdo">👍 22 "Estoy de acuerdo"</span>
-                            <span class="voto-badge voto-desacuerdo">👎 5 "No estoy de acuerdo"</span>
-                        </div>
-                        <div class="resena-acciones">
-                            <button class="btn-check-resena">✔ Marcar como revisado</button>
-                        </div>
-                    </div>
+                <div id="contenedor-resenas" class="resenas-feed">
+                    <!-- Acá se inyectan las reseñas dinámicamente -->
+                </div>
+
+                <div class="resenas-carousel-controls">
+                    <button id="prev-resenas" class="btn-carousel-resenas" disabled>← Anterior</button>
+                    <button id="next-resenas" class="btn-carousel-resenas">Siguiente →</button>
                 </div>
             </section>
             <section id="view-predicciones" class="hidden">
