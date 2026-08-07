@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/verificarToken');
 const Pedido = require('../models/Pedido');
+const Resena = require('../models/Resena');
 const mongoose = require('mongoose');
 
 router.get('/', verificarToken, async (req, res) => {
@@ -418,6 +419,51 @@ router.get('/horarios-pico', verificarToken, async (req, res) => {
     } catch (error) {
         console.error('[ERROR] Horarios pico:', error);
         res.status(500).json({ error: 'Error al obtener horarios pico' });
+    }
+});
+
+// ============================================================
+// RUTA: GET /api/estadisticas/resenas/kpis
+// ============================================================
+router.get('/resenas/kpis', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+        const resenas = await Resena.find({ localId });
+        const totalResenas = resenas.length;
+        let puntuacionPromedio = 0;
+        let votosFavor = 0;
+        let votosContra = 0;
+        let criticasValidadas = 0;
+        resenas.forEach(r => {
+            puntuacionPromedio += r.estrellas || 0;
+            votosFavor += r.votosFavor || 0;
+            votosContra += r.votosContra || 0;
+            if (r.estrellas <= 2) criticasValidadas++;
+        });
+        puntuacionPromedio = totalResenas ? puntuacionPromedio / totalResenas : 0;
+        const votosTotales = votosFavor + votosContra;
+        const aprobacionComunitaria = votosTotales > 0 ? (votosFavor / votosTotales) * 100 : 0;
+        res.status(200).json({ puntuacionPromedio, totalResenas, aprobacionComunitaria, criticasValidadas });
+    } catch (error) {
+        console.error('[ERROR] KPIs reseñas:', error);
+        res.status(500).json({ error: 'Error al obtener KPIs de reseñas' });
+    }
+});
+
+// ============================================================
+// RUTA: GET /api/estadisticas/resenas
+// ============================================================
+router.get('/resenas', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+        const { orden = 'cronologico' } = req.query;
+        let sort = { fecha: -1 };
+        if (orden === 'relevante') sort = { votosFavor: -1, fecha: -1 };
+        const resenas = await Resena.find({ localId }).sort(sort);
+        res.status(200).json(resenas);
+    } catch (error) {
+        console.error('[ERROR] Lista reseñas:', error);
+        res.status(500).json({ error: 'Error al obtener reseñas' });
     }
 });
 

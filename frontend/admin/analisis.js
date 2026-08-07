@@ -3,6 +3,9 @@ let topPlatosExpandido = false;
 let listaPlatosMenos = [];
 let datosExplorador = [];
 let datosHorarios = [];
+let resenasData = [];
+let paginaActualResenas = 0;
+const RESENAS_POR_PAGINA = 9;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
@@ -59,10 +62,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const ordenResenas = document.getElementById('orden-resenas');
+    if (ordenResenas) {
+        ordenResenas.addEventListener('change', () => cargarResenas(token));
+    }
+
+    const btnPrevResenas = document.getElementById('prev-resenas');
+    const btnNextResenas = document.getElementById('next-resenas');
+    if (btnPrevResenas) btnPrevResenas.addEventListener('click', () => {
+        if (paginaActualResenas > 0) {
+            paginaActualResenas--;
+            renderizarResenas();
+        }
+    });
+    if (btnNextResenas) btnNextResenas.addEventListener('click', () => {
+        const totalPaginas = Math.ceil(resenasData.length / RESENAS_POR_PAGINA);
+        if (paginaActualResenas < totalPaginas - 1) {
+            paginaActualResenas++;
+            renderizarResenas();
+        }
+    });
+
     await cargarEstadisticas(token, periodoActual);
     cargarExplorador(token);
     cargarCombosSugeridos(token);
     cargarHorariosPico(token);
+    cargarKpisResenas(token);
+    cargarResenas(token);
 });
 
 async function cargarEstadisticas(token, periodo = 'mes') {
@@ -548,5 +574,82 @@ function renderizarCombosSugeridos(combos) {
         } else {
             card.style.display = 'none';
         }
+    }
+}
+
+async function cargarKpisResenas(token) {
+    try {
+        const resp = await fetch('/api/estadisticas/resenas/kpis', {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!resp.ok) throw new Error('Error al traer KPIs de reseñas');
+        const data = await resp.json();
+
+        const elPunt = document.getElementById('kpi-puntuacion-promedio');
+        if (elPunt) elPunt.textContent = data.puntuacionPromedio ? data.puntuacionPromedio.toFixed(1) + ' / 5 ⭐' : 'Sin datos';
+
+        const elTotal = document.getElementById('kpi-total-resenas');
+        if (elTotal) elTotal.textContent = data.totalResenas || 0;
+
+        const elAprob = document.getElementById('kpi-aprobacion-comunitaria');
+        if (elAprob) elAprob.textContent = data.aprobacionComunitaria ? data.aprobacionComunitaria.toFixed(1) + '%' : 'Sin datos';
+
+        const elCrit = document.getElementById('kpi-criticas-validadas');
+        if (elCrit) elCrit.textContent = data.criticasValidadas || 0;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function cargarResenas(token) {
+    try {
+        const select = document.getElementById('orden-resenas');
+        const orden = select ? select.value : 'cronologico';
+        const resp = await fetch(`/api/estadisticas/resenas?orden=${encodeURIComponent(orden)}`, {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!resp.ok) throw new Error('Error al traer reseñas');
+        resenasData = await resp.json();
+        paginaActualResenas = 0;
+        renderizarResenas();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function renderizarResenas() {
+    const contenedor = document.getElementById('contenedor-resenas');
+    if (!contenedor) return;
+
+    const inicio = paginaActualResenas * RESENAS_POR_PAGINA;
+    const fin = inicio + RESENAS_POR_PAGINA;
+    const visibles = resenasData.slice(inicio, fin);
+
+    if (visibles.length === 0) {
+        contenedor.innerHTML = '<p style="color:#8A8D9F; grid-column: 1 / -1; text-align:center;">Aún no hay reseñas.</p>';
+    } else {
+        contenedor.innerHTML = visibles.map(r => `
+            <div class="resena-card">
+                <div class="resena-header">
+                    <span class="resena-estrellas">${'★'.repeat(r.estrellas || 0)}${'☆'.repeat(5 - (r.estrellas || 0))}</span>
+                    <span class="resena-fecha">${new Date(r.fecha).toLocaleDateString('es-AR')}</span>
+                </div>
+                <p class="resena-texto">${r.comentario || ''}</p>
+                <div class="resena-votos">
+                    <span class="voto-badge voto-acuerdo">👍 ${r.votosFavor || 0} "Estoy de acuerdo"</span>
+                    <span class="voto-badge voto-desacuerdo">👎 ${r.votosContra || 0} "No estoy de acuerdo"</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    const btnPrev = document.getElementById('prev-resenas');
+    const btnNext = document.getElementById('next-resenas');
+    if (btnPrev) btnPrev.disabled = paginaActualResenas === 0;
+    if (btnNext) {
+        const totalPaginas = Math.ceil(resenasData.length / RESENAS_POR_PAGINA);
+        btnNext.disabled = paginaActualResenas >= totalPaginas - 1;
     }
 }

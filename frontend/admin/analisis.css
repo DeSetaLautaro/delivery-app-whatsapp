@@ -788,6 +788,36 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 }
 
 /* ==========================================
+   CARRUSEL DE RESEÑAS
+   ========================================== */
+.resenas-carousel-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 18px;
+}
+.btn-carousel-resenas {
+    background: transparent;
+    border: 1.5px solid rgba(0,227,150,0.3);
+    color: #00E396;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn-carousel-resenas:hover:not(:disabled) {
+    background: rgba(0,227,150,0.1);
+    border-color: #00E396;
+}
+.btn-carousel-resenas:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ==========================================
    VISTA RESEÑAS
    ========================================== */
 .resenas-kpis-grid {
@@ -825,17 +855,18 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 }
 .resenas-feed {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
 }
 .resena-card {
     background: #1E233B;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    font-size: 0.82rem;
 }
 .resena-header {
     display: flex;
