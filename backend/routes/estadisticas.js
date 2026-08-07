@@ -75,6 +75,7 @@ router.get('/', verificarToken, async (req, res) => {
                 $group: {
                     _id: { $trim: { input: '$telefonoCliente' } },
                     pedidos: { $sum: 1 },
+                    gastoTotal: { $sum: '$total' },
                     ultimaFecha: { $max: '$fecha' }
                 }
             }
@@ -85,6 +86,16 @@ router.get('/', verificarToken, async (req, res) => {
         const clientesFieles = clientesAgg.filter(c => c.pedidos > 3).length;
         const clientesInactivos = clientesAgg.filter(c => new Date(c.ultimaFecha) < fechaLimiteInactivo).length;
         const tasaRecompra = totalClientesUnicos > 0 ? (clientesRecompra / totalClientesUnicos) * 100 : 0;
+
+        const topClientes = clientesAgg
+            .map(c => ({
+                telefono: c._id,
+                pedidos: c.pedidos,
+                gastoTotal: c.gastoTotal || 0,
+                ultimaFecha: c.ultimaFecha || null
+            }))
+            .sort((a, b) => b.pedidos - a.pedidos)
+            .slice(0, 10);
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
@@ -140,6 +151,7 @@ router.get('/', verificarToken, async (req, res) => {
             tasaRecompra,
             clientesFieles,
             clientesInactivos,
+            topClientes,
             topPlatos,
             platosMenosPedidos
         });

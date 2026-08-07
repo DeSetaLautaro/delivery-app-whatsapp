@@ -133,9 +133,41 @@ async function cargarEstadisticas(token, periodo = 'mes') {
 
         const elClientesInactivos = document.getElementById('kpi-clientes-inactivos');
         if (elClientesInactivos) elClientesInactivos.textContent = data.clientesInactivos || 0;
+
+        renderTopClientes(data.topClientes || []);
     } catch (err) {
         console.error(err);
     }
+}
+
+function renderTopClientes(clientes) {
+    const tbody = document.getElementById('tbody-top-clientes');
+    if (!tbody) return;
+    if (!clientes || clientes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:#8A8D9F; text-align:center;">Todavía no hay clientes</td></tr>`;
+        return;
+    }
+    const formatoMoneda = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+    tbody.innerHTML = clientes.map(c => {
+        const tel = c.telefono || 'Sin teléfono';
+        const pedidos = c.pedidos || 0;
+        const total = c.gastoTotal || 0;
+        let ultima = '—';
+        if (c.ultimaFecha) {
+            const ahora = new Date();
+            const fecha = new Date(c.ultimaFecha);
+            const diff = Math.max(0, Math.floor((ahora - fecha) / (1000 * 60 * 60 * 24)));
+            ultima = diff === 0 ? 'Hoy' : diff === 1 ? 'Ayer' : `Hace ${diff} días`;
+        }
+        return `
+            <tr>
+                <td>${tel}</td>
+                <td>${pedidos}</td>
+                <td>${formatoMoneda.format(total)}</td>
+                <td>${ultima}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderizarTopPlatos() {
