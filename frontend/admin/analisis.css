@@ -2,6 +2,12 @@
 body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', sans-serif; color: #FFFFFF; }
 .admin-layout { display: flex; height: 100vh; overflow: hidden; background-color: #0B0F19; }
 
+/* Scrollbars acordes al tema oscuro */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0B0F19; }
+::-webkit-scrollbar-thumb { background: #3A3F55; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #00E396; }
+
 /* SIDEBAR */
 .sidebar { width: 260px; background-color: #121527; border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; }
 .sidebar-logo { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -697,6 +703,23 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     overflow-x: auto;
     max-height: 340px;
     overflow-y: auto;
+    scrollbar-color: #3A3F55 #121527;
+    scrollbar-width: thin;
+}
+.cliente-tabla-wrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.cliente-tabla-wrapper::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.03);
+    border-radius: 99px;
+}
+.cliente-tabla-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 99px;
+}
+.cliente-tabla-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.25);
 }
 .cliente-tabla {
     width: 100%;
