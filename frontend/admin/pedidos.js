@@ -66,7 +66,7 @@ function renderizarPedidos() {
   const contenedor = document.getElementById('contenedorPedidos');
   let pedidosMostrados = pedidosGlobales;
   if (filtroAdmin === 'pendientes') {
-    pedidosMostrados = pedidosGlobales.filter(p => p.estadoDelivery !== 'entregado');
+    pedidosMostrados = pedidosGlobales.filter(p => (p.estado || 'pendiente') === 'pendiente');
   } else if (filtroAdmin === 'entregados') {
     pedidosMostrados = pedidosGlobales.filter(p => p.estadoDelivery === 'entregado');
   }
