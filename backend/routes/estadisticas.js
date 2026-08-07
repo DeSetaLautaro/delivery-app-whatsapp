@@ -68,12 +68,27 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 5) Métricas de clientes (basado en colección Cliente)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+        const fechaLimiteVIP = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
         const clientes = await Cliente.find({ localId }).lean();
 
         const totalClientesUnicos = clientes.length;
         const clientesRecompra = clientes.filter(c => c.cantidadPedidos > 1).length;
-        const clientesFieles = clientes.filter(c => c.cantidadPedidos > 3).length;
+
+        // Cálculo de VIP: top 20% de frecuencia (percentil 80) y recencia <= 30 días
+        let percentil80 = 0;
+        if (clientes.length > 0) {
+            const pedidosOrdenados = clientes
+                .map(c => c.cantidadPedidos || 0)
+                .sort((a, b) => a - b);
+            percentil80 = pedidosOrdenados[Math.floor(0.8 * (pedidosOrdenados.length - 1))];
+        }
+        const clientesFieles = clientes.filter(c => {
+            if (!c.ultimaFechaPedido) return false;
+            if (new Date(c.ultimaFechaPedido) < fechaLimiteVIP) return false;
+            return c.cantidadPedidos > percentil80;
+        }).length;
+
         const clientesInactivos = clientes.filter(c => !c.ultimaFechaPedido || c.ultimaFechaPedido < fechaLimiteInactivo).length;
         const tasaRecompra = totalClientesUnicos > 0 ? (clientesRecompra / totalClientesUnicos) * 100 : 0;
 
