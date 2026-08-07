@@ -134,6 +134,12 @@ async function cargarEstadisticas(token, periodo = 'mes') {
         const elClientesEnRiesgo = document.getElementById('kpi-clientes-en-riesgo');
         if (elClientesEnRiesgo) elClientesEnRiesgo.textContent = data.clientesEnRiesgo || 0;
 
+        const elVisitas = document.getElementById('kpi-visitas');
+        if (elVisitas) elVisitas.textContent = (data.totalVisitas || 0).toLocaleString('es-AR');
+
+        const elConversion = document.getElementById('kpi-conversion');
+        if (elConversion) elConversion.textContent = (data.tasaDeConversion !== undefined ? data.tasaDeConversion.toFixed(1) + '%' : '0%');
+
         renderTopClientes(data.topClientes || []);
 
         cargarRetencion(periodo);

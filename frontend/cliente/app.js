@@ -64,6 +64,11 @@ async function cargarMenu() {
 
         // 4. Logo del header: si el local tiene foto, reemplazamos la pizza
         const perfilDelLocal = await (await fetch(`/api/publico/perfil/${slugDelLocal}`)).json();
+
+        // Registro silencioso de visita (no bloquea la carga del menú)
+        if (perfilDelLocal && perfilDelLocal._id) {
+            fetch(`/api/visitas/${perfilDelLocal._id}`, { method: 'POST' }).catch(() => {});
+        }
         // Aplicar tema visual elegido por el local
         const temaActual = perfilDelLocal.temaMenu || 'clasico';
         document.body.classList.remove('tema-clasico', 'tema-elegante');

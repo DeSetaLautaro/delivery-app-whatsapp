@@ -22,6 +22,7 @@ const deliveryRoutes = require('./routes/delivery');
 const pagosRoutes = require('./routes/pagos');
 const DeliveryToken = require('./models/DeliveryToken');
 const Resena = require('./models/Resena');
+const Visita = require('./models/Visita');
 const verificarToken = require('./middleware/verificarToken');
 
 const app    = express();
@@ -353,6 +354,26 @@ app.get('/config', (req, res) => {
         nombreLocal:      process.env.NOMBRE_LOCAL      || 'Mi Local',
         whatsappNumero:   process.env.WHATSAPP_NUMERO   || ''
     });
+});
+
+// ============================================================
+// RUTA PÚBLICA: POST /api/visitas/:localId
+// ============================================================
+app.post('/api/visitas/:localId', async (req, res) => {
+    try {
+        const localId = req.params.localId;
+        const hoy = new Date();
+        const fechaStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        await Visita.findOneAndUpdate(
+            { localId, fecha: fechaStr },
+            { $inc: { cantidad: 1 } },
+            { upsert: true, new: true }
+        );
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('[ERROR] Registrar visita:', error);
+        res.status(200).json({ success: true });
+    }
 });
 
 

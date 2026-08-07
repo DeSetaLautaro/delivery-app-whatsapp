@@ -4,7 +4,15 @@ const verificarToken = require('../middleware/verificarToken');
 const Pedido = require('../models/Pedido');
 const Resena = require('../models/Resena');
 const Cliente = require('../models/Cliente');
+const Visita = require('../models/Visita');
 const mongoose = require('mongoose');
+
+function formatoFechaLocal(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
 
 router.get('/', verificarToken, async (req, res) => {
     try {
@@ -163,6 +171,13 @@ router.get('/', verificarToken, async (req, res) => {
             { $limit: 3 }
         ]);
 
+        const visitasEnPeriodo = await Visita.find({
+            localId: localId,
+            fecha: { $gte: formatoFechaLocal(fechaInicio), $lte: formatoFechaLocal(fechaFin) }
+        });
+        const totalVisitas = visitasEnPeriodo.reduce((sum, v) => sum + (v.cantidad || 0), 0);
+        const tasaDeConversion = totalVisitas > 0 ? (cantidadPedidos / totalVisitas) * 100 : 0;
+
         res.status(200).json({
             totalVentas,
             cantidadPedidos,
@@ -174,7 +189,9 @@ router.get('/', verificarToken, async (req, res) => {
             clientesEnRiesgo,
             topClientes,
             topPlatos,
-            platosMenosPedidos
+            platosMenosPedidos,
+            totalVisitas,
+            tasaDeConversion
         });
     } catch (error) {
         console.error('[ERROR] Estadísticas:', error);
