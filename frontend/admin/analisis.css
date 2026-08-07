@@ -702,10 +702,16 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 
 .cliente-tabla-wrapper {
     overflow-x: auto;
-    max-height: 340px;
+    max-height: calc(7 * 48px);
     overflow-y: auto;
     scrollbar-color: #3A3F55 #121527;
     scrollbar-width: thin;
+}
+.cliente-tabla tr {
+    height: 48px;
+}
+.cliente-grid-2col > .cliente-card:first-child {
+    min-height: 340px;
 }
 .cliente-tabla-wrapper::-webkit-scrollbar {
     width: 6px;
