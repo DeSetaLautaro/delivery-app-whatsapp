@@ -365,9 +365,15 @@ function modoPlatoHorarios() {
 
     const select = document.getElementById('selectPlatoPico');
     if (select) {
-        const platos = ['Todos los platos'].concat(
-            [...new Set(datosHorarios.map(d => d.plato))].sort()
-        );
+        // Cargar todos los platos que aparezcan en cualquier conjunto de datos
+        const platosSet = new Set(datosHorarios.map(d => d.plato));
+        if (datosExplorador && datosExplorador.length) {
+            datosExplorador.forEach(p => { if (p.nombre) platosSet.add(p.nombre); });
+        }
+        if (listaTopPlatos && listaTopPlatos.length) {
+            listaTopPlatos.forEach(p => { if (p._id) platosSet.add(p._id); });
+        }
+        const platos = ['Todos los platos'].concat([...platosSet].sort());
         select.innerHTML = platos.map(p => `<option value="${p}">${p}</option>`).join('');
         select.value = 'Todos los platos';
         // Asegúrate de que el <select> esté visible

@@ -488,55 +488,6 @@
         });
     });
 </script>
-<script>
-    // Lógica Toggle Días y Horarios Pico
-    document.addEventListener('DOMContentLoaded', () => {
-        const btnPlato = document.getElementById('btnAnalisisPlato');
-        const btnDia = document.getElementById('btnAnalisisDia');
-        const select = document.getElementById('selectPlatoPico');
-        const heatmapContainer = document.getElementById('heatmap-container');
-        const dayRankingContainer = document.getElementById('day-ranking-container');
-
-        if (!btnPlato || !btnDia || !select || !heatmapContainer || !dayRankingContainer) return;
-
-        const platosOpciones = [
-            'Todos los platos',
-            '🍔 Triple Bacon',
-            '🍕 Pizza Muzza',
-            '🥗 Ensalada César'
-        ];
-        const diasOpciones = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-        function actualizarSelect(opciones) {
-            select.innerHTML = '';
-            opciones.forEach(op => {
-                const opt = document.createElement('option');
-                opt.value = op;
-                opt.textContent = op;
-                select.appendChild(opt);
-            });
-        }
-
-        function modoPlato() {
-            btnPlato.classList.add('active');
-            btnDia.classList.remove('active');
-            actualizarSelect(platosOpciones);
-            heatmapContainer.classList.remove('hidden');
-            dayRankingContainer.classList.add('hidden');
-        }
-
-        function modoDia() {
-            btnDia.classList.add('active');
-            btnPlato.classList.remove('active');
-            actualizarSelect(diasOpciones);
-            heatmapContainer.classList.add('hidden');
-            dayRankingContainer.classList.remove('hidden');
-        }
-
-        btnPlato.addEventListener('click', modoPlato);
-        btnDia.addEventListener('click', modoDia);
-    });
-</script>
 <script src="analisis.js"></script>
 </body>
 </html>
