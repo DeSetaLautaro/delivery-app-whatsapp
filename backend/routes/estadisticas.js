@@ -100,6 +100,10 @@ router.get('/', verificarToken, async (req, res) => {
                 cantidadPedidos: serieMap[clave].cantidad
             }));
 
+        const labels = ventasRecientes.map(v => v.fecha);
+        const dataIngresos = ventasRecientes.map(v => v.recaudacion || 0);
+        const dataPedidos = ventasRecientes.map(v => v.cantidadPedidos || 0);
+
         // 5) Métricas de clientes (basado en colección Cliente)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
         const fechaLimiteVIP = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -210,6 +214,9 @@ router.get('/', verificarToken, async (req, res) => {
             ticketPromedio,
             ventasRecientes,
             granularidad,
+            labels,
+            dataIngresos,
+            dataPedidos,
             totalClientesUnicos,
             tasaRecompra,
             clientesFieles,

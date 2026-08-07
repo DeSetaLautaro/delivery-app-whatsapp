@@ -98,13 +98,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             metricSeleccionada = 'ingresos';
             btnIngresos.classList.add('active');
             btnPedidos.classList.remove('active');
-            renderSalesChart(window.ventasData || [], window.granularidadActual || 'dia');
+            renderSalesChart(
+                window.labelsChart || [],
+                window.dataIngresosChart || [],
+                window.dataPedidosChart || [],
+                window.granularidadActual || 'dia'
+            );
         });
         btnPedidos.addEventListener('click', () => {
             metricSeleccionada = 'pedidos';
             btnPedidos.classList.add('active');
             btnIngresos.classList.remove('active');
-            renderSalesChart(window.ventasData || [], window.granularidadActual || 'dia');
+            renderSalesChart(
+                window.labelsChart || [],
+                window.dataIngresosChart || [],
+                window.dataPedidosChart || [],
+                window.granularidadActual || 'dia'
+            );
         });
     }
 });
@@ -170,7 +180,20 @@ async function cargarEstadisticas(token, periodo = 'mes') {
             elPlatoDetalle.textContent = 'Sin datos todavía';
         }
 
-        renderSalesChart(data.ventasRecientes || [], data.granularidad || 'dia');
+        console.log('[SALES OVERVIEW PAYLOAD]', {
+            labels: data.labels,
+            dataIngresos: data.dataIngresos,
+            dataPedidos: data.dataPedidos,
+            granularidad: data.granularidad,
+            ventasRecientes: data.ventasRecientes
+        });
+
+        renderSalesChart(
+            data.labels || [],
+            data.dataIngresos || [],
+            data.dataPedidos || [],
+            data.granularidad || 'dia'
+        );
 
         renderTopClientes(data.topClientes || []);
 
@@ -238,15 +261,18 @@ async function cargarRetencion(periodo) {
     }
 }
 
-function renderSalesChart(ventasRecientes, granularidad) {
+function renderSalesChart(labels, dataIngresos, dataPedidos, granularidad = 'dia') {
     const canvas = document.getElementById('salesChart');
     if (!canvas || typeof window.Chart === 'undefined') return;
 
     // Guardar datos para poder actualizar sin refetch
-    window.ventasData = ventasRecientes || [];
-    window.granularidadActual = granularidad || 'dia';
+    window.labelsChart = labels || [];
+    window.dataIngresosChart = dataIngresos || [];
+    window.dataPedidosChart = dataPedidos || [];
+    window.granularidadActual = granularidad;
 
-    if (window.ventasData.length === 0) {
+    const hayDatos = window.dataIngresosChart.length > 0 || window.dataPedidosChart.length > 0;
+    if (!hayDatos) {
         if (window.mySalesChart) {
             window.mySalesChart.destroy();
             window.mySalesChart = null;
@@ -254,26 +280,20 @@ function renderSalesChart(ventasRecientes, granularidad) {
         return;
     }
 
-    function formatearEtiqueta(valor) {
-        if (granularidad === 'hora') {
-            // valor tipo "14:00 hs"
-            return valor;
-        } else if (granularidad === 'dia') {
-            // valor tipo "2026-08-07"
-            const fecha = new Date(valor + 'T00:00:00');
+    const formatoEtiqueta = window.labelsChart.map(val => {
+        if (granularidad === 'hora') return val;
+        if (granularidad === 'dia') {
+            const fecha = new Date(val + 'T00:00:00');
             return fecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' });
-        } else {
-            // valor tipo "2026-08"
-            const [anio, mes] = valor.split('-');
-            const nombreMes = new Date(Number(anio), Number(mes) - 1, 1).toLocaleDateString('es-AR', { month: 'short' });
-            return nombreMes + ' ' + anio;
         }
-    }
+        const [anio, mes] = val.split('-');
+        const nombreMes = new Date(Number(anio), Number(mes) - 1, 1).toLocaleDateString('es-AR', { month: 'short' });
+        return nombreMes + ' ' + anio;
+    });
 
-    const labels = window.ventasData.map(v => formatearEtiqueta(v.fecha));
-    const data = metricSeleccionada === 'ingresos'
-        ? window.ventasData.map(v => v.recaudacion || 0)
-        : window.ventasData.map(v => v.cantidadPedidos || 0);
+    const dataActiva = metricSeleccionada === 'ingresos'
+        ? window.dataIngresosChart
+        : window.dataPedidosChart;
     const chartLabel = metricSeleccionada === 'ingresos' ? 'Ingresos ($)' : 'Cantidad de Pedidos';
 
     const ctx = canvas.getContext('2d');
@@ -282,10 +302,10 @@ function renderSalesChart(ventasRecientes, granularidad) {
     window.mySalesChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels,
+            labels: formatoEtiqueta,
             datasets: [{
                 label: chartLabel,
-                data,
+                data: dataActiva,
                 borderColor: '#00E396',
                 tension: 0.4,
                 fill: true,
@@ -306,6 +326,7 @@ function renderSalesChart(ventasRecientes, granularidad) {
                     ticks: { color: '#8A8D9F' }
                 },
                 y: {
+                    beginAtZero: true,
                     grid: { color: 'rgba(255,255,255,0.05)' },
                     ticks: { color: '#8A8D9F' }
                 }
