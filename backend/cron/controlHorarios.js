@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const Usuario = require('../models/usuario.js');
+const Pedido = require('../models/Pedido.js');
 
 function iniciarRobotHorarios() {
     console.log("🤖 Robot de horarios encendido. Vigilando cada 1 minuto...");
@@ -51,6 +52,19 @@ function iniciarRobotHorarios() {
             }
         } catch (error) {
             console.error("❌ Error en el robot de horarios:", error);
+        }
+    });
+
+    // Cierre automático diario de pedidos pendientes
+    cron.schedule('0 4 * * *', async () => {
+        try {
+            const resultado = await Pedido.updateMany(
+                { estado: 'pendiente' },
+                { $set: { estado: 'completado' } }
+            );
+            console.log(`[Cierre diario] ${resultado.modifiedCount} pedidos pendientes fueron marcados como completados.`);
+        } catch (error) {
+            console.error('Error al cerrar pedidos automáticamente:', error);
         }
     });
 }

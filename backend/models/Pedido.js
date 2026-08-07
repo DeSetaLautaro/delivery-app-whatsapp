@@ -19,7 +19,7 @@ const pedidoSchema = new mongoose.Schema({
     }],
     metodoPago: { type: String, default: 'Efectivo', enum: ['Efectivo', 'Transferencia', 'Tarjeta'] },
     total: { type: Number, required: true },
-    estado: { type: String, default: 'pendiente' },
+    estado: { type: String, enum: ['pendiente', 'completado', 'cancelado'], default: 'pendiente' },
     direccion: { type: String, default: '' },
     notas: { type: String, default: '' },
     telefonoCliente: { type: String, default: '' },

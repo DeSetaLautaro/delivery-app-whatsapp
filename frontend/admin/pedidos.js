@@ -89,9 +89,12 @@ function renderizarPedidos() {
       ` : '';
       const numero = p.numeroDiario !== undefined ? `#${p.numeroDiario}` : '#?';
       const fechaHora = new Date(p.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-      const itemsHtml = (p.items || []).map(item =>
-        `${item.cantidad} × ${item.nombrePlato}${item.toppings && item.toppings.length ? ` (${item.toppings.map(t=>t.opcionNombre).join(', ')})` : ''} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`
-      ).join('<br>');
+      const itemsHtml = (p.items || []).map(item => {
+        const cantidad = item.cantidad || 1;
+        const toppings = item.toppings && item.toppings.length ? ` <span class="topping-item">(${item.toppings.map(t=>t.opcionNombre).join(', ')})</span>` : '';
+        const precioItem = (item.precio || 0) * cantidad;
+        return `<div class="linea-item"><span class="nombre-item"><strong class="cantidad-item">${cantidad}×</strong> ${item.nombrePlato}${toppings}</span> <span class="precio-item">$${precioItem.toLocaleString('es-AR')}</span></div>`;
+      }).join('');
       return `
         <div class="${cardClass}" data-id="${p._id}">
           <div class="pedido-header">
@@ -106,10 +109,6 @@ function renderizarPedidos() {
             ${p.direccion ? `<p class="direccion">📍 ${p.direccion}</p>` : ''}
           </div>
           ${buttonsHtml}
-          <div class="switch-admin" style="display:flex; align-items:center; gap:8px; margin-top:10px;">
-            <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${p.estadoDelivery === 'entregado' ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
-            <span style="font-weight:700; color:#374151;">${p.estadoDelivery === 'entregado' ? 'Entregado' : 'Pendiente'}</span>
-          </div>
         </div>
       `;
     }).join('');
@@ -219,28 +218,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Listener para el switch de entregado (delegado)
-  document.addEventListener('change', async (e) => {
-    if (e.target.classList.contains('switch-entregado')) {
-      const id = e.target.dataset.id;
-      const nuevoEstado = e.target.checked ? 'entregado' : 'pendiente';
-      try {
-        const resp = await fetch(`/api/delivery/pedidos/${id}/estado?token=${encodeURIComponent(deliveryToken)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estadoDelivery: nuevoEstado })
-        });
-        if (!resp.ok) throw new Error('Error al cambiar estado');
-        const pedido = await resp.json();
-        const idx = pedidosGlobales.findIndex(p => p._id === id);
-        if (idx !== -1) pedidosGlobales[idx].estadoDelivery = pedido.estadoDelivery;
-        renderizarPedidos();
-      } catch (error) {
-        console.error(error);
-        alert('No se pudo actualizar el estado');
-      }
-    }
-  });
 
   // Listener para acciones de pedido (completar / cancelar)
   document.addEventListener('click', async (e) => {
