@@ -392,22 +392,12 @@ router.get('/horarios-pico', verificarToken, async (req, res) => {
                             },
                             in: { $arrayElemAt: ['$$arr', { $subtract: ['$diaNum', 1] }] }
                         }
-                    },
-                    franjaHoraria: {
-                        $switch: {
-                            branches: [
-                                { case: { $and: [ { $gte: ['$hora', 11] }, { $lte: ['$hora', 14] } ] }, then: 'Mediodía' },
-                                { case: { $and: [ { $gte: ['$hora', 15] }, { $lte: ['$hora', 18] } ] }, then: 'Tarde' },
-                                { case: { $and: [ { $gte: ['$hora', 19] }, { $lte: ['$hora', 22] } ] }, then: 'Noche' }
-                            ],
-                            default: 'Trasnoche'
-                        }
                     }
                 }
             },
             {
                 $group: {
-                    _id: { dia: '$dia', franja: '$franjaHoraria', plato: '$items.nombrePlato' },
+                    _id: { dia: '$dia', hora: '$hora', plato: '$items.nombrePlato' },
                     unidades: { $sum: '$items.cantidad' },
                     recaudacion: { $sum: { $multiply: ['$items.cantidad', { $ifNull: ['$items.precio', 0] }] } }
                 }
@@ -416,7 +406,7 @@ router.get('/horarios-pico', verificarToken, async (req, res) => {
                 $project: {
                     _id: 0,
                     dia: '$_id.dia',
-                    franja: '$_id.franja',
+                    hora: '$_id.hora',
                     plato: '$_id.plato',
                     unidades: 1,
                     recaudacion: 1

@@ -201,82 +201,10 @@
                         <option>🍕 Pizza Muzza</option>
                         <option>🥗 Ensalada César</option>
                     </select>
-                    <div id="heatmap-container">
-                        <table class="heatmap">
-                            <thead>
-                                <tr>
-                                    <th>Día</th>
-                                    <th>Mediodía</th>
-                                    <th>Tarde</th>
-                                    <th>Noche</th>
-                                    <th>Trasnoche</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>Lun</td><td class="heat-cell" data-int="0.05"></td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.60"></td><td class="heat-cell" data-int="0.15"></td></tr>
-                                <tr><td>Mar</td><td class="heat-cell" data-int="0.02"></td><td class="heat-cell" data-int="0.08"></td><td class="heat-cell" data-int="0.70"></td><td class="heat-cell" data-int="0.20"></td></tr>
-                                <tr><td>Mié</td><td class="heat-cell" data-int="0.03"></td><td class="heat-cell" data-int="0.12"></td><td class="heat-cell" data-int="0.55"></td><td class="heat-cell" data-int="0.25"></td></tr>
-                                <tr><td>Jue</td><td class="heat-cell" data-int="0.04"></td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.80"></td><td class="heat-cell" data-int="0.30"></td></tr>
-                                <tr><td>Vie</td><td class="heat-cell" data-int="0.10"></td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.95"></td><td class="heat-cell" data-int="0.45"></td></tr>
-                                <tr><td>Sáb</td><td class="heat-cell" data-int="0.20"></td><td class="heat-cell" data-int="0.35"></td><td class="heat-cell" data-int="1.00"></td><td class="heat-cell" data-int="0.60"></td></tr>
-                                <tr><td>Dom</td><td class="heat-cell" data-int="0.15"></td><td class="heat-cell" data-int="0.25"></td><td class="heat-cell" data-int="0.75"></td><td class="heat-cell" data-int="0.40"></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <div id="heatmap-container"></div>
                     <div id="day-ranking-container" class="hidden">
                         <h4>Top 5 Platos del Día</h4>
-                        <div class="day-ranking-list">
-                            <div class="top-item">
-                                <span class="rank">1</span>
-                                <div class="top-info">
-                                    <div class="top-header">
-                                        <span class="top-nombre">🍔 Triple Bacon</span>
-                                        <span class="top-stats">45 u · $45.000</span>
-                                    </div>
-                                    <div class="barra-progreso"><div class="barra-fill" style="width: 95%"></div></div>
-                                </div>
-                            </div>
-                            <div class="top-item">
-                                <span class="rank">2</span>
-                                <div class="top-info">
-                                    <div class="top-header">
-                                        <span class="top-nombre">🍕 Pizza Muzza</span>
-                                        <span class="top-stats">38 u · $38.000</span>
-                                    </div>
-                                    <div class="barra-progreso"><div class="barra-fill" style="width: 80%"></div></div>
-                                </div>
-                            </div>
-                            <div class="top-item">
-                                <span class="rank">3</span>
-                                <div class="top-info">
-                                    <div class="top-header">
-                                        <span class="top-nombre">🥗 Ensalada César</span>
-                                        <span class="top-stats">29 u · $29.000</span>
-                                    </div>
-                                    <div class="barra-progreso"><div class="barra-fill" style="width: 60%"></div></div>
-                                </div>
-                            </div>
-                            <div class="top-item">
-                                <span class="rank">4</span>
-                                <div class="top-info">
-                                    <div class="top-header">
-                                        <span class="top-nombre">🌮 Taco Mexicano</span>
-                                        <span class="top-stats">22 u · $22.000</span>
-                                    </div>
-                                    <div class="barra-progreso"><div class="barra-fill" style="width: 45%"></div></div>
-                                </div>
-                            </div>
-                            <div class="top-item">
-                                <span class="rank">5</span>
-                                <div class="top-info">
-                                    <div class="top-header">
-                                        <span class="top-nombre">🍟 Papas Cheddar</span>
-                                        <span class="top-stats">18 u · $18.000</span>
-                                    </div>
-                                    <div class="barra-progreso"><div class="barra-fill" style="width: 35%"></div></div>
-                                </div>
-                            </div>
-                        </div>
+                        <div id="day-ranking-list" class="day-ranking-list"></div>
                     </div>
                 </div>
             </section>
