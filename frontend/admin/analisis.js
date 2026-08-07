@@ -195,6 +195,8 @@ async function cargarEstadisticas(token, periodo = 'mes') {
             data.granularidad || 'dia'
         );
 
+        actualizarBadgesComparacion(data.comparaciones);
+
         renderTopClientes(data.topClientes || []);
 
         // Calcular fechas para tendencias (misma lógica que retención)
@@ -386,6 +388,34 @@ function renderSalesChart(labels, dataIngresos, dataPedidos, granularidad = 'dia
             }
         }
     });
+}
+
+function actualizarBadgesComparacion(comparaciones) {
+    if (!comparaciones) return;
+    const mapa = {
+        ingresos:   'badge-ingresos',
+        pedidos:    'badge-pedidos',
+        ticket:     'badge-ticket',
+        visitas:    'badge-visitas',
+        conversion: 'badge-conversion'
+    };
+    for (const [clave, idBadge] of Object.entries(mapa)) {
+        const el = document.getElementById(idBadge);
+        if (!el) continue;
+        const dato = comparaciones[clave];
+        if (!dato) continue;
+        const pct = dato.porcentaje;
+        const pctRedondeado = Math.round(pct * 10) / 10;
+        let texto;
+        if (pct >= 0) {
+            texto = `↑ +${pctRedondeado.toFixed(1)}% vs período anterior`;
+        } else {
+            texto = `↓ ${pctRedondeado.toFixed(1)}% vs período anterior`;
+        }
+        el.textContent = texto;
+        el.classList.remove('badge-positivo', 'badge-negativo');
+        el.classList.add(pct >= 0 ? 'badge-positivo' : 'badge-negativo');
+    }
 }
 
 function renderTopClientes(clientes) {

@@ -208,6 +208,47 @@ router.get('/', verificarToken, async (req, res) => {
         const totalVisitas = visitasEnPeriodo.reduce((sum, v) => sum + (v.cantidad || 0), 0);
         const tasaDeConversion = totalVisitas > 0 ? (cantidadPedidos / totalVisitas) * 100 : 0;
 
+        // Métricas actuales para comparación
+        const ingresosActuales = totalVentas || 0;
+        const pedidosActuales = cantidadPedidos || 0;
+        const ticketActual = pedidosActuales > 0 ? ingresosActuales / pedidosActuales : 0;
+        const visitasActuales = totalVisitas || 0;
+        const conversionActual = visitasActuales > 0 ? (pedidosActuales / visitasActuales) * 100 : 0;
+
+        // Calcular período anterior y sus métricas
+        const duracionMs = (fechaFin.getTime() - fechaInicio.getTime());
+        const inicioAnterior = new Date(fechaInicio.getTime() - duracionMs);
+        const finAnterior = new Date(fechaInicio.getTime()); // exclusivo
+
+        const pedidosAnteriores = await Pedido.find({
+            localId,
+            fecha: { $gte: inicioAnterior, $lt: finAnterior }
+        });
+
+        const ingresosAnteriores = pedidosAnteriores.reduce((sum, p) => sum + (p.total || 0), 0);
+        const pedidosAnterioresCount = pedidosAnteriores.length;
+        const ticketAnterior = pedidosAnterioresCount > 0 ? ingresosAnteriores / pedidosAnterioresCount : 0;
+
+        const visitasAnterioresDoc = await Visita.find({
+            localId,
+            fecha: { $gte: formatoFechaLocal(inicioAnterior), $lte: formatoFechaLocal(finAnterior) }
+        });
+        const visitasAnteriores = visitasAnterioresDoc.reduce((sum, v) => sum + (v.cantidad || 0), 0);
+        const conversionAnterior = visitasAnteriores > 0 ? (pedidosAnterioresCount / visitasAnteriores) * 100 : 0;
+
+        const calcPct = (actual, anterior) => {
+            if (anterior === 0) return actual > 0 ? 100 : 0;
+            return ((actual - anterior) / anterior) * 100;
+        };
+
+        const comparaciones = {
+            ingresos:   { valor: ingresosActuales, porcentaje: calcPct(ingresosActuales, ingresosAnteriores) },
+            pedidos:    { valor: pedidosActuales, porcentaje: calcPct(pedidosActuales, pedidosAnterioresCount) },
+            ticket:     { valor: ticketActual, porcentaje: calcPct(ticketActual, ticketAnterior) },
+            visitas:    { valor: visitasActuales, porcentaje: calcPct(visitasActuales, visitasAnteriores) },
+            conversion: { valor: conversionActual, porcentaje: calcPct(conversionActual, conversionAnterior) }
+        };
+
         res.status(200).json({
             totalVentas,
             cantidadPedidos,
@@ -225,7 +266,8 @@ router.get('/', verificarToken, async (req, res) => {
             topPlatos,
             platosMenosPedidos,
             totalVisitas,
-            tasaDeConversion
+            tasaDeConversion,
+            comparaciones
         });
     } catch (error) {
         console.error('[ERROR] Estadísticas:', error);

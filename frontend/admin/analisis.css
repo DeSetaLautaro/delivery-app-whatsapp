@@ -51,6 +51,8 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .badge { font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 99px; }
 .badge-up { color: #00E396; background: rgba(0, 227, 150, 0.1); }
 .badge-down { color: #FF4560; background: rgba(255, 69, 96, 0.1); }
+.badge-positivo { background: #D1FAE5; color: #065F46; font-weight: 600; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; }
+.badge-negativo { background: #FEE2E2; color: #991B1B; font-weight: 600; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; }
 
 /* SECCIÓN DE GRÁFICOS (Abajo) */
 .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
