@@ -95,7 +95,7 @@ router.get('/', verificarToken, async (req, res) => {
                 ultimaFecha: c.ultimaFecha || null
             }))
             .sort((a, b) => b.pedidos - a.pedidos)
-            .slice(0, 10);
+            .slice(0, 8);
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
