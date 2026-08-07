@@ -564,6 +564,7 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 /* Utilidades neón */
 .text-neon-green { color: #00E396; font-weight: 600; }
 .text-neon-red { color: #FF4560; font-weight: 600; }
+.text-neon-orange { color: #F59E0B; font-weight: 600; }
 
 @media (max-width: 600px) {
     .catalogo-grid-2col {

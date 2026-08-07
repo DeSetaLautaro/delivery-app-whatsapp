@@ -69,6 +69,7 @@ router.get('/', verificarToken, async (req, res) => {
         // 5) Métricas de clientes (basado en colección Cliente)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
         const fechaLimiteVIP = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const fechaLimiteRiesgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
         const clientes = await Cliente.find({ localId }).lean();
 
@@ -89,7 +90,11 @@ router.get('/', verificarToken, async (req, res) => {
             return c.cantidadPedidos > percentil80;
         }).length;
 
-        const clientesInactivos = clientes.filter(c => !c.ultimaFechaPedido || c.ultimaFechaPedido < fechaLimiteInactivo).length;
+        const clientesEnRiesgo = clientes.filter(c =>
+            c.cantidadPedidos > 1 &&
+            c.ultimaFechaPedido &&
+            new Date(c.ultimaFechaPedido) < fechaLimiteRiesgo
+        ).length;
         const tasaRecompra = totalClientesUnicos > 0 ? (clientesRecompra / totalClientesUnicos) * 100 : 0;
 
         const topClientesRaw = await Cliente.find({ localId })
@@ -166,7 +171,7 @@ router.get('/', verificarToken, async (req, res) => {
             totalClientesUnicos,
             tasaRecompra,
             clientesFieles,
-            clientesInactivos,
+            clientesEnRiesgo,
             topClientes,
             topPlatos,
             platosMenosPedidos

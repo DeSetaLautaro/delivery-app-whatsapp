@@ -131,8 +131,8 @@ async function cargarEstadisticas(token, periodo = 'mes') {
         const elClientesFieles = document.getElementById('kpi-clientes-fieles');
         if (elClientesFieles) elClientesFieles.textContent = data.clientesFieles || 0;
 
-        const elClientesInactivos = document.getElementById('kpi-clientes-inactivos');
-        if (elClientesInactivos) elClientesInactivos.textContent = data.clientesInactivos || 0;
+        const elClientesEnRiesgo = document.getElementById('kpi-clientes-en-riesgo');
+        if (elClientesEnRiesgo) elClientesEnRiesgo.textContent = data.clientesEnRiesgo || 0;
 
         renderTopClientes(data.topClientes || []);
     } catch (err) {
