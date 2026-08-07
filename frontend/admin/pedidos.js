@@ -227,6 +227,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nuevoEstado = boton.classList.contains('btn-completar') ? 'completado' : 'cancelado';
     const textoConfirmacion = nuevoEstado === 'cancelado' ? '¿Seguro que querés cancelar este pedido?' : '¿Marcar este pedido como completado?';
     if (!confirm(textoConfirmacion)) return;
+
+    // Si es un pedido de prueba (mock), actualizamos localmente sin backend
+    if (id.startsWith('mock')) {
+      const idx = pedidosGlobales.findIndex(p => p._id === id);
+      if (idx !== -1) {
+        pedidosGlobales[idx].estado = nuevoEstado;
+        renderizarPedidos();
+      }
+      return;
+    }
+
     try {
       const resp = await fetch(`/api/pedidos/${id}/estado`, {
         method: 'PATCH',

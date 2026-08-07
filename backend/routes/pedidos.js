@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Pedido = require('../models/Pedido');
 const Usuario = require('../models/usuario'); // Ajustá la ruta si tu archivo se llama distinto
@@ -69,12 +70,16 @@ router.post('/', async (req, res) => {
 // PATCH /api/pedidos/:id/estado (protegido)
 router.patch('/:id/estado', verificarToken, async (req, res) => {
     try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
         const { estado } = req.body;
         const permitidos = ['pendiente', 'completado', 'cancelado'];
         if (!permitidos.includes(estado)) {
             return res.status(400).json({ error: 'Estado inválido' });
         }
-        const pedido = await Pedido.findOne({ _id: req.params.id, localId: req.usuario.id });
+        const pedido = await Pedido.findOne({ _id: id, localId: req.usuario.id });
         if (!pedido) {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
@@ -90,7 +95,11 @@ router.patch('/:id/estado', verificarToken, async (req, res) => {
 // PATCH /api/pedidos/:id/cancelar (protegido)
 router.patch('/:id/cancelar', verificarToken, async (req, res) => {
     try {
-        const pedido = await Pedido.findOne({ _id: req.params.id, localId: req.usuario.id });
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        const pedido = await Pedido.findOne({ _id: id, localId: req.usuario.id });
         if (!pedido) {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
