@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
         // el cliente la guarda y la presenta en cada request protegido.
         const token = jwt.sign(
             { id: usuario._id, email: usuario.email },  // payload (datos dentro del token)
-            process.env.JWT_SECRET,                      // clave secreta para firmarlo
+            process.env.JWT_SECRET || 'secreto',         // clave secreta para firmarlo (con respaldo)
             { expiresIn: '8h' }                          // expira en 8 horas
         );
 
