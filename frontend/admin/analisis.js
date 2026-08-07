@@ -602,7 +602,7 @@ async function cargarKpisResenas(token) {
         if (elAprob) {
             elAprob.textContent = hayResenas
                 ? (data.aprobacionComunitaria ? data.aprobacionComunitaria.toFixed(1) + '%' : 'aún no hay reseñas')
-                : 'aún no hay reseñas';
+                : '0';
         }
 
         const elCrit = document.getElementById('kpi-criticas-validadas');
