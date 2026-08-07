@@ -17,12 +17,10 @@ function formatoFechaLocal(d) {
 router.get('/', verificarToken, async (req, res) => {
     try {
         const localId = req.usuario.id || req.usuario._id;
-        let localObjectId;
-        try {
-            localObjectId = mongoose.Types.ObjectId(localId);
-        } catch (e) {
-            return res.status(500).json({ error: 'ID de local inválido' });
+        if (!mongoose.Types.ObjectId.isValid(localId)) {
+            return res.status(400).json({ error: 'ID de local inválido' });
         }
+        const localObjectId = new mongoose.Types.ObjectId(localId);
         const { periodo = 'mes', fechaInicio: qFechaInicio, fechaFin: qFechaFin } = req.query;
 
         // Definir rango de fechas según periodo o parámetros explícitos
@@ -172,7 +170,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
-            { $match: { localId: localObjectId, fecha: { $gte: fechaInicio, $lt: fechaFin } } },
+            { $match: { localId: localObjectId, fecha: { $gte: fechaInicio, $lt: fechaFin }, items: { $exists: true, $ne: [] } } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -194,7 +192,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 7) Platos menos pedidos (para "Platos Muertos")
         const platosMenosPedidos = await Pedido.aggregate([
-            { $match: { localId: localObjectId, fecha: { $gte: fechaInicio, $lt: fechaFin } } },
+            { $match: { localId: localObjectId, fecha: { $gte: fechaInicio, $lt: fechaFin }, items: { $exists: true, $ne: [] } } },
             { $unwind: '$items' },
             {
                 $group: {
