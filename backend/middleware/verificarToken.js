@@ -16,7 +16,7 @@ function verificarToken(req, res, next) {
 
     try {
         // Acá desencriptamos el token (Recordá poner tu misma clave secreta del login)
-        const decodificado = jwt.verify(token, process.env.JWT_SECRET); 
+        const decodificado = jwt.verify(token, process.env.JWT_SECRET || 'secreto'); 
         
         // El patovica lee el ID oculto y se lo guarda a la petición
         req.usuario = decodificado; 
