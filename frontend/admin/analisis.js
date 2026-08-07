@@ -140,6 +140,20 @@ async function cargarEstadisticas(token, periodo = 'mes') {
         const elConversion = document.getElementById('kpi-conversion');
         if (elConversion) elConversion.textContent = (data.tasaDeConversion !== undefined ? data.tasaDeConversion.toFixed(1) + '%' : '0%');
 
+        const elPlatoEstrella = document.getElementById('kpi-plato-estrella');
+        const elPlatoDetalle = document.getElementById('kpi-plato-estrella-detalle');
+        const platoEstrella = data.topPlatos && data.topPlatos[0];
+        if (elPlatoEstrella && platoEstrella) {
+            elPlatoEstrella.textContent = platoEstrella._id || '—';
+            const totalU = platoEstrella.totalUnidades || 0;
+            elPlatoDetalle.textContent = `${totalU} unidades vendidas`;
+        } else if (elPlatoEstrella) {
+            elPlatoEstrella.textContent = '—';
+            elPlatoDetalle.textContent = 'Sin datos todavía';
+        }
+
+        renderSalesChart(data.ventasRecientes || [], data.granularidad || 'dia');
+
         renderTopClientes(data.topClientes || []);
 
         cargarRetencion(periodo);
@@ -204,6 +218,68 @@ async function cargarRetencion(periodo) {
     } catch (err) {
         console.error(err);
     }
+}
+
+function renderSalesChart(ventasRecientes, granularidad) {
+    const canvas = document.getElementById('salesChart');
+    if (!canvas || typeof window.Chart === 'undefined') return;
+    if (!ventasRecientes || ventasRecientes.length === 0) return;
+
+    function formatearEtiqueta(valor) {
+        if (granularidad === 'hora') {
+            // valor tipo "14:00 hs"
+            return valor;
+        } else if (granularidad === 'dia') {
+            // valor tipo "2026-08-07"
+            const fecha = new Date(valor + 'T00:00:00');
+            return fecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' });
+        } else {
+            // valor tipo "2026-08"
+            const [anio, mes] = valor.split('-');
+            const nombreMes = new Date(Number(anio), Number(mes) - 1, 1).toLocaleDateString('es-AR', { month: 'short' });
+            return nombreMes + ' ' + anio;
+        }
+    }
+
+    const labels = ventasRecientes.map(v => formatearEtiqueta(v.fecha));
+    const data = ventasRecientes.map(v => v.total || 0);
+
+    const ctx = canvas.getContext('2d');
+    if (window.mySalesChart) window.mySalesChart.destroy();
+
+    window.mySalesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Ingresos ($)',
+                data,
+                borderColor: '#00E396',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(0, 227, 150, 0.15)',
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#8A8D9F' }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#8A8D9F' }
+                }
+            }
+        }
+    });
 }
 
 function renderTopClientes(clientes) {

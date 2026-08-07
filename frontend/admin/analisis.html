@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análisis</title>
     <link rel="stylesheet" href="analisis.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <!-- Layout principal según ui-theme.md -->
@@ -44,21 +45,6 @@
             <section id="view-general">
                 <section class="kpi-grid">
                     <div class="kpi-card">
-                        <h3>Ingresos Brutos</h3>
-                        <div class="kpi-value" id="kpi-ventas">$31.800</div>
-                        <span class="badge badge-up">+15% vs mes anterior</span>
-                    </div>
-                    <div class="kpi-card">
-                        <h3>Pedidos Totales</h3>
-                        <div class="kpi-value" id="kpi-pedidos">1,240</div>
-                        <span class="badge badge-up">+8% vs mes anterior</span>
-                    </div>
-                    <div class="kpi-card">
-                        <h3>Ticket Promedio</h3>
-                        <div class="kpi-value" id="kpi-ticket">$25.60</div>
-                        <span class="badge badge-down">-2% vs mes anterior</span>
-                    </div>
-                    <div class="kpi-card">
                         <h3>Visitas al Menú</h3>
                         <div class="kpi-value" id="kpi-visitas">0</div>
                         <span class="text-neon-green">Total visitas del período</span>
@@ -68,13 +54,33 @@
                         <div class="kpi-value" id="kpi-conversion">0%</div>
                         <span class="text-neon-green">Pedidos / Visitas</span>
                     </div>
+                    <div class="kpi-card">
+                        <h3>Pedidos Totales</h3>
+                        <div class="kpi-value" id="kpi-pedidos">0</div>
+                        <span class="badge badge-up">+8% vs mes anterior</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Ingresos Totales</h3>
+                        <div class="kpi-value" id="kpi-ventas">$0</div>
+                        <span class="badge badge-up">+15% vs mes anterior</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Ticket Promedio</h3>
+                        <div class="kpi-value" id="kpi-ticket">$0</div>
+                        <span class="badge badge-down">-2% vs mes anterior</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Plato Estrella</h3>
+                        <div class="kpi-value" id="kpi-plato-estrella">—</div>
+                        <span class="text-neon-green" id="kpi-plato-estrella-detalle">Sin datos todavía</span>
+                    </div>
                 </section>
 
                 <section class="charts-grid">
                     <div class="chart-card main-chart">
                         <h3>Sales Overview</h3>
-                        <div class="chart-placeholder">
-                            <p style="color: #8A8D9F; text-align: center; margin-top: 60px;">[ Gráfico de Líneas ]</p>
+                        <div class="chart-placeholder" style="position: relative; height: 300px;">
+                            <canvas id="salesChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-card top-products">

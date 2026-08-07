@@ -17,9 +17,9 @@ function formatoFechaLocal(d) {
 router.get('/', verificarToken, async (req, res) => {
     try {
         const localId = req.usuario.id || req.usuario._id;
-        const { periodo = 'mes' } = req.query;
+        const { periodo = 'mes', fechaInicio: qFechaInicio, fechaFin: qFechaFin } = req.query;
 
-        // Definir rango de fechas según periodo seleccionado
+        // Definir rango de fechas según periodo o parámetros explícitos
         const fechaHoy0 = new Date();
         fechaHoy0.setHours(0,0,0,0);
         const fechaFin = new Date(fechaHoy0);
@@ -32,6 +32,22 @@ router.get('/', verificarToken, async (req, res) => {
             fechaInicio.setDate(fechaInicio.getDate() - 6);
         } else { // 'mes' por defecto
             fechaInicio = new Date(fechaHoy0.getFullYear(), fechaHoy0.getMonth(), 1);
+        }
+        if (qFechaInicio) {
+            const parsedIni = new Date(qFechaInicio);
+            if (!isNaN(parsedIni)) {
+                fechaInicio = parsedIni;
+                fechaInicio.setHours(0,0,0,0);
+            }
+        }
+        if (qFechaFin) {
+            const parsedFin = new Date(qFechaFin);
+            if (!isNaN(parsedFin)) {
+                // fin inclusive hasta fin de día, luego se vuelve exclusivo sumando un día
+                fechaFin = new Date(parsedFin);
+                fechaFin.setHours(23,59,59,999);
+                fechaFin.setDate(fechaFin.getDate() + 1); // ahora es exclusivo (empieza al día siguiente)
+            }
         }
 
         // Traemos todos los pedidos del local dentro del periodo seleccionado
@@ -52,27 +68,37 @@ router.get('/', verificarToken, async (req, res) => {
         // 3) Ticket promedio
         const ticketPromedio = cantidadPedidos > 0 ? totalVentas / cantidadPedidos : 0;
 
-        // 4) Ventas del período seleccionado (por día)
-        const cantidadDias = periodo === 'hoy' ? 1 : (periodo === '7dias' ? 7 : 30);
-        const ventasRecientes = [];
-        for (let i = cantidadDias - 1; i >= 0; i--) {
-            const inicioDia = new Date(fechaHoy0);
-            inicioDia.setDate(inicioDia.getDate() - i);
-            const finDia = new Date(inicioDia);
-            finDia.setDate(finDia.getDate() + 1);
+        // 4) Ventas del período seleccionado (granularidad dinámica)
+        const diffMs = fechaFin - fechaInicio;
+        const diffDias = Math.ceil(diffMs / (1000*60*60*24));
+        const granularidad = diffDias <= 1 ? 'hora' : (diffDias <= 60 ? 'dia' : 'mes');
 
-            const pedidosDia = pedidos.filter(p => {
-                const fecha = new Date(p.fecha);
-                return fecha >= inicioDia && fecha < finDia;
-            });
+        const serieMap = {};
+        pedidos.forEach(p => {
+            const fecha = new Date(p.fecha);
+            let clave;
+            if (granularidad === 'hora') {
+                clave = String(fecha.getHours()).padStart(2, '0') + ':00 hs';
+            } else if (granularidad === 'dia') {
+                clave = fecha.toISOString().slice(0, 10);
+            } else { // mes
+                clave = `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2, '0')}`;
+            }
+            if (!serieMap[clave]) serieMap[clave] = { total: 0, cantidad: 0 };
+            serieMap[clave].total += p.total || 0;
+            serieMap[clave].cantidad += 1;
+        });
 
-            const totalDia = pedidosDia.reduce((s, p) => s + (p.total || 0), 0);
-            ventasRecientes.push({
-                fecha: inicioDia.toISOString().slice(0, 10),
-                total: totalDia,
-                cantidad: pedidosDia.length
-            });
-        }
+        const ventasRecientes = Object.keys(serieMap)
+            .sort((a, b) => {
+                if (granularidad === 'hora') return a.localeCompare(b, 'es-AR', { numeric: true });
+                return a.localeCompare(b);
+            })
+            .map(clave => ({
+                fecha: clave,
+                total: serieMap[clave].total,
+                cantidad: serieMap[clave].cantidad
+            }));
 
         // 5) Métricas de clientes (basado en colección Cliente)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
@@ -183,6 +209,7 @@ router.get('/', verificarToken, async (req, res) => {
             cantidadPedidos,
             ticketPromedio,
             ventasRecientes,
+            granularidad,
             totalClientesUnicos,
             tasaRecompra,
             clientesFieles,
