@@ -5,6 +5,7 @@ let datosExplorador = [];
 let datosHorarios = [];
 let resenasData = [];
 let paginaActualResenas = 0;
+let metricSeleccionada = 'ingresos';
 const RESENAS_POR_PAGINA = 9;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -89,6 +90,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     cargarHorariosPico(token);
     cargarKpisResenas(token);
     cargarResenas(token);
+
+    const btnIngresos = document.getElementById('btn-ingresos');
+    const btnPedidos = document.getElementById('btn-pedidos');
+    if (btnIngresos && btnPedidos) {
+        btnIngresos.addEventListener('click', () => {
+            metricSeleccionada = 'ingresos';
+            btnIngresos.classList.add('active');
+            btnPedidos.classList.remove('active');
+            renderSalesChart(window.ventasData || [], window.granularidadActual || 'dia');
+        });
+        btnPedidos.addEventListener('click', () => {
+            metricSeleccionada = 'pedidos';
+            btnPedidos.classList.add('active');
+            btnIngresos.classList.remove('active');
+            renderSalesChart(window.ventasData || [], window.granularidadActual || 'dia');
+        });
+    }
 });
 
 async function cargarEstadisticas(token, periodo = 'mes') {
@@ -223,7 +241,18 @@ async function cargarRetencion(periodo) {
 function renderSalesChart(ventasRecientes, granularidad) {
     const canvas = document.getElementById('salesChart');
     if (!canvas || typeof window.Chart === 'undefined') return;
-    if (!ventasRecientes || ventasRecientes.length === 0) return;
+
+    // Guardar datos para poder actualizar sin refetch
+    window.ventasData = ventasRecientes || [];
+    window.granularidadActual = granularidad || 'dia';
+
+    if (window.ventasData.length === 0) {
+        if (window.mySalesChart) {
+            window.mySalesChart.destroy();
+            window.mySalesChart = null;
+        }
+        return;
+    }
 
     function formatearEtiqueta(valor) {
         if (granularidad === 'hora') {
@@ -241,8 +270,11 @@ function renderSalesChart(ventasRecientes, granularidad) {
         }
     }
 
-    const labels = ventasRecientes.map(v => formatearEtiqueta(v.fecha));
-    const data = ventasRecientes.map(v => v.total || 0);
+    const labels = window.ventasData.map(v => formatearEtiqueta(v.fecha));
+    const data = metricSeleccionada === 'ingresos'
+        ? window.ventasData.map(v => v.recaudacion || 0)
+        : window.ventasData.map(v => v.cantidadPedidos || 0);
+    const chartLabel = metricSeleccionada === 'ingresos' ? 'Ingresos ($)' : 'Cantidad de Pedidos';
 
     const ctx = canvas.getContext('2d');
     if (window.mySalesChart) window.mySalesChart.destroy();
@@ -252,7 +284,7 @@ function renderSalesChart(ventasRecientes, granularidad) {
         data: {
             labels,
             datasets: [{
-                label: 'Ingresos ($)',
+                label: chartLabel,
                 data,
                 borderColor: '#00E396',
                 tension: 0.4,

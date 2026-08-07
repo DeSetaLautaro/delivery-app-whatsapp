@@ -96,8 +96,8 @@ router.get('/', verificarToken, async (req, res) => {
             })
             .map(clave => ({
                 fecha: clave,
-                total: serieMap[clave].total,
-                cantidad: serieMap[clave].cantidad
+                recaudacion: serieMap[clave].total,
+                cantidadPedidos: serieMap[clave].cantidad
             }));
 
         // 5) Métricas de clientes (basado en colección Cliente)

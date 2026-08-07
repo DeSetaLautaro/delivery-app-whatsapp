@@ -78,7 +78,13 @@
 
                 <section class="charts-grid">
                     <div class="chart-card main-chart">
-                        <h3>Sales Overview</h3>
+                        <div class="sales-chart-header">
+                            <h3>Sales Overview</h3>
+                            <div class="sales-chart-toggle">
+                                <button id="btn-ingresos" class="btn-chart-toggle active">Ingresos</button>
+                                <button id="btn-pedidos" class="btn-chart-toggle">Pedidos</button>
+                            </div>
+                        </div>
                         <div class="chart-placeholder" style="position: relative; height: 300px;">
                             <canvas id="salesChart"></canvas>
                         </div>
