@@ -404,22 +404,18 @@ function modoDiaHorarios() {
 }
 
 function renderizarMapaCalor(filtro = 'Todos los platos') {
-    const tabla = document.querySelector('.heatmap');
-    if (!tabla) return;
-    const tbody = tabla.querySelector('tbody');
-    if (!tbody) return;
-
-    const franjas = ['Mediodía','Tarde','Noche','Trasnoche'];
-    const dias    = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+    const contenedor = document.getElementById('heatmap-container');
+    if (!contenedor) return;
 
     let datosFiltrados = datosHorarios;
     if (filtro !== 'Todos los platos') {
         datosFiltrados = datosFiltrados.filter(d => d.plato === filtro);
     }
 
+    // Agrupar por día y hora
     const acum = {};
     datosFiltrados.forEach(d => {
-        const key = `${d.dia}|${d.franja}`;
+        const key = `${d.dia}|${d.hora}`;
         acum[key] = (acum[key] || 0) + d.unidades;
     });
 
@@ -427,20 +423,31 @@ function renderizarMapaCalor(filtro = 'Todos los platos') {
     Object.values(acum).forEach(v => { if (v > max) max = v; });
     max = max || 1;
 
-    const filas = tbody.querySelectorAll('tr');
-    filas.forEach(fila => {
-        const primerTd = fila.querySelector('td');
-        if (!primerTd) return;
-        const dia = primerTd.textContent.trim();
-        const celdas = fila.querySelectorAll('.heat-cell');
-        celdas.forEach((celda, idx) => {
-            const franja = franjas[idx];
-            const key = `${dia}|${franja}`;
-            const valor = acum[key] || 0;
-            const alpha = valor / max;
-            celda.style.background = `rgba(0,227,150,${0.05 + alpha * 0.85})`;
-        });
+    const dias = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+    // Generar columnas hora por hora (0 a 23)
+    const horas = [];
+    for (let h = 0; h <= 23; h++) horas.push(h);
+
+    let html = `<table class="heatmap"><thead><tr><th>Día</th>`;
+    horas.forEach(h => {
+        html += `<th>${h}</th>`;
     });
+    html += `</tr></thead><tbody>`;
+
+    dias.forEach(dia => {
+        html += `<tr><td>${dia.slice(0,3)}</td>`;
+        horas.forEach(h => {
+            const key = `${dia}|${h}`;
+            const valor = acum[key] || 0;
+            const alpha = max ? valor / max : 0;
+            html += `<td class="heat-cell" style="background: rgba(0,227,150,${0.05 + alpha * 0.85})" title="${dia} ${h}:00 - ${valor} unids"></td>`;
+        });
+        html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+    contenedor.innerHTML = html;
 }
 
 function renderizarTopPorDia(diaSeleccionado) {
