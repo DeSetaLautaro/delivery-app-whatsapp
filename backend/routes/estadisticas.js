@@ -17,6 +17,12 @@ function formatoFechaLocal(d) {
 router.get('/', verificarToken, async (req, res) => {
     try {
         const localId = req.usuario.id || req.usuario._id;
+        let localObjectId;
+        try {
+            localObjectId = mongoose.Types.ObjectId(localId);
+        } catch (e) {
+            return res.status(500).json({ error: 'ID de local inválido' });
+        }
         const { periodo = 'mes', fechaInicio: qFechaInicio, fechaFin: qFechaFin } = req.query;
 
         // Definir rango de fechas según periodo o parámetros explícitos
@@ -52,7 +58,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // Traemos todos los pedidos del local dentro del periodo seleccionado
         const pedidos = await Pedido.find({
-            localId,
+            localId: localObjectId,
             fecha: { $gte: fechaInicio, $lt: fechaFin }
         });
 
@@ -166,7 +172,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
-            { $match: { localId: new mongoose.Types.ObjectId(localId), fecha: { $gte: fechaInicio, $lt: fechaFin } } },
+            { $match: { localId: localObjectId, fecha: { $gte: fechaInicio, $lt: fechaFin } } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -188,7 +194,7 @@ router.get('/', verificarToken, async (req, res) => {
 
         // 7) Platos menos pedidos (para "Platos Muertos")
         const platosMenosPedidos = await Pedido.aggregate([
-            { $match: { localId: new mongoose.Types.ObjectId(localId), fecha: { $gte: fechaInicio, $lt: fechaFin } } },
+            { $match: { localId: localObjectId, fecha: { $gte: fechaInicio, $lt: fechaFin } } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -210,7 +216,7 @@ router.get('/', verificarToken, async (req, res) => {
         ]);
 
         const visitasEnPeriodo = await Visita.find({
-            localId: localId,
+            localId: localObjectId,
             fecha: { $gte: formatoFechaLocal(fechaInicio), $lte: formatoFechaLocal(fechaFin) }
         });
         const totalVisitas = visitasEnPeriodo.reduce((sum, v) => sum + (v.cantidad || 0), 0);
@@ -229,7 +235,7 @@ router.get('/', verificarToken, async (req, res) => {
         const finAnterior = new Date(fechaInicio.getTime()); // exclusivo
 
         const pedidosAnteriores = await Pedido.find({
-            localId,
+            localId: localObjectId,
             fecha: { $gte: inicioAnterior, $lt: finAnterior }
         });
 
@@ -238,7 +244,7 @@ router.get('/', verificarToken, async (req, res) => {
         const ticketAnterior = pedidosAnterioresCount > 0 ? ingresosAnteriores / pedidosAnterioresCount : 0;
 
         const visitasAnterioresDoc = await Visita.find({
-            localId,
+            localId: localObjectId,
             fecha: { $gte: formatoFechaLocal(inicioAnterior), $lte: formatoFechaLocal(finAnterior) }
         });
         const visitasAnteriores = visitasAnterioresDoc.reduce((sum, v) => sum + (v.cantidad || 0), 0);
