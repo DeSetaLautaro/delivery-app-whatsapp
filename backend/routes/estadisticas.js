@@ -65,24 +65,26 @@ router.get('/', verificarToken, async (req, res) => {
             });
         }
 
-        // 5) Clientes inactivos (último pedido hace más de 14 días)
+        // 5) Métricas de clientes (histórico completo)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-        const mapaTelefonos = new Map();
 
-        pedidos.forEach(p => {
-            const tel = (p.telefonoCliente || '').trim();
-            if (!tel) return;
-            const fecha = new Date(p.fecha);
-            const ultima = mapaTelefonos.get(tel);
-            if (!ultima || fecha > ultima) {
-                mapaTelefonos.set(tel, fecha);
+        const clientesAgg = await Pedido.aggregate([
+            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
+            { $match: { telefonoCliente: { $ne: '' } } },
+            {
+                $group: {
+                    _id: { $trim: { input: '$telefonoCliente' } },
+                    pedidos: { $sum: 1 },
+                    ultimaFecha: { $max: '$fecha' }
+                }
             }
-        });
+        ]);
 
-        let clientesInactivos = 0;
-        mapaTelefonos.forEach((ultima, tel) => {
-            if (ultima < fechaLimiteInactivo) clientesInactivos++;
-        });
+        const totalClientesUnicos = clientesAgg.length;
+        const clientesRecompra = clientesAgg.filter(c => c.pedidos > 1).length;
+        const clientesFieles = clientesAgg.filter(c => c.pedidos > 3).length;
+        const clientesInactivos = clientesAgg.filter(c => new Date(c.ultimaFecha) < fechaLimiteInactivo).length;
+        const tasaRecompra = totalClientesUnicos > 0 ? (clientesRecompra / totalClientesUnicos) * 100 : 0;
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
@@ -134,6 +136,9 @@ router.get('/', verificarToken, async (req, res) => {
             cantidadPedidos,
             ticketPromedio,
             ventasRecientes,
+            totalClientesUnicos,
+            tasaRecompra,
+            clientesFieles,
             clientesInactivos,
             topPlatos,
             platosMenosPedidos

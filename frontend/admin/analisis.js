@@ -122,6 +122,15 @@ async function cargarEstadisticas(token, periodo = 'mes') {
         const elTicket = document.getElementById('kpi-ticket');
         if (elTicket) elTicket.textContent = formatter.format(data.ticketPromedio || 0);
 
+        const elTotalClientes = document.getElementById('kpi-total-clientes');
+        if (elTotalClientes) elTotalClientes.textContent = (data.totalClientesUnicos || 0).toLocaleString('es-AR');
+
+        const elRecompra = document.getElementById('kpi-recompra');
+        if (elRecompra) elRecompra.textContent = (data.tasaRecompra !== undefined ? data.tasaRecompra.toFixed(1) + '%' : '0%');
+
+        const elClientesFieles = document.getElementById('kpi-clientes-fieles');
+        if (elClientesFieles) elClientesFieles.textContent = data.clientesFieles || 0;
+
         const elClientesInactivos = document.getElementById('kpi-clientes-inactivos');
         if (elClientesInactivos) elClientesInactivos.textContent = data.clientesInactivos || 0;
     } catch (err) {
