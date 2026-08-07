@@ -271,4 +271,69 @@ router.post('/mock', verificarToken, async (req, res) => {
     }
 });
 
+// ============================================================
+// RUTA: GET /api/estadisticas/asociaciones
+// ============================================================
+router.get('/asociaciones', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+        const fechaLimite = new Date();
+        fechaLimite.setDate(fechaLimite.getDate() - 90);
+        const pedidos = await Pedido.find({ localId, fecha: { $gte: fechaLimite } }).select('items');
+
+        const frecuenciaIndividual = {};
+        const frecuenciaPares = {};
+
+        for (const pedido of pedidos) {
+            const items = pedido.items || [];
+            const nombres = [];
+            for (const it of items) {
+                const nombre = (it.nombre || '').trim();
+                if (nombre && !nombres.includes(nombre)) {
+                    nombres.push(nombre);
+                }
+            }
+            if (nombres.length === 0) continue;
+
+            for (const n of nombres) {
+                frecuenciaIndividual[n] = (frecuenciaIndividual[n] || 0) + 1;
+            }
+
+            for (let i = 0; i < nombres.length; i++) {
+                for (let j = i + 1; j < nombres.length; j++) {
+                    const a = nombres[i] < nombres[j] ? nombres[i] : nombres[j];
+                    const b = nombres[i] < nombres[j] ? nombres[j] : nombres[i];
+                    const key = `${a}|${b}`;
+                    frecuenciaPares[key] = (frecuenciaPares[key] || 0) + 1;
+                }
+            }
+        }
+
+        const resultados = [];
+        for (const [key, frecuencia] of Object.entries(frecuenciaPares)) {
+            if (frecuencia < 4) continue; // soporte mínimo >3
+            const [prodA, prodB] = key.split('|');
+            const freqA = frecuenciaIndividual[prodA] || 0;
+            const freqB = frecuenciaIndividual[prodB] || 0;
+            if (freqA === 0 || freqB === 0) continue;
+            const confianzaA = (frecuencia / freqA) * 100;
+            const confianzaB = (frecuencia / freqB) * 100;
+            const confianza = Math.max(confianzaA, confianzaB);
+            if (confianza > 20) {
+                resultados.push({
+                    productoA: prodA,
+                    productoB: prodB,
+                    confianza: Math.round(confianza)
+                });
+            }
+        }
+
+        resultados.sort((a, b) => b.confianza - a.confianza);
+        res.status(200).json(resultados.slice(0, 3));
+    } catch (error) {
+        console.error('[ERROR] Asociaciones:', error);
+        res.status(500).json({ error: 'Error al obtener asociaciones de productos' });
+    }
+});
+
 module.exports = router;

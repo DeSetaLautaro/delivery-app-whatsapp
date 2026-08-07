@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarEstadisticas(token, periodoActual);
     cargarExplorador(token);
+    cargarCombosSugeridos(token);
 });
 
 async function cargarEstadisticas(token, periodo = 'mes') {
@@ -327,5 +328,48 @@ function toggleComparacion(plato, detalle, formatoMoneda) {
         detalle.style.display = 'block';
     } else {
         detalle.style.display = 'none';
+    }
+}
+
+async function cargarCombosSugeridos(token) {
+    try {
+        const resp = await fetch('/api/estadisticas/asociaciones', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        if (!resp.ok) throw new Error('Error al traer combos sugeridos');
+        const combos = await resp.json();
+        renderizarCombosSugeridos(combos);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function renderizarCombosSugeridos(combos) {
+    if (!combos || combos.length === 0) {
+        const grid = document.querySelector('.combos-grid');
+        if (grid) {
+            grid.innerHTML = '<p style="color:#8A8D9F">No hay suficientes datos de ventas combinadas.</p>';
+        }
+        return;
+    }
+    for (let i = 1; i <= 3; i++) {
+        const card = document.getElementById(`combo-card-${i}`);
+        if (!card) continue;
+        const combo = combos[i - 1];
+        if (combo) {
+            card.innerHTML = `
+                <span class="combo-prod">${combo.productoA}</span>
+                <span class="combo-mas">+</span>
+                <span class="combo-prod">${combo.productoB}</span>
+                <div class="coincidencia">${combo.confianza}% de coincidencia</div>
+                <button class="btn-crear-combo">Crear Combo</button>
+            `;
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
     }
 }
