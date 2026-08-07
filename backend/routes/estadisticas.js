@@ -367,4 +367,68 @@ router.get('/asociaciones', verificarToken, async (req, res) => {
     }
 });
 
+// ============================================================
+// RUTA: GET /api/estadisticas/horarios-pico
+// ============================================================
+router.get('/horarios-pico', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+
+        const datos = await Pedido.aggregate([
+            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
+            { $unwind: '$items' },
+            {
+                $addFields: {
+                    diaNum: { $dayOfWeek: { date: '$fecha', timezone: 'America/Argentina/Buenos_Aires' } },
+                    hora:   { $hour:    { date: '$fecha', timezone: 'America/Argentina/Buenos_Aires' } }
+                }
+            },
+            {
+                $addFields: {
+                    dia: {
+                        $let: {
+                            vars: {
+                                arr: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
+                            },
+                            in: { $arrayElemAt: ['$$arr', { $subtract: ['$diaNum', 1] }] }
+                        }
+                    },
+                    franjaHoraria: {
+                        $switch: {
+                            branches: [
+                                { case: { $and: [ { $gte: ['$hora', 11] }, { $lte: ['$hora', 14] } ] }, then: 'Mediodía' },
+                                { case: { $and: [ { $gte: ['$hora', 15] }, { $lte: ['$hora', 18] } ] }, then: 'Tarde' },
+                                { case: { $and: [ { $gte: ['$hora', 19] }, { $lte: ['$hora', 22] } ] }, then: 'Noche' }
+                            ],
+                            default: 'Trasnoche'
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { dia: '$dia', franja: '$franjaHoraria', plato: '$items.nombrePlato' },
+                    unidades: { $sum: '$items.cantidad' },
+                    recaudacion: { $sum: { $multiply: ['$items.cantidad', { $ifNull: ['$items.precio', 0] }] } }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    dia: '$_id.dia',
+                    franja: '$_id.franja',
+                    plato: '$_id.plato',
+                    unidades: 1,
+                    recaudacion: 1
+                }
+            }
+        ]);
+
+        res.status(200).json(datos);
+    } catch (error) {
+        console.error('[ERROR] Horarios pico:', error);
+        res.status(500).json({ error: 'Error al obtener horarios pico' });
+    }
+});
+
 module.exports = router;

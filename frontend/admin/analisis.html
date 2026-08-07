@@ -542,6 +542,25 @@
     });
 </script>
 <script>
+    // Lógica Días y Horarios Pico (interactiva con datos reales)
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnPlato = document.getElementById('btnAnalisisPlato');
+        const btnDia   = document.getElementById('btnAnalisisDia');
+        const select   = document.getElementById('selectPlatoPico');
+
+        if (btnPlato) btnPlato.addEventListener('click', modoPlatoHorarios);
+        if (btnDia)   btnDia.addEventListener('click', modoDiaHorarios);
+        if (select)   select.addEventListener('change', (e) => {
+            const diaActivo = btnDia && btnDia.classList.contains('active');
+            if (diaActivo) {
+                renderizarTopPorDia(e.target.value);
+            } else {
+                renderizarMapaCalor(e.target.value);
+            }
+        });
+    });
+</script>
+<script>
     // Lógica Toggle Días y Horarios Pico
     document.addEventListener('DOMContentLoaded', () => {
         const btnPlato = document.getElementById('btnAnalisisPlato');

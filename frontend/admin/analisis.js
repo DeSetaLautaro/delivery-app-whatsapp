@@ -2,6 +2,7 @@ let listaTopPlatos = [];
 let topPlatosExpandido = false;
 let listaPlatosMenos = [];
 let datosExplorador = [];
+let datosHorarios = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarEstadisticas(token, periodoActual);
     cargarExplorador(token);
     cargarCombosSugeridos(token);
+    cargarHorariosPico(token);
 });
 
 async function cargarEstadisticas(token, periodo = 'mes') {
@@ -329,6 +331,163 @@ function toggleComparacion(plato, detalle, formatoMoneda) {
     } else {
         detalle.style.display = 'none';
     }
+}
+
+async function cargarHorariosPico(token) {
+    try {
+        const resp = await fetch('/api/estadisticas/horarios-pico', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        if (!resp.ok) throw new Error('Error al traer horarios pico');
+        datosHorarios = await resp.json();
+        inicializarHorariosPico();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function inicializarHorariosPico() {
+    const select = document.getElementById('selectPlatoPico');
+    if (!select) return;
+
+    // Default: modo Plato
+    modoPlatoHorarios();
+}
+
+function modoPlatoHorarios() {
+    const btnPlato = document.getElementById('btnAnalisisPlato');
+    const btnDia   = document.getElementById('btnAnalisisDia');
+    if (btnPlato) btnPlato.classList.add('active');
+    if (btnDia) btnDia.classList.remove('active');
+
+    const select = document.getElementById('selectPlatoPico');
+    if (select) {
+        const platos = ['Todos los platos'].concat(
+            [...new Set(datosHorarios.map(d => d.plato))].sort()
+        );
+        select.innerHTML = platos.map(p => `<option value="${p}">${p}</option>`).join('');
+        select.value = 'Todos los platos';
+        // Asegúrate de que el <select> esté visible
+        select.style.display = '';
+    }
+
+    const heat = document.getElementById('heatmap-container');
+    const rank = document.getElementById('day-ranking-container');
+    if (heat) heat.classList.remove('hidden');
+    if (rank) rank.classList.add('hidden');
+
+    renderizarMapaCalor('Todos los platos');
+}
+
+function modoDiaHorarios() {
+    const btnPlato = document.getElementById('btnAnalisisPlato');
+    const btnDia   = document.getElementById('btnAnalisisDia');
+    if (btnPlato) btnPlato.classList.remove('active');
+    if (btnDia) btnDia.classList.add('active');
+
+    const select = document.getElementById('selectPlatoPico');
+    if (select) {
+        const dias = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+        select.innerHTML = dias.map(d => `<option value="${d}">${d}</option>`).join('');
+        select.value = 'Lunes';
+    }
+
+    const heat = document.getElementById('heatmap-container');
+    const rank = document.getElementById('day-ranking-container');
+    if (heat) heat.classList.add('hidden');
+    if (rank) rank.classList.remove('hidden');
+
+    renderizarTopPorDia('Lunes');
+}
+
+function renderizarMapaCalor(filtro = 'Todos los platos') {
+    const tabla = document.querySelector('.heatmap');
+    if (!tabla) return;
+    const tbody = tabla.querySelector('tbody');
+    if (!tbody) return;
+
+    const franjas = ['Mediodía','Tarde','Noche','Trasnoche'];
+    const dias    = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+    let datosFiltrados = datosHorarios;
+    if (filtro !== 'Todos los platos') {
+        datosFiltrados = datosFiltrados.filter(d => d.plato === filtro);
+    }
+
+    const acum = {};
+    datosFiltrados.forEach(d => {
+        const key = `${d.dia}|${d.franja}`;
+        acum[key] = (acum[key] || 0) + d.unidades;
+    });
+
+    let max = 0;
+    Object.values(acum).forEach(v => { if (v > max) max = v; });
+    max = max || 1;
+
+    const filas = tbody.querySelectorAll('tr');
+    filas.forEach(fila => {
+        const primerTd = fila.querySelector('td');
+        if (!primerTd) return;
+        const dia = primerTd.textContent.trim();
+        const celdas = fila.querySelectorAll('.heat-cell');
+        celdas.forEach((celda, idx) => {
+            const franja = franjas[idx];
+            const key = `${dia}|${franja}`;
+            const valor = acum[key] || 0;
+            const alpha = valor / max;
+            celda.style.background = `rgba(0,227,150,${0.05 + alpha * 0.85})`;
+        });
+    });
+}
+
+function renderizarTopPorDia(diaSeleccionado) {
+    const contenedor = document.getElementById('day-ranking-list');
+    if (!contenedor) return;
+
+    const datosDia = datosHorarios.filter(d => d.dia === diaSeleccionado);
+    const porPlato = {};
+
+    datosDia.forEach(d => {
+        if (!porPlato[d.plato]) {
+            porPlato[d.plato] = { unidades: 0, recaudacion: 0 };
+        }
+        porPlato[d.plato].unidades += d.unidades;
+        porPlato[d.plato].recaudacion += d.recaudacion;
+    });
+
+    const ranking = Object.entries(porPlato)
+        .map(([nombre, data]) => ({ nombre, ...data }))
+        .sort((a, b) => b.unidades - a.unidades)
+        .slice(0, 5);
+
+    if (ranking.length === 0) {
+        contenedor.innerHTML = '<p style="color:#8A8D9F">Todavía no hay datos para este día.</p>';
+        return;
+    }
+
+    const maxUnidades = ranking[0].unidades || 1;
+    const formatoMoneda = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+
+    contenedor.innerHTML = ranking.map((plato, i) => {
+        const ancho = Math.round((plato.unidades / maxUnidades) * 100);
+        return `
+            <div class="top-item">
+                <span class="rank">${i + 1}</span>
+                <div class="top-info">
+                    <div class="top-header">
+                        <span class="top-nombre">${plato.nombre}</span>
+                        <span class="top-stats">${plato.unidades} u · ${formatoMoneda.format(plato.recaudacion)}</span>
+                    </div>
+                    <div class="barra-progreso">
+                        <div class="barra-fill" style="width: ${ancho}%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 async function cargarCombosSugeridos(token) {
