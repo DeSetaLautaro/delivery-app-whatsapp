@@ -3,6 +3,7 @@ const router = express.Router();
 const verificarToken = require('../middleware/verificarToken');
 const Pedido = require('../models/Pedido');
 const Resena = require('../models/Resena');
+const Cliente = require('../models/Cliente');
 const mongoose = require('mongoose');
 
 router.get('/', verificarToken, async (req, res) => {
@@ -65,37 +66,37 @@ router.get('/', verificarToken, async (req, res) => {
             });
         }
 
-        // 5) Métricas de clientes (histórico completo)
+        // 5) Métricas de clientes (basado en colección Cliente)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 
-        const clientesAgg = await Pedido.aggregate([
-            { $match: { localId: new mongoose.Types.ObjectId(localId) } },
-            { $match: { telefonoCliente: { $ne: '' } } },
-            {
-                $group: {
-                    _id: { $trim: { input: '$telefonoCliente' } },
-                    pedidos: { $sum: 1 },
-                    gastoTotal: { $sum: '$total' },
-                    ultimaFecha: { $max: '$fecha' }
-                }
-            }
-        ]);
+        const clientes = await Cliente.find({ localId }).lean();
 
-        const totalClientesUnicos = clientesAgg.length;
-        const clientesRecompra = clientesAgg.filter(c => c.pedidos > 1).length;
-        const clientesFieles = clientesAgg.filter(c => c.pedidos > 3).length;
-        const clientesInactivos = clientesAgg.filter(c => new Date(c.ultimaFecha) < fechaLimiteInactivo).length;
+        const totalClientesUnicos = clientes.length;
+        const clientesRecompra = clientes.filter(c => c.cantidadPedidos > 1).length;
+        const clientesFieles = clientes.filter(c => c.cantidadPedidos > 3).length;
+        const clientesInactivos = clientes.filter(c => !c.ultimaFechaPedido || c.ultimaFechaPedido < fechaLimiteInactivo).length;
         const tasaRecompra = totalClientesUnicos > 0 ? (clientesRecompra / totalClientesUnicos) * 100 : 0;
 
-        const topClientes = clientesAgg
-            .map(c => ({
-                telefono: c._id,
-                pedidos: c.pedidos,
-                gastoTotal: c.gastoTotal || 0,
-                ultimaFecha: c.ultimaFecha || null
-            }))
-            .sort((a, b) => b.pedidos - a.pedidos)
-            .slice(0, 50);
+        const topClientesRaw = await Cliente.find({ localId })
+            .sort({ cantidadPedidos: -1 })
+            .limit(50)
+            .lean();
+
+        const topTelefonos = topClientesRaw.map(c => c.telefono);
+
+        const gastosAgg = await Pedido.aggregate([
+            { $match: { localId: new mongoose.Types.ObjectId(localId), telefonoCliente: { $in: topTelefonos } } },
+            { $group: { _id: { $trim: { input: '$telefonoCliente' } }, total: { $sum: '$total' } } }
+        ]);
+        const gastoPorTelefono = {};
+        gastosAgg.forEach(g => gastoPorTelefono[g._id] = g.total || 0);
+
+        const topClientes = topClientesRaw.map(c => ({
+            telefono: c.telefono,
+            pedidos: c.cantidadPedidos,
+            gastoTotal: gastoPorTelefono[c.telefono] || 0,
+            ultimaFecha: c.ultimaFechaPedido
+        }));
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([
@@ -313,6 +314,20 @@ router.post('/mock', verificarToken, async (req, res) => {
         }
 
         await Pedido.insertMany(pedidosMock);
+
+        const operacionesClientes = pedidosMock.map(p => ({
+            updateOne: {
+                filter: { localId: new mongoose.Types.ObjectId(localId), telefono: p.telefonoCliente },
+                update: {
+                    $inc: { cantidadPedidos: 1 },
+                    $set: { ultimaFechaPedido: p.fecha },
+                    $addToSet: { direcciones: p.direccion }
+                },
+                upsert: true
+            }
+        }));
+        await Cliente.bulkWrite(operacionesClientes);
+
         res.status(200).json({ ok: true, mensaje: '50 pedidos de prueba generados' });
     } catch (error) {
         console.error('[ERROR] Mock data:', error);
