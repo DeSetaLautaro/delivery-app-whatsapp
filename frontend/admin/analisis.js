@@ -180,6 +180,7 @@ async function cargarEstadisticas(token, periodo = 'mes') {
     try {
         const rango = calcularRango(periodo);
         const qs = new URLSearchParams({
+            periodo,
             fechaInicio: rango.fechaInicio.toISOString(),
             fechaFin: rango.fechaFin.toISOString()
         });

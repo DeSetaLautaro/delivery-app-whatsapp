@@ -284,8 +284,8 @@ router.get('/', verificarToken, async (req, res) => {
             comparaciones
         });
     } catch (error) {
-        console.error('[ERROR] Estadísticas:', error);
-        res.status(500).json({ error: 'Error al obtener estadísticas' });
+        console.error('[ERROR] Estadísticas:', error.stack);
+        res.status(500).json({ error: error.message || 'Error al obtener estadísticas' });
     }
 });
 
