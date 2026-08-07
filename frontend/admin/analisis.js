@@ -351,7 +351,12 @@ function renderizarCombosSugeridos(combos) {
     if (!combos || combos.length === 0) {
         const grid = document.querySelector('.combos-grid');
         if (grid) {
-            grid.innerHTML = '<p style="color:#8A8D9F">No hay suficientes datos de ventas combinadas.</p>';
+            grid.innerHTML = `
+                <div class="combo-card" style="grid-column: 1 / -1; align-items: center; justify-content: center; text-align: center; padding: 28px 20px;">
+                    <p style="font-size:1rem; color:#8A8D9F; margin:0 0 8px;">📊 Todavía no hay suficientes datos de ventas combinadas.</p>
+                    <p style="font-size:0.85rem; color:#6B7280; margin:0;">En este recuadro te vamos a recomendar combos cuando haya la suficiente información.</p>
+                </div>
+            `;
         }
         return;
     }

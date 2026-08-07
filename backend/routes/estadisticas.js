@@ -288,7 +288,7 @@ router.get('/asociaciones', verificarToken, async (req, res) => {
             const items = pedido.items || [];
             const nombres = [];
             for (const it of items) {
-                const nombre = (it.nombre || '').trim();
+                const nombre = (it.nombrePlato || it.nombre || '').trim();
                 if (nombre && !nombres.includes(nombre)) {
                     nombres.push(nombre);
                 }
