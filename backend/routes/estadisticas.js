@@ -230,26 +230,57 @@ router.post('/mock', verificarToken, async (req, res) => {
             '🥟 Empanadas de Carne',
             '🍗 Pollo al Spiedo',
             '🥙 Lomo Completo',
-            '🍦 Postre Helado'
+            '🍦 Postre Helado',
+            '🥤 Coca-Cola',
+            '🥑 Guacamole'
+        ];
+        // Combos "ancla" para que el análisis de asociaciones tenga datos de sobra
+        const combosFijos = [
+            [   // Combo clásico: Pizza + Coca
+                { nombrePlato: '🍕 Muzza XL', cantidad: 1, precio: 8000, enPromocion: false },
+                { nombrePlato: '🥤 Coca-Cola', cantidad: 1, precio: 2000, enPromocion: false }
+            ],
+            [   // Combo hamburguesa + papas
+                { nombrePlato: '🍔 Triple Bacon', cantidad: 1, precio: 9000, enPromocion: false },
+                { nombrePlato: '🍟 Papas Cheddar', cantidad: 1, precio: 3500, enPromocion: false }
+            ],
+            [   // Combo mexicano
+                { nombrePlato: '🌮 Taco Mexicano', cantidad: 1, precio: 7500, enPromocion: false },
+                { nombrePlato: '🥑 Guacamole', cantidad: 1, precio: 2500, enPromocion: false }
+            ]
         ];
         for (let i = 0; i < 50; i++) {
             const fecha = new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000);
-            const numItems = Math.floor(Math.random() * 3) + 1; // 1 a 3
-            const itemsMock = [];
+            let itemsMock = [];
             let total = 0;
-            for (let j = 0; j < numItems; j++) {
-                const nombrePlato = nombresPlatos[Math.floor(Math.random() * nombresPlatos.length)];
-                const precioUnitario = Math.floor(Math.random() * 12000) + 3000;
-                const cantidad = Math.floor(Math.random() * 3) + 1; // 1 a 3
-                const enPromocion = Math.random() < 0.3; // 30% de probabilidad
-                const precioFinal = enPromocion ? Math.floor(precioUnitario * 0.8) : precioUnitario;
-                itemsMock.push({
-                    nombrePlato,
-                    cantidad,
-                    precio: precioFinal,
-                    enPromocion
-                });
-                total += precioFinal * cantidad;
+
+            // Los primeros 45 pedidos son combos repetidos a propósito
+            if (i < 15) {
+                itemsMock = combosFijos[0].map(it => ({ ...it }));
+                total = itemsMock.reduce((s, it) => s + it.precio * it.cantidad, 0);
+            } else if (i < 30) {
+                itemsMock = combosFijos[1].map(it => ({ ...it }));
+                total = itemsMock.reduce((s, it) => s + it.precio * it.cantidad, 0);
+            } else if (i < 45) {
+                itemsMock = combosFijos[2].map(it => ({ ...it }));
+                total = itemsMock.reduce((s, it) => s + it.precio * it.cantidad, 0);
+            } else {
+                // Resto: pedidos aleatorios como antes
+                const numItems = Math.floor(Math.random() * 3) + 1;
+                for (let j = 0; j < numItems; j++) {
+                    const nombrePlato = nombresPlatos[Math.floor(Math.random() * nombresPlatos.length)];
+                    const precioUnitario = Math.floor(Math.random() * 12000) + 3000;
+                    const cantidad = Math.floor(Math.random() * 3) + 1;
+                    const enPromocion = Math.random() < 0.3;
+                    const precioFinal = enPromocion ? Math.floor(precioUnitario * 0.8) : precioUnitario;
+                    itemsMock.push({
+                        nombrePlato,
+                        cantidad,
+                        precio: precioFinal,
+                        enPromocion
+                    });
+                    total += precioFinal * cantidad;
+                }
             }
             pedidosMock.push({
                 localId,
