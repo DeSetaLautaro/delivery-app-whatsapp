@@ -57,6 +57,54 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .chart-card { background: #1E233B; padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.02); min-height: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 .chart-card h3 { margin: 0 0 16px 0; font-size: 16px; color: #FFFFFF; }
 
+.subtitulo-tendencias {
+    color: #8A8D9F;
+    font-size: 0.8rem;
+    margin: -8px 0 14px;
+}
+
+.tendencias-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tendencia-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.tendencia-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tendencia-nombre {
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.tendencia-unidades {
+    color: #8A8D9F;
+    font-size: 0.78rem;
+}
+
+.badge-crecimiento {
+    background: #D1FAE5;
+    color: #065F46;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+
 .sales-chart-header {
     display: flex;
     justify-content: space-between;

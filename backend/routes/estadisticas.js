@@ -233,6 +233,70 @@ router.get('/', verificarToken, async (req, res) => {
     }
 });
 
+router.get('/tendencias', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+        const localObjId = new mongoose.Types.ObjectId(localId);
+
+        const now = new Date();
+        const inicioActual = new Date(now);
+        inicioActual.setDate(inicioActual.getDate() - 7);
+
+        const inicioAnterior = new Date(inicioActual);
+        inicioAnterior.setDate(inicioAnterior.getDate() - 7);
+
+        const [ventasActuales, ventasAnteriores] = await Promise.all([
+            Pedido.aggregate([
+                { $match: { localId: localObjId, fecha: { $gte: inicioActual, $lte: now } } },
+                { $unwind: '$items' },
+                { $group: { _id: '$items.nombrePlato', unidades: { $sum: '$items.cantidad' } } }
+            ]),
+            Pedido.aggregate([
+                { $match: { localId: localObjId, fecha: { $gte: inicioAnterior, $lt: inicioActual } } },
+                { $unwind: '$items' },
+                { $group: { _id: '$items.nombrePlato', unidades: { $sum: '$items.cantidad' } } }
+            ])
+        ]);
+
+        const mapaAnterior = {};
+        ventasAnteriores.forEach(v => { mapaAnterior[v._id] = v.unidades; });
+
+        const tendencias = [];
+
+        ventasActuales.forEach(v => {
+            const plato = v._id;
+            const actual = v.unidades || 0;
+            const anterior = mapaAnterior[plato] || 0;
+            if (actual < 3) return;
+
+            let crecimiento = 0;
+            let esNuevo = false;
+            if (anterior === 0) {
+                crecimiento = 100;
+                esNuevo = true;
+            } else if (actual > anterior) {
+                crecimiento = ((actual - anterior) / anterior) * 100;
+            } else {
+                return; // no creció
+            }
+
+            tendencias.push({
+                plato,
+                ventasActuales: actual,
+                ventasAnteriores: anterior,
+                crecimientoPorcentaje: Math.round(crecimiento),
+                esNuevo
+            });
+        });
+
+        tendencias.sort((a, b) => b.crecimientoPorcentaje - a.crecimientoPorcentaje);
+        res.json(tendencias.slice(0, 5));
+    } catch (error) {
+        console.error('[ERROR] Tendencias:', error);
+        res.status(500).json({ error: 'Error al obtener tendencias de platos' });
+    }
+});
+
 router.get('/explorador-promos', verificarToken, async (req, res) => {
     try {
         const localId = req.usuario.id || req.usuario._id;

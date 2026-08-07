@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     await cargarEstadisticas(token, periodoActual);
+    cargarTendencias(token);
     cargarExplorador(token);
     cargarCombosSugeridos(token);
     cargarHorariosPico(token);
@@ -256,6 +257,40 @@ async function cargarRetencion(periodo) {
         const elOcaBarra = document.getElementById('retencion-oca-barra');
         if (elOcaPct) elOcaPct.textContent = pct(data.segmentacion.ocasionales || 0) + '%';
         if (elOcaBarra) elOcaBarra.style.width = pct(data.segmentacion.ocasionales || 0) + '%';
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function cargarTendencias(token) {
+    try {
+        const resp = await fetch('/api/estadisticas/tendencias', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!resp.ok) throw new Error('Error al traer tendencias');
+        const data = await resp.json();
+        const contenedor = document.getElementById('contenedor-tendencias');
+        if (!contenedor) return;
+
+        if (!data || data.length === 0) {
+            contenedor.innerHTML = '<p style="color:#8A8D9F; font-size:0.85rem;">No hay tendencias destacadas esta semana. ¡Es un buen momento para lanzar una promo!</p>';
+            return;
+        }
+
+        contenedor.innerHTML = data.map(t => {
+            const badge = t.esNuevo
+                ? '<span class="badge-crecimiento">🔥 ¡Nuevo!</span>'
+                : `<span class="badge-crecimiento">↑ +${t.crecimientoPorcentaje}%</span>`;
+            return `
+                <div class="tendencia-item">
+                    <div class="tendencia-info">
+                        <span class="tendencia-nombre">${t.plato}</span>
+                        <span class="tendencia-unidades">${t.ventasActuales} unids (antes ${t.ventasAnteriores})</span>
+                    </div>
+                    ${badge}
+                </div>
+            `;
+        }).join('');
     } catch (err) {
         console.error(err);
     }
