@@ -56,6 +56,42 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
 .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .chart-card { background: #1E233B; padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.02); min-height: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 .chart-card h3 { margin: 0 0 16px 0; font-size: 16px; color: #FFFFFF; }
+
+.sales-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.sales-chart-toggle {
+    display: flex;
+    background: #121527;
+    border-radius: 99px;
+    padding: 4px;
+    gap: 4px;
+}
+.btn-chart-toggle {
+    border: none;
+    background: transparent;
+    color: #8A8D9F;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn-chart-toggle.active {
+    background: #1E233B;
+    color: #00E396;
+    box-shadow: 0 0 12px rgba(0, 227, 150, 0.15);
+}
+.btn-chart-toggle:not(.active):hover {
+    color: #FFFFFF;
+}
 .chart-placeholder {
     min-height: 250px;
     background: rgba(255,255,255,0.02);
