@@ -586,14 +586,24 @@ async function cargarKpisResenas(token) {
         if (!resp.ok) throw new Error('Error al traer KPIs de reseñas');
         const data = await resp.json();
 
+        const hayResenas = (data.totalResenas || 0) > 0;
+
         const elPunt = document.getElementById('kpi-puntuacion-promedio');
-        if (elPunt) elPunt.textContent = data.puntuacionPromedio ? data.puntuacionPromedio.toFixed(1) + ' / 5 ⭐' : 'Sin datos';
+        if (elPunt) {
+            elPunt.textContent = hayResenas
+                ? (data.puntuacionPromedio ? data.puntuacionPromedio.toFixed(1) + ' / 5 ⭐' : 'aún no hay reseñas')
+                : 'aún no hay reseñas';
+        }
 
         const elTotal = document.getElementById('kpi-total-resenas');
         if (elTotal) elTotal.textContent = data.totalResenas || 0;
 
         const elAprob = document.getElementById('kpi-aprobacion-comunitaria');
-        if (elAprob) elAprob.textContent = data.aprobacionComunitaria ? data.aprobacionComunitaria.toFixed(1) + '%' : 'Sin datos';
+        if (elAprob) {
+            elAprob.textContent = hayResenas
+                ? (data.aprobacionComunitaria ? data.aprobacionComunitaria.toFixed(1) + '%' : 'aún no hay reseñas')
+                : 'aún no hay reseñas';
+        }
 
         const elCrit = document.getElementById('kpi-criticas-validadas');
         if (elCrit) elCrit.textContent = data.criticasValidadas || 0;
