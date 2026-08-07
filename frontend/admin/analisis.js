@@ -135,6 +135,66 @@ async function cargarEstadisticas(token, periodo = 'mes') {
         if (elClientesEnRiesgo) elClientesEnRiesgo.textContent = data.clientesEnRiesgo || 0;
 
         renderTopClientes(data.topClientes || []);
+
+        cargarRetencion(periodo);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function cargarRetencion(periodo) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    let fechaInicio = new Date();
+    fechaInicio.setHours(0,0,0,0);
+    let fechaFin = new Date();
+    fechaFin.setHours(23,59,59,999);
+
+    if (periodo === '7dias') {
+        fechaInicio.setDate(fechaInicio.getDate() - 6);
+    } else if (periodo === 'mes') {
+        fechaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), 1);
+        fechaInicio.setHours(0,0,0,0);
+    }
+
+    const qs = new URLSearchParams({
+        fechaInicio: fechaInicio.toISOString(),
+        fechaFin: fechaFin.toISOString()
+    });
+
+    try {
+        const resp = await fetch(`/api/estadisticas/retencion?${qs}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!resp.ok) throw new Error('Error al traer retención');
+        const data = await resp.json();
+
+        const totalPeriodo = (data.segmentacion.frecuentes || 0) +
+                             (data.segmentacion.regulares || 0) +
+                             (data.segmentacion.ocasionales || 0);
+        const pct = (n) => totalPeriodo ? Math.round((n / totalPeriodo) * 100) : 0;
+
+        const elNuevos = document.getElementById('retencion-nuevos');
+        if (elNuevos) elNuevos.textContent = data.adquisicion.nuevos || 0;
+
+        const elActivacion = document.getElementById('retencion-activacion');
+        if (elActivacion) elActivacion.textContent = `${data.adquisicion.nuevosRetenidos || 0} de ellos ya volvieron a pedir`;
+
+        const elFrecPct = document.getElementById('retencion-frec-pct');
+        const elFrecBarra = document.getElementById('retencion-frec-barra');
+        if (elFrecPct) elFrecPct.textContent = pct(data.segmentacion.frecuentes || 0) + '%';
+        if (elFrecBarra) elFrecBarra.style.width = pct(data.segmentacion.frecuentes || 0) + '%';
+
+        const elRegPct = document.getElementById('retencion-reg-pct');
+        const elRegBarra = document.getElementById('retencion-reg-barra');
+        if (elRegPct) elRegPct.textContent = pct(data.segmentacion.regulares || 0) + '%';
+        if (elRegBarra) elRegBarra.style.width = pct(data.segmentacion.regulares || 0) + '%';
+
+        const elOcaPct = document.getElementById('retencion-oca-pct');
+        const elOcaBarra = document.getElementById('retencion-oca-barra');
+        if (elOcaPct) elOcaPct.textContent = pct(data.segmentacion.ocasionales || 0) + '%';
+        if (elOcaBarra) elOcaBarra.style.width = pct(data.segmentacion.ocasionales || 0) + '%';
     } catch (err) {
         console.error(err);
     }

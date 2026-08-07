@@ -1197,3 +1197,68 @@ body { margin: 0; padding: 0; background-color: #0B0F19; font-family: 'Inter', s
     }
 }
 
+/* Retención y Segmentación */
+.retencion-bloques {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.retencion-adquisicion,
+.retencion-comportamiento {
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 18px;
+}
+.retencion-label {
+    color: #8A8D9F;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.retencion-nuevos {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.retencion-cifra {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #00E396;
+}
+.retencion-desc {
+    color: #FFFFFF;
+    font-size: 1rem;
+}
+.retencion-activacion {
+    color: #8A8D9F;
+    font-size: 0.85rem;
+}
+.retencion-barra {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+.retencion-barra-nombre {
+    width: 160px;
+    color: #FFFFFF;
+    font-size: 0.82rem;
+}
+.retencion-barra .barra-progreso {
+    flex: 1;
+}
+.retencion-porcentaje {
+    color: #00E396;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+}
+@media (max-width: 700px) {
+    .retencion-bloques {
+        grid-template-columns: 1fr;
+    }
+}
+

@@ -421,6 +421,103 @@ router.get('/asociaciones', verificarToken, async (req, res) => {
 });
 
 // ============================================================
+// RUTA: GET /api/estadisticas/retencion
+// ============================================================
+router.get('/retencion', verificarToken, async (req, res) => {
+    try {
+        const localId = req.usuario.id || req.usuario._id;
+        const { fechaInicio, fechaFin } = req.query;
+
+        const hoy = new Date();
+        hoy.setHours(23,59,59,999);
+
+        let inicio = new Date();
+        inicio.setHours(0,0,0,0);
+        inicio.setDate(inicio.getDate() - 30);
+        let fin = hoy;
+
+        if (fechaInicio) {
+            const parsedI = new Date(fechaInicio);
+            if (!isNaN(parsedI)) {
+                inicio = parsedI;
+                inicio.setHours(0,0,0,0);
+            }
+        }
+        if (fechaFin) {
+            const parsedF = new Date(fechaFin);
+            if (!isNaN(parsedF)) {
+                fin = parsedF;
+                fin.setHours(23,59,59,999);
+            }
+        }
+
+        const localObjId = new mongoose.Types.ObjectId(localId);
+
+        // Primer pedido por cliente
+        const primeros = await Pedido.aggregate([
+            { $match: { localId: localObjId } },
+            { $group: { _id: { $trim: { input: '$telefonoCliente' } }, primerPedido: { $min: '$fecha' } } }
+        ]);
+        const mapaPrimerPedido = {};
+        primeros.forEach(doc => {
+            mapaPrimerPedido[doc._id] = new Date(doc.primerPedido);
+        });
+
+        // Pedidos dentro del rango
+        const pedidosFiltrados = await Pedido.find({
+            localId: localObjId,
+            telefonoCliente: { $ne: '' },
+            fecha: { $gte: inicio, $lte: fin }
+        });
+
+        // Frecuencia en el período
+        const freqEnPeriodo = {};
+        pedidosFiltrados.forEach(p => {
+            const tel = (p.telefonoCliente || '').trim();
+            if (!tel) return;
+            freqEnPeriodo[tel] = (freqEnPeriodo[tel] || 0) + 1;
+        });
+
+        // Segmentos
+        const frecuentes = [];
+        const regulares = [];
+        const ocasionales = [];
+        Object.entries(freqEnPeriodo).forEach(([tel, count]) => {
+            if (count >= 3) frecuentes.push(tel);
+            else if (count === 2) regulares.push(tel);
+            else if (count === 1) ocasionales.push(tel);
+        });
+
+        // Adquisición
+        let nuevos = 0;
+        let nuevosRetenidos = 0;
+        Object.keys(freqEnPeriodo).forEach(tel => {
+            const primer = mapaPrimerPedido[tel];
+            if (!primer) return;
+            if (primer >= inicio && primer <= fin) {
+                nuevos++;
+                if (freqEnPeriodo[tel] > 1) nuevosRetenidos++;
+            }
+        });
+
+        res.status(200).json({
+            segmentacion: {
+                frecuentes: frecuentes.length,
+                regulares: regulares.length,
+                ocasionales: ocasionales.length
+            },
+            adquisicion: {
+                nuevos,
+                nuevosRetenidos
+            }
+        });
+    } catch (error) {
+        console.error('[ERROR] Retención:', error);
+        res.status(500).json({ error: 'Error al obtener retención' });
+    }
+});
+
+// ============================================================
 // RUTA: GET /api/estadisticas/horarios-pico
 // ============================================================
 router.get('/horarios-pico', verificarToken, async (req, res) => {

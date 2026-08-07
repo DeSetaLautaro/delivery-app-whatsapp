@@ -246,14 +246,34 @@
                     </div>
 
                     <div class="cliente-card">
-                        <h3>🔄 Frecuencia de Compra</h3>
-                        <div class="frecuencia-box">
-                            <p class="frecuencia-label">Los clientes recurrentes vuelven a pedir cada</p>
-                            <div class="frecuencia-valor">8.5 días</div>
-                            <div class="barra-progreso frecuencia-barra">
-                                <div class="barra-fill" style="width: 68%"></div>
+                        <h3>🔄 Retención y Segmentación</h3>
+                        <div class="retencion-bloques">
+                            <div class="retencion-adquisicion">
+                                <p class="retencion-label">Adquisición</p>
+                                <div class="retencion-nuevos">
+                                    <span class="retencion-cifra" id="retencion-nuevos">0</span>
+                                    <span class="retencion-desc">clientes nuevos</span>
+                                </div>
+                                <p class="retencion-activacion" id="retencion-activacion">0 de ellos ya volvieron a pedir</p>
                             </div>
-                            <p class="frecuencia-note">68% de los pedidos vienen de clientes que ya compraron antes</p>
+                            <div class="retencion-comportamiento">
+                                <p class="retencion-label">Comportamiento</p>
+                                <div class="retencion-barra">
+                                    <span class="retencion-barra-nombre">Frecuentes (3+ pedidos)</span>
+                                    <div class="barra-progreso"><div class="barra-fill" id="retencion-frec-barra" style="width:0%"></div></div>
+                                    <span class="retencion-porcentaje" id="retencion-frec-pct">0%</span>
+                                </div>
+                                <div class="retencion-barra">
+                                    <span class="retencion-barra-nombre">Regulares (2 pedidos)</span>
+                                    <div class="barra-progreso"><div class="barra-fill" id="retencion-reg-barra" style="width:0%"></div></div>
+                                    <span class="retencion-porcentaje" id="retencion-reg-pct">0%</span>
+                                </div>
+                                <div class="retencion-barra">
+                                    <span class="retencion-barra-nombre">Ocasionales (1 pedido)</span>
+                                    <div class="barra-progreso"><div class="barra-fill" id="retencion-oca-barra" style="width:0%"></div></div>
+                                    <span class="retencion-porcentaje" id="retencion-oca-pct">0%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
