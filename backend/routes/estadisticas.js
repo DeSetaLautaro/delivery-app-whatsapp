@@ -104,57 +104,65 @@ router.get('/', verificarToken, async (req, res) => {
         const dataIngresos = ventasRecientes.map(v => v.recaudacion || 0);
         const dataPedidos = ventasRecientes.map(v => v.cantidadPedidos || 0);
 
-        // 5) Métricas de clientes (basado en colección Cliente)
+        // 5) Métricas de clientes (dentro del período seleccionado)
         const fechaLimiteInactivo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
         const fechaLimiteVIP = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const fechaLimiteRiesgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-        const clientes = await Cliente.find({ localId }).lean();
+        const mapaClientes = new Map();
+        pedidos.forEach(p => {
+            const tel = (p.telefonoCliente || '').trim();
+            if (!tel) return;
+            const info = mapaClientes.get(tel) || { pedidos: 0, total: 0, ultimaFecha: null };
+            info.pedidos += 1;
+            info.total += (p.total || 0);
+            const f = new Date(p.fecha);
+            if (!info.ultimaFecha || f > info.ultimaFecha) {
+                info.ultimaFecha = f;
+            }
+            mapaClientes.set(tel, info);
+        });
 
-        const totalClientesUnicos = clientes.length;
-        const clientesRecompra = clientes.filter(c => c.cantidadPedidos > 1).length;
+        const clientesArray = [...mapaClientes.entries()].map(([telefono, info]) => ({
+            telefono,
+            pedidos: info.pedidos,
+            total: info.total,
+            ultimaFecha: info.ultimaFecha
+        }));
+
+        const totalClientesUnicos = clientesArray.length;
+        const clientesRecompra = clientesArray.filter(c => c.pedidos > 1).length;
 
         // Cálculo de VIP: top 20% de frecuencia (percentil 80) y recencia <= 30 días
         let percentil80 = 0;
-        if (clientes.length > 0) {
-            const pedidosOrdenados = clientes
-                .map(c => c.cantidadPedidos || 0)
+        if (clientesArray.length > 0) {
+            const pedidosOrdenados = clientesArray
+                .map(c => c.pedidos)
                 .sort((a, b) => a - b);
             percentil80 = pedidosOrdenados[Math.floor(0.8 * (pedidosOrdenados.length - 1))];
         }
-        const clientesFieles = clientes.filter(c => {
-            if (!c.ultimaFechaPedido) return false;
-            if (new Date(c.ultimaFechaPedido) < fechaLimiteVIP) return false;
-            return c.cantidadPedidos > percentil80;
+        const clientesFieles = clientesArray.filter(c => {
+            if (!c.ultimaFecha) return false;
+            if (new Date(c.ultimaFecha) < fechaLimiteVIP) return false;
+            return c.pedidos > percentil80;
         }).length;
 
-        const clientesEnRiesgo = clientes.filter(c =>
-            c.cantidadPedidos > 1 &&
-            c.ultimaFechaPedido &&
-            new Date(c.ultimaFechaPedido) < fechaLimiteRiesgo
+        const clientesEnRiesgo = clientesArray.filter(c =>
+            c.pedidos > 1 &&
+            c.ultimaFecha &&
+            new Date(c.ultimaFecha) < fechaLimiteRiesgo
         ).length;
         const tasaRecompra = totalClientesUnicos > 0 ? (clientesRecompra / totalClientesUnicos) * 100 : 0;
 
-        const topClientesRaw = await Cliente.find({ localId })
-            .sort({ cantidadPedidos: -1 })
-            .limit(50)
-            .lean();
-
-        const topTelefonos = topClientesRaw.map(c => c.telefono);
-
-        const gastosAgg = await Pedido.aggregate([
-            { $match: { localId: new mongoose.Types.ObjectId(localId), telefonoCliente: { $in: topTelefonos } } },
-            { $group: { _id: { $trim: { input: '$telefonoCliente' } }, total: { $sum: '$total' } } }
-        ]);
-        const gastoPorTelefono = {};
-        gastosAgg.forEach(g => gastoPorTelefono[g._id] = g.total || 0);
-
-        const topClientes = topClientesRaw.map(c => ({
-            telefono: c.telefono,
-            pedidos: c.cantidadPedidos,
-            gastoTotal: gastoPorTelefono[c.telefono] || 0,
-            ultimaFecha: c.ultimaFechaPedido
-        }));
+        const topClientes = clientesArray
+            .map(c => ({
+                telefono: c.telefono,
+                pedidos: c.pedidos,
+                gastoTotal: c.total,
+                ultimaFecha: c.ultimaFecha
+            }))
+            .sort((a, b) => b.pedidos - a.pedidos)
+            .slice(0, 50);
 
         // 6) Top platos más vendidos (agregación)
         const topPlatos = await Pedido.aggregate([

@@ -8,6 +8,63 @@ let paginaActualResenas = 0;
 let metricSeleccionada = 'ingresos';
 const RESENAS_POR_PAGINA = 9;
 
+function calcularRango(periodo) {
+    const ahora = new Date();
+    let fechaInicio = new Date(ahora);
+    let fechaFin = new Date(ahora);
+
+    switch(periodo) {
+        case 'hoy':
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case 'semana_actual':
+            const dia = ahora.getDay(); // 0 = Domingo
+            fechaInicio.setDate(ahora.getDate() - dia);
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setDate(ahora.getDate() + (6 - dia));
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case 'mes_actual':
+            fechaInicio.setDate(1);
+            fechaInicio.setHours(0,0,0,0);
+            const ultimoDia = new Date(ahora.getFullYear(), ahora.getMonth()+1, 0).getDate();
+            fechaFin.setDate(ultimoDia);
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case 'ano_actual':
+            fechaInicio.setMonth(0,1);
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setMonth(11,31);
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case '7dias':
+            fechaInicio.setDate(ahora.getDate() - 6);
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case '6meses':
+            fechaInicio.setMonth(ahora.getMonth() - 6);
+            fechaInicio.setDate(1);
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case '1ano':
+            fechaInicio.setFullYear(ahora.getFullYear() - 1);
+            fechaInicio.setDate(ahora.getDate());
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setHours(23,59,59,999);
+            break;
+        case '30dias':
+        default:
+            fechaInicio.setDate(ahora.getDate() - 29);
+            fechaInicio.setHours(0,0,0,0);
+            fechaFin.setHours(23,59,59,999);
+            break;
+    }
+    return { fechaInicio, fechaFin };
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -16,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const selectPeriodo = document.getElementById('select-periodo');
-    const periodoActual = selectPeriodo ? selectPeriodo.value : 'mes';
+    const periodoActual = selectPeriodo ? selectPeriodo.value : '30dias';
 
     const btnMock = document.getElementById('btn-generar-mock');
     if (btnMock) {
@@ -121,7 +178,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarEstadisticas(token, periodo = 'mes') {
     try {
-        const resp = await fetch(`/api/estadisticas?periodo=${encodeURIComponent(periodo)}`, {
+        const rango = calcularRango(periodo);
+        const qs = new URLSearchParams({
+            fechaInicio: rango.fechaInicio.toISOString(),
+            fechaFin: rango.fechaFin.toISOString()
+        });
+        const resp = await fetch(`/api/estadisticas?${qs}`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -199,40 +261,16 @@ async function cargarEstadisticas(token, periodo = 'mes') {
 
         renderTopClientes(data.topClientes || []);
 
-        // Calcular fechas para tendencias (misma lógica que retención)
-        let fechaInicioTendencias = new Date();
-        fechaInicioTendencias.setHours(0,0,0,0);
-        let fechaFinTendencias = new Date();
-        fechaFinTendencias.setHours(23,59,59,999);
-        if (periodo === '7dias') {
-            fechaInicioTendencias.setDate(fechaInicioTendencias.getDate() - 6);
-        } else if (periodo === 'mes') {
-            fechaInicioTendencias = new Date(fechaInicioTendencias.getFullYear(), fechaInicioTendencias.getMonth(), 1);
-            fechaInicioTendencias.setHours(0,0,0,0);
-        }
-
-        cargarRetencion(periodo);
-        cargarTendencias(fechaInicioTendencias, fechaFinTendencias);
+        cargarRetencion(rango.fechaInicio, rango.fechaFin);
+        cargarTendencias(rango.fechaInicio, rango.fechaFin);
     } catch (err) {
         console.error(err);
     }
 }
 
-async function cargarRetencion(periodo) {
+async function cargarRetencion(fechaInicio, fechaFin) {
     const token = localStorage.getItem('token');
     if (!token) return;
-
-    let fechaInicio = new Date();
-    fechaInicio.setHours(0,0,0,0);
-    let fechaFin = new Date();
-    fechaFin.setHours(23,59,59,999);
-
-    if (periodo === '7dias') {
-        fechaInicio.setDate(fechaInicio.getDate() - 6);
-    } else if (periodo === 'mes') {
-        fechaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), 1);
-        fechaInicio.setHours(0,0,0,0);
-    }
 
     const qs = new URLSearchParams({
         fechaInicio: fechaInicio.toISOString(),

@@ -33,9 +33,18 @@
                 </div>
                 <div class="header-actions">
                     <select id="select-periodo" class="neon-select">
-                        <option value="mes">Este Mes</option>
-                        <option value="7dias">Últimos 7 días</option>
-                        <option value="hoy">Hoy</option>
+                        <optgroup label="Ventanas Móviles">
+                            <option value="7dias">Últimos 7 días</option>
+                            <option value="30dias" selected>Últimos 30 días</option>
+                            <option value="6meses">Últimos 6 meses</option>
+                            <option value="1ano">Último año</option>
+                        </optgroup>
+                        <optgroup label="Períodos de Calendario">
+                            <option value="hoy">Hoy</option>
+                            <option value="semana_actual">Esta semana</option>
+                            <option value="mes_actual">Mes calendario actual</option>
+                            <option value="ano_actual">Año calendario actual</option>
+                        </optgroup>
                     </select>
                     <button class="btn-export">⬇ Exportar CSV</button>
                     <button class="btn-export" id="btn-generar-mock">🧪 Generar Datos de Prueba</button>
