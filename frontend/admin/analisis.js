@@ -85,7 +85,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     await cargarEstadisticas(token, periodoActual);
-    cargarTendencias(token);
     cargarExplorador(token);
     cargarCombosSugeridos(token);
     cargarHorariosPico(token);
@@ -198,7 +197,20 @@ async function cargarEstadisticas(token, periodo = 'mes') {
 
         renderTopClientes(data.topClientes || []);
 
+        // Calcular fechas para tendencias (misma lógica que retención)
+        let fechaInicioTendencias = new Date();
+        fechaInicioTendencias.setHours(0,0,0,0);
+        let fechaFinTendencias = new Date();
+        fechaFinTendencias.setHours(23,59,59,999);
+        if (periodo === '7dias') {
+            fechaInicioTendencias.setDate(fechaInicioTendencias.getDate() - 6);
+        } else if (periodo === 'mes') {
+            fechaInicioTendencias = new Date(fechaInicioTendencias.getFullYear(), fechaInicioTendencias.getMonth(), 1);
+            fechaInicioTendencias.setHours(0,0,0,0);
+        }
+
         cargarRetencion(periodo);
+        cargarTendencias(fechaInicioTendencias, fechaFinTendencias);
     } catch (err) {
         console.error(err);
     }
@@ -262,9 +274,15 @@ async function cargarRetencion(periodo) {
     }
 }
 
-async function cargarTendencias(token) {
+async function cargarTendencias(fechaInicio, fechaFin) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
     try {
-        const resp = await fetch('/api/estadisticas/tendencias', {
+        const qs = new URLSearchParams({
+            fechaInicio: fechaInicio.toISOString(),
+            fechaFin: fechaFin.toISOString()
+        });
+        const resp = await fetch(`/api/estadisticas/tendencias?${qs}`, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         if (!resp.ok) throw new Error('Error al traer tendencias');
@@ -273,7 +291,7 @@ async function cargarTendencias(token) {
         if (!contenedor) return;
 
         if (!data || data.length === 0) {
-            contenedor.innerHTML = '<p style="color:#8A8D9F; font-size:0.85rem;">No hay tendencias destacadas esta semana. ¡Es un buen momento para lanzar una promo!</p>';
+            contenedor.innerHTML = '<p style="color:#8A8D9F; font-size:0.85rem;">No hay tendencias destacadas este período. ¡Es un buen momento para lanzar una promo!</p>';
             return;
         }
 

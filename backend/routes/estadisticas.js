@@ -238,59 +238,93 @@ router.get('/tendencias', verificarToken, async (req, res) => {
         const localId = req.usuario.id || req.usuario._id;
         const localObjId = new mongoose.Types.ObjectId(localId);
 
-        const now = new Date();
-        const inicioActual = new Date(now);
-        inicioActual.setDate(inicioActual.getDate() - 7);
+        const { fechaInicio, fechaFin } = req.query;
+        const hoy = new Date();
+        let inicio = new Date(hoy);
+        inicio.setHours(0,0,0,0);
+        inicio.setDate(inicio.getDate() - 6); // por defecto últimos 7 días incluido hoy
+        let fin = new Date(hoy);
+        fin.setHours(23,59,59,999);
 
-        const inicioAnterior = new Date(inicioActual);
-        inicioAnterior.setDate(inicioAnterior.getDate() - 7);
+        if (fechaInicio) {
+            const pI = new Date(fechaInicio);
+            if (!isNaN(pI)) {
+                inicio = pI;
+                inicio.setHours(0,0,0,0);
+            }
+        }
+        if (fechaFin) {
+            const pF = new Date(fechaFin);
+            if (!isNaN(pF)) {
+                fin = pF;
+                fin.setHours(23,59,59,999);
+            }
+        }
 
-        const [ventasActuales, ventasAnteriores] = await Promise.all([
-            Pedido.aggregate([
-                { $match: { localId: localObjId, fecha: { $gte: inicioActual, $lte: now } } },
-                { $unwind: '$items' },
-                { $group: { _id: '$items.nombrePlato', unidades: { $sum: '$items.cantidad' } } }
-            ]),
-            Pedido.aggregate([
-                { $match: { localId: localObjId, fecha: { $gte: inicioAnterior, $lt: inicioActual } } },
-                { $unwind: '$items' },
-                { $group: { _id: '$items.nombrePlato', unidades: { $sum: '$items.cantidad' } } }
-            ])
+        const duracion = fin.getTime() - inicio.getTime();
+        const inicioAnterior = new Date(inicio.getTime() - duracion);
+
+        const tendenciasData = await Pedido.aggregate([
+            {
+                $match: {
+                    localId: localObjId,
+                    fecha: { $gte: inicioAnterior, $lte: fin }
+                }
+            },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.nombrePlato',
+                    ventasActuales: {
+                        $sum: {
+                            $cond: [
+                                { $gte: ['$fecha', inicio] },
+                                '$items.cantidad',
+                                0
+                            ]
+                        }
+                    },
+                    ventasAnteriores: {
+                        $sum: {
+                            $cond: [
+                                { $lt: ['$fecha', inicio] },
+                                '$items.cantidad',
+                                0
+                            ]
+                        }
+                    }
+                }
+            }
         ]);
 
-        const mapaAnterior = {};
-        ventasAnteriores.forEach(v => { mapaAnterior[v._id] = v.unidades; });
+        const tendencias = tendenciasData
+            .map(t => {
+                const actual = t.ventasActuales || 0;
+                const anterior = t.ventasAnteriores || 0;
+                if (actual < 3) return null;
+                let crecimiento = 0;
+                let esNuevo = false;
+                if (anterior === 0) {
+                    crecimiento = 100;
+                    esNuevo = true;
+                } else if (actual > anterior) {
+                    crecimiento = ((actual - anterior) / anterior) * 100;
+                } else {
+                    return null;
+                }
+                return {
+                    plato: t._id,
+                    ventasActuales: actual,
+                    ventasAnteriores: anterior,
+                    crecimientoPorcentaje: Math.round(crecimiento),
+                    esNuevo
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => b.crecimientoPorcentaje - a.crecimientoPorcentaje)
+            .slice(0, 3);
 
-        const tendencias = [];
-
-        ventasActuales.forEach(v => {
-            const plato = v._id;
-            const actual = v.unidades || 0;
-            const anterior = mapaAnterior[plato] || 0;
-            if (actual < 3) return;
-
-            let crecimiento = 0;
-            let esNuevo = false;
-            if (anterior === 0) {
-                crecimiento = 100;
-                esNuevo = true;
-            } else if (actual > anterior) {
-                crecimiento = ((actual - anterior) / anterior) * 100;
-            } else {
-                return; // no creció
-            }
-
-            tendencias.push({
-                plato,
-                ventasActuales: actual,
-                ventasAnteriores: anterior,
-                crecimientoPorcentaje: Math.round(crecimiento),
-                esNuevo
-            });
-        });
-
-        tendencias.sort((a, b) => b.crecimientoPorcentaje - a.crecimientoPorcentaje);
-        res.json(tendencias.slice(0, 5));
+        res.json(tendencias);
     } catch (error) {
         console.error('[ERROR] Tendencias:', error);
         res.status(500).json({ error: 'Error al obtener tendencias de platos' });
