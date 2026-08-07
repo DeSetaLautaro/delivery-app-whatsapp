@@ -33,11 +33,11 @@ app.use(express.json());// Importás la ruta
 app.use('/api/platos', adminPlatos);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/publico', publicoRoutes);
+app.use('/api/estadisticas', estadisticasRouter);
 app.use('/api', authRouter);
 app.use('/api/toppings', rutasToppings);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/analisis', analisisRoutes);
-app.use('/api/estadisticas', estadisticasRouter);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/pagos', pagosRoutes);
 
