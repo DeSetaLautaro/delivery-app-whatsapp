@@ -76,28 +76,43 @@ function renderizarPedidos() {
   }
   const grupos = agruparPorDia(pedidosMostrados);
   let html = Object.keys(grupos).map(etiqueta => {
-    const cards = grupos[etiqueta].map(p => `
-      <div class="pedido-card">
-        <div class="pedido-header">
-          <span class="chan">Pedido</span>
-          <span class="fecha">${new Date(p.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</span>
+    const cards = grupos[etiqueta].map(p => {
+      const estado = p.estado || 'pendiente';
+      const badgeClass = estado === 'cancelado' ? 'estado-cancelado' : estado === 'completado' ? 'estado-completado' : 'estado-pendiente';
+      const badgeText = estado === 'cancelado' ? 'Cancelado' : estado === 'completado' ? 'Completado' : 'Pendiente';
+      const cardClass = estado === 'cancelado' ? 'pedido-card cancelado' : estado === 'completado' ? 'pedido-card completado' : 'pedido-card';
+      const buttonsHtml = (estado === 'pendiente') ? `
+        <div class="pedido-acciones">
+          <button class="btn-completar" data-id="${p._id}">✅ Marcar Completado</button>
+          <button class="btn-cancelar" data-id="${p._id}">❌ Cancelar</button>
         </div>
-        <div class="items">
-          ${p.items.map(item => `${item.cantidad} × ${item.nombrePlato}${item.toppings && item.toppings.length ? ` (${item.toppings.map(t=>t.opcionNombre).join(', ')})` : ''} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`).join('<br>')}
+      ` : '';
+      const numero = p.numeroDiario !== undefined ? `#${p.numeroDiario}` : '#?';
+      const fechaHora = new Date(p.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      const itemsHtml = (p.items || []).map(item =>
+        `${item.cantidad} × ${item.nombrePlato}${item.toppings && item.toppings.length ? ` (${item.toppings.map(t=>t.opcionNombre).join(', ')})` : ''} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`
+      ).join('<br>');
+      return `
+        <div class="${cardClass}" data-id="${p._id}">
+          <div class="pedido-header">
+            <span class="numero-pedido">${numero}</span>
+            <span class="fecha">${fechaHora}</span>
+          </div>
+          <div class="pedido-body">
+            <div class="total">$${(p.total || 0).toLocaleString('es-AR')}</div>
+            <span class="estado-badge ${badgeClass}">${badgeText}</span>
+            <div class="items">${itemsHtml}</div>
+            <div class="metodo">Método de pago: ${p.metodoPago || 'Efectivo'}</div>
+            ${p.direccion ? `<p class="direccion">📍 ${p.direccion}</p>` : ''}
+          </div>
+          ${buttonsHtml}
+          <div class="switch-admin" style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+            <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${p.estadoDelivery === 'entregado' ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
+            <span style="font-weight:700; color:#374151;">${p.estadoDelivery === 'entregado' ? 'Entregado' : 'Pendiente'}</span>
+          </div>
         </div>
-        <div class="total">Total: $${p.total.toLocaleString('es-AR')}</div>
-        <div class="metodo">Método de pago: ${p.metodoPago || 'Efectivo'}</div>
-        <div class="switch-admin" style="display:flex; align-items:center; gap:8px; margin-top:10px;">
-          <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${p.estadoDelivery === 'entregado' ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
-          <span style="font-weight:700; color:#374151;">${p.estadoDelivery === 'entregado' ? 'Entregado' : 'Pendiente'}</span>
-        </div>
-        ${p.estado === 'cancelado' ? '<div style="margin-top:10px; color:#dc2626; font-weight:800;">❌ CANCELADO</div>' : ''}
-        <div style="display:flex; gap:8px; margin-top:10px;">
-          <button class="btn-cancelar" data-id="${p._id}" style="flex:1; background:#fee2e2; color:#b91c1c; border:1.5px solid #fecaca; border-radius:8px; padding:6px 12px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:background 0.2s;" ${p.estado === 'cancelado' ? 'disabled' : ''}>❌ Cancelar</button>
-        </div>
-        <div class="numero-pedido-box" style="font-size:2rem; font-weight:900; color:#2563eb; background:#eff6ff; border:2px solid #2563eb; border-radius:12px; text-align:right; margin-top:1.2rem; padding:0.6rem 1rem; letter-spacing:1px; max-width:25%; margin-left:auto;">#${p.numeroDiario !== undefined ? p.numeroDiario : '?'}</div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
     return `<div class="grupo-dia"><h2>${etiqueta}</h2>${cards}</div>`;
   }).join('');
   contenedor.innerHTML = html;
@@ -227,28 +242,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Listener para cancelar pedido (delegado)
+  // Listener para acciones de pedido (completar / cancelar)
   document.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('btn-cancelar')) {
-      const id = e.target.dataset.id;
-      if (!confirm('¿Seguro que querés cancelar este pedido?')) return;
-      try {
-        const resp = await fetch(`/api/pedidos/${id}/cancelar`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!resp.ok) throw new Error('Error al cancelar pedido');
-        const pedido = await resp.json();
-        const idx = pedidosGlobales.findIndex(p => p._id === id);
-        if (idx !== -1) pedidosGlobales[idx].estado = pedido.estado;
-        renderizarPedidos();
-      } catch (error) {
-        console.error(error);
-        alert('No se pudo cancelar el pedido');
-      }
+    const boton = e.target.closest('.btn-completar, .btn-cancelar');
+    if (!boton) return;
+    const id = boton.dataset.id;
+    const nuevoEstado = boton.classList.contains('btn-completar') ? 'completado' : 'cancelado';
+    const textoConfirmacion = nuevoEstado === 'cancelado' ? '¿Seguro que querés cancelar este pedido?' : '¿Marcar este pedido como completado?';
+    if (!confirm(textoConfirmacion)) return;
+    try {
+      const resp = await fetch(`/api/pedidos/${id}/estado`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estado: nuevoEstado })
+      });
+      if (!resp.ok) throw new Error('Error al actualizar estado');
+      const pedido = await resp.json();
+      const idx = pedidosGlobales.findIndex(p => p._id === id);
+      if (idx !== -1) pedidosGlobales[idx].estado = pedido.estado;
+      renderizarPedidos();
+    } catch (error) {
+      console.error(error);
+      alert('No se pudo actualizar el pedido');
     }
   });
 

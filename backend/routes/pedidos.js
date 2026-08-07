@@ -66,6 +66,27 @@ router.post('/', async (req, res) => {
     }
 });
 
+// PATCH /api/pedidos/:id/estado (protegido)
+router.patch('/:id/estado', verificarToken, async (req, res) => {
+    try {
+        const { estado } = req.body;
+        const permitidos = ['pendiente', 'completado', 'cancelado'];
+        if (!permitidos.includes(estado)) {
+            return res.status(400).json({ error: 'Estado inválido' });
+        }
+        const pedido = await Pedido.findOne({ _id: req.params.id, localId: req.usuario.id });
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        pedido.estado = estado;
+        await pedido.save();
+        res.json(pedido);
+    } catch (error) {
+        console.error('Error al actualizar estado:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // PATCH /api/pedidos/:id/cancelar (protegido)
 router.patch('/:id/cancelar', verificarToken, async (req, res) => {
     try {
