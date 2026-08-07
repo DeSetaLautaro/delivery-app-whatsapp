@@ -66,4 +66,23 @@ router.post('/', async (req, res) => {
     }
 });
 
+// PATCH /api/pedidos/:id/cancelar (protegido)
+router.patch('/:id/cancelar', verificarToken, async (req, res) => {
+    try {
+        const pedido = await Pedido.findOne({ _id: req.params.id, localId: req.usuario.id });
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        if (pedido.estado === 'cancelado') {
+            return res.json(pedido);
+        }
+        pedido.estado = 'cancelado';
+        await pedido.save();
+        res.json(pedido);
+    } catch (error) {
+        console.error('Error al cancelar pedido:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = router;

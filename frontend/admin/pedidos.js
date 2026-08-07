@@ -91,6 +91,10 @@ function renderizarPedidos() {
           <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${p.estadoDelivery === 'entregado' ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
           <span style="font-weight:700; color:#374151;">${p.estadoDelivery === 'entregado' ? 'Entregado' : 'Pendiente'}</span>
         </div>
+        ${p.estado === 'cancelado' ? '<div style="margin-top:10px; color:#dc2626; font-weight:800;">❌ CANCELADO</div>' : ''}
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn-cancelar" data-id="${p._id}" style="flex:1; background:#fee2e2; color:#b91c1c; border:1.5px solid #fecaca; border-radius:8px; padding:6px 12px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:background 0.2s;" ${p.estado === 'cancelado' ? 'disabled' : ''}>❌ Cancelar</button>
+        </div>
         <div class="numero-pedido-box" style="font-size:2rem; font-weight:900; color:#2563eb; background:#eff6ff; border:2px solid #2563eb; border-radius:12px; text-align:right; margin-top:1.2rem; padding:0.6rem 1rem; letter-spacing:1px; max-width:25%; margin-left:auto;">#${p.numeroDiario !== undefined ? p.numeroDiario : '?'}</div>
       </div>
     `).join('');
@@ -219,6 +223,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (error) {
         console.error(error);
         alert('No se pudo actualizar el estado');
+      }
+    }
+  });
+
+  // Listener para cancelar pedido (delegado)
+  document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('btn-cancelar')) {
+      const id = e.target.dataset.id;
+      if (!confirm('¿Seguro que querés cancelar este pedido?')) return;
+      try {
+        const resp = await fetch(`/api/pedidos/${id}/cancelar`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!resp.ok) throw new Error('Error al cancelar pedido');
+        const pedido = await resp.json();
+        const idx = pedidosGlobales.findIndex(p => p._id === id);
+        if (idx !== -1) pedidosGlobales[idx].estado = pedido.estado;
+        renderizarPedidos();
+      } catch (error) {
+        console.error(error);
+        alert('No se pudo cancelar el pedido');
       }
     }
   });

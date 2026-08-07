@@ -78,9 +78,12 @@ function crearTarjeta(p) {
     const numero = p.numeroDiario ? `#${p.numeroDiario}` : '#?';
     const entregado = estadoActual === 'entregado';
     const estiloEntregado = entregado ? 'opacity:0.5; filter:grayscale(0.3);' : '';
+    const cancelado = p.estado === 'cancelado';
+    const claseCancelado = cancelado ? ' pedido-cancelado' : '';
 
     return `
-        <div class="pedido-card ${entregado ? 'pedido-entregado' : ''}" style="${estiloEntregado}">
+        <div class="pedido-card ${entregado ? 'pedido-entregado' : ''}${claseCancelado}" style="${cancelado ? 'position:relative; opacity:0.6; filter:grayscale(100%) blur(1px); pointer-events:none;' : estiloEntregado}">
+            ${cancelado ? '<div style="position:absolute; top:8px; left:8px; background:#dc2626; color:#fff; padding:2px 10px; border-radius:4px; font-weight:900; font-size:0.8rem; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,0.3);">CANCELADO</div>' : ''}
             <div class="card-head" style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
                 <span class="cliente" style="font-weight:700; font-size:1.05rem;">${p.cliente || 'Cliente sin nombre'}</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end;">
