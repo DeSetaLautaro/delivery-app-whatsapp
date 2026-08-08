@@ -81,9 +81,10 @@ function crearTarjeta(p) {
 
     const estadoActual = p.estadoDelivery || 'pendiente';
     const numero = p.numeroDiario ? `#${p.numeroDiario}` : 'S/N';
-    const entregado = estadoActual === 'entregado';
-    const estiloEntregado = entregado ? 'opacity:0.5; filter:grayscale(0.3);' : '';
+    const completado = p.estado === 'completado' || estadoActual === 'entregado';
     const cancelado = p.estado === 'cancelado';
+    const entregado = completado;
+    const estiloEntregado = completado ? 'opacity:0.5; filter:grayscale(0.3);' : '';
     const claseCancelado = cancelado ? ' pedido-cancelado' : '';
 
     return `
@@ -112,12 +113,15 @@ function crearTarjeta(p) {
                 <span>Pago</span>
                 <span>${p.metodoPago || 'Efectivo'}</span>
             </div>
-            <div style="display:flex; align-items:center; gap:8px; margin-top:14px; border-top:1px solid #eee; padding-top:10px;">
-                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-                    <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${entregado ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
-                    <span style="font-weight:600; color:#374151;">${entregado ? 'Entregado' : 'Marcar como entregado'}</span>
-                </label>
-            </div>
+            ${completado ? `
+                <div style="display:inline-block; background:#dcfce7; color:#15803d; font-weight:800; padding:6px 14px; border-radius:999px; margin-top:14px; border-top:1px solid #eee; padding-top:10px;">✅ COMPLETADO</div>
+            ` : cancelado ? `
+                <div style="display:inline-block; background:#fee2e2; color:#b91c1c; font-weight:800; padding:6px 14px; border-radius:999px; margin-top:14px; border-top:1px solid #eee; padding-top:10px;">CANCELADO</div>
+            ` : `
+                <div style="display:flex; align-items:center; gap:8px; margin-top:14px; border-top:1px solid #eee; padding-top:10px;">
+                    <button class="btn-completar-delivery" data-id="${p._id}" style="width:100%; padding:12px; border:none; border-radius:10px; background:#22c55e; color:#fff; font-weight:800; cursor:pointer;">✅ Marcar como completado</button>
+                </div>
+            `}
         </div>
     `;
 }
@@ -144,10 +148,12 @@ function renderPedidos() {
         filtrados = filtrados.filter(p => p.estadoDelivery === 'entregado');
     }
 
+    const ordenEstado = { 'pendiente': 0, 'completado': 1, 'cancelado': 2 };
     const ordenados = [...filtrados].sort((a,b) => {
-        const aEnt = a.estadoDelivery === 'entregado' ? 1 : 0;
-        const bEnt = b.estadoDelivery === 'entregado' ? 1 : 0;
-        if (aEnt !== bEnt) return aEnt - bEnt;
+        const ea = a.estado || 'pendiente';
+        const eb = b.estado || 'pendiente';
+        const diff = (ordenEstado[ea] ?? 3) - (ordenEstado[eb] ?? 3);
+        if (diff !== 0) return diff;
         return 0;
     });
 
@@ -158,11 +164,10 @@ function renderPedidos() {
 
     contenedor.innerHTML = ordenados.map(p => crearTarjeta(p)).join('');
 
-    document.querySelectorAll('.switch-entregado').forEach(chk => {
-        chk.addEventListener('change', (e) => {
+    document.querySelectorAll('.btn-completar-delivery').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             const id = e.target.dataset.id;
-            const nuevoEstado = e.target.checked ? 'entregado' : 'pendiente';
-            cambiarEstado(id, nuevoEstado);
+            cambiarEstado(id, 'completado');
         });
     });
 
@@ -173,7 +178,7 @@ function renderPedidos() {
 
 function cambiarEstado(id, nuevoEstado) {
     if (!deliveryToken) return;
-    const estadoPATCH = nuevoEstado === 'entregado' ? 'completado' : 'pendiente';
+    const estadoPATCH = nuevoEstado === 'completado' ? 'completado' : 'pendiente';
     fetch(`/api/pedidos/${id}/estado?token=${encodeURIComponent(deliveryToken)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },

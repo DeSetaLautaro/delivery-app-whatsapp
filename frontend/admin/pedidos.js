@@ -83,14 +83,20 @@ function renderizarPedidos() {
   }
   const grupos = agruparPorDia(pedidosMostrados);
   let html = Object.keys(grupos).map(etiqueta => {
-    const cards = grupos[etiqueta].map(p => {
+    const ordenEstado = { 'pendiente': 0, 'completado': 1, 'cancelado': 2 };
+    const listaOrdenada = [...grupos[etiqueta]].sort((a,b) => {
+        const ea = a.estado || 'pendiente';
+        const eb = b.estado || 'pendiente';
+        return (ordenEstado[ea] ?? 3) - (ordenEstado[eb] ?? 3);
+    });
+    const cards = listaOrdenada.map(p => {
       const estado = p.estado || 'pendiente';
       const badgeClass = estado === 'cancelado' ? 'estado-cancelado' : estado === 'completado' ? 'estado-completado' : 'estado-pendiente';
-      const badgeText = estado === 'cancelado' ? 'Cancelado' : estado === 'completado' ? 'Completado' : 'Pendiente';
+      const badgeText = estado === 'cancelado' ? 'Cancelado' : estado === 'completado' ? 'COMPLETADO' : 'Pendiente';
       const cardClass = estado === 'cancelado' ? 'pedido-card cancelado' : estado === 'completado' ? 'pedido-card completado' : 'pedido-card';
       const buttonsHtml = (estado === 'pendiente') ? `
         <div class="pedido-acciones">
-          <button class="btn-completar" data-id="${p._id}">✅ Marcar Completado</button>
+          <button class="btn-completar" data-id="${p._id}">✅ Marcar como completado</button>
           <button class="btn-cancelar" data-id="${p._id}">❌ Cancelar</button>
         </div>
       ` : '';
