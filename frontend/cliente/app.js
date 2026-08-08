@@ -845,25 +845,17 @@ function cerrarModalResenas(idModal) {
 function abrirModalEscribirResena() {
     document.getElementById('modal-feed-resenas').style.display = 'none';
     document.getElementById('modal-escribir-resena').style.display = 'flex';
-    resetearEstrellas();
 }
 
-function resetearEstrellas() {
-    document.querySelectorAll('#estrellas-rating span').forEach(span => {
-        span.classList.remove('activa');
-    });
-}
 
 function renderListaResenas(resenas) {
     if (!resenas || resenas.length === 0) {
         return '<p style="text-align:center;color:#888;padding:20px;">Todavía no hay reseñas públicas.</p>';
     }
     return resenas.map(r => {
-        const estrellas = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
         const fecha = new Date(r.fecha).toLocaleDateString('es-AR');
         return `
             <div class="tarjeta-resena">
-                <div class="resena-estrellas">${estrellas}</div>
                 <div class="resena-fecha">${fecha}</div>
                 <p class="resena-texto">${r.comentario || ''}</p>
                 ${configResenas.permitirVotosResenas ? `
@@ -905,13 +897,6 @@ async function inicializarBannerResenas() {
     const btnEscribir = document.querySelector('.btn-escribir-resena');
     if (btnEscribir) btnEscribir.addEventListener('click', () => abrirModalEscribirResena());
 
-    const estrellas = document.querySelectorAll('#estrellas-rating span');
-    estrellas.forEach(span => {
-        span.addEventListener('click', () => {
-            const valor = Number(span.dataset.value);
-            seleccionarEstrellas(valor);
-        });
-    });
 
     const btnEnviar = document.getElementById('enviar-resena');
     if (btnEnviar) {
@@ -919,13 +904,6 @@ async function inicializarBannerResenas() {
     }
 }
 
-function seleccionarEstrellas(valor) {
-    const estrellas = document.querySelectorAll('#estrellas-rating span');
-    estrellas.forEach(span => {
-        const num = Number(span.dataset.value);
-        span.classList.toggle('activa', num <= valor);
-    });
-}
 
 async function votar(boton) {
     const resenaId = boton.dataset.resena;
@@ -982,14 +960,9 @@ async function votar(boton) {
 async function enviarResena() {
     const texto = document.getElementById('texto-resena').value.trim();
     const publica = document.getElementById('publica-resena').checked;
-    const estrellasActivas = document.querySelectorAll('#estrellas-rating span.activa').length;
 
     if (!texto) {
         alert('Por favor escribí algún comentario.');
-        return;
-    }
-    if (!estrellasActivas) {
-        alert('Elegí la cantidad de estrellas.');
         return;
     }
     const cartel = document.getElementById('texto-resena');
@@ -1002,7 +975,6 @@ async function enviarResena() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 slug: slugLocal,
-                estrellas: estrellasActivas,
                 comentario: texto,
                 publica: publica
             })
@@ -1014,7 +986,6 @@ async function enviarResena() {
         document.getElementById('modal-escribir-resena').style.display = 'none';
         document.getElementById('texto-resena').value = '';
         document.getElementById('publica-resena').checked = true;
-        resetearEstrellas();
     } catch (error) {
         console.error('Error al enviar reseña:', error);
         alert('Hubo un problema al guardar tu reseña. Intentalo de nuevo.');

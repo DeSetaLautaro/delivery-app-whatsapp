@@ -26,9 +26,10 @@ router.get('/:slug', async (req, res) => {
 // POST / -> permite crear una reseña (si el local la acepta)
 router.post('/', async (req, res) => {
     try {
-        const { slug, estrellas, comentario, publica } = req.body;
+        const { slug, comentario, publica } = req.body;
+        const estrellas = req.body.estrellas ?? 5;
 
-        if (!slug || !estrellas || estrellas < 1 || estrellas > 5) {
+        if (!slug) {
             return res.status(400).json({ error: 'Datos inválidos' });
         }
 

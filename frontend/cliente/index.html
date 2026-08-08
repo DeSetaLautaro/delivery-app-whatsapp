@@ -180,7 +180,6 @@
         <div id="lista-resenas-publicas" class="lista-resenas-publicas">
           <!-- Tarjetas de ejemplo -->
           <div class="tarjeta-resena">
-            <div class="resena-estrellas" data-valor="5">★★★★★</div>
             <div class="resena-fecha">12/05/2024</div>
             <p class="resena-texto">¡Las mejores empanadas! Llegaron súper calientes y riquísimas. El repartidor muy amable.</p>
             <div class="resena-votos">
@@ -189,7 +188,6 @@
             </div>
           </div>
           <div class="tarjeta-resena">
-            <div class="resena-estrellas" data-valor="3">★★★☆☆</div>
             <div class="resena-fecha">28/04/2024</div>
             <p class="resena-texto">La pizza estaba buena pero la demora fue mucha. Igual la recomiendo.</p>
             <div class="resena-votos">
@@ -206,16 +204,9 @@
       <div class="modal-resenas-overlay" onclick="cerrarModalResenas('modal-escribir-resena')"></div>
       <div class="modal-resenas-content">
         <header class="modal-header-resenas">
-          <h2>Calificá tu pedido</h2>
+          <h2>Dejá tu reseña</h2>
           <button class="modal-cerrar" onclick="cerrarModalResenas('modal-escribir-resena')" aria-label="Cerrar">✕</button>
         </header>
-        <div class="estrellas-rating" id="estrellas-rating">
-          <span data-value="1">★</span>
-          <span data-value="2">★</span>
-          <span data-value="3">★</span>
-          <span data-value="4">★</span>
-          <span data-value="5">★</span>
-        </div>
         <textarea id="texto-resena" placeholder="¡Las mejores empanadas! Llegaron súper calientes..." rows="4"></textarea>
         <label class="checkbox-anonimo">
           <input type="checkbox" id="publica-resena" checked> Hacer pública mi reseña (100% anónima)
