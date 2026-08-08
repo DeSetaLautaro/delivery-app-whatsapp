@@ -3,13 +3,6 @@ let deliveryToken = token;
 let todosLosPedidos = [];
 let filtroDelivery = 'todos';
 
-const MOCK_PEDIDOS_DELIVERY = [
-  { _id: 'mock1', cliente: 'Juan Pérez', direccion: 'Av. Siempre Viva 742', telefonoCliente: '11-5555-1234', notas: 'Sin cebolla', items: [{ cantidad: 1, nombrePlato: 'Hamburguesa', toppings: [], precio: 1800 }], total: 1800, metodoPago: 'Efectivo', fecha: new Date(Date.now() - 1*60*60*1000), numeroDiario: 1, estadoDelivery: 'pendiente', estado: 'pendiente' },
-  { _id: 'mock2', cliente: 'María López', direccion: 'Mitre 123', telefonoCliente: '11-5555-5678', notas: '', items: [{ cantidad: 2, nombrePlato: 'Pizza', toppings: [{grupoNombre: 'Queso', opcionNombre: 'Aceitunas', precio: 200}], precio: 3200 }], total: 6600, metodoPago: 'Transferencia', fecha: new Date(Date.now() - 2*60*60*1000), numeroDiario: 2, estadoDelivery: 'entregado', estado: 'entregado' },
-  { _id: 'mock3', cliente: 'Carlos Gómez', direccion: 'Belgrano 888', telefonoCliente: '11-5555-9012', notas: 'Picante', items: [{ cantidad: 3, nombrePlato: 'Empanadas', toppings: [], precio: 6000 }], total: 18000, metodoPago: 'Tarjeta', fecha: new Date(Date.now() - 3*60*60*1000), numeroDiario: 3, estadoDelivery: 'en_viaje', estado: 'en_viaje' },
-  { _id: 'mock4', cliente: 'Ana Ruiz', direccion: 'Rivadavia 333', telefonoCliente: '11-5555-3456', notas: '', items: [{ cantidad: 1, nombrePlato: 'Lomo', toppings: [], precio: 2900 }], total: 2900, metodoPago: 'Efectivo', fecha: new Date(Date.now() - 26*60*60*1000), numeroDiario: 4, estadoDelivery: 'pendiente', estado: 'pendiente' }
-];
-
 document.addEventListener('DOMContentLoaded', () => {
     const inputBusqueda = document.getElementById('buscadorPedidos');
     if (inputBusqueda) {
