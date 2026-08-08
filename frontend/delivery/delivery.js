@@ -115,7 +115,7 @@ function crearTarjeta(p) {
             <div style="display:flex; align-items:center; gap:8px; margin-top:14px; border-top:1px solid #eee; padding-top:10px;">
                 <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                     <input type="checkbox" class="switch-entregado" data-id="${p._id}" ${entregado ? 'checked' : ''} style="width:20px; height:20px; accent-color:#2563eb;">
-                    <span style="font-weight:600; color:#374151;">${entregado ? 'Entregado' : 'Pendiente'}</span>
+                    <span style="font-weight:600; color:#374151;">${entregado ? 'Entregado' : 'Marcar como entregado'}</span>
                 </label>
             </div>
         </div>
