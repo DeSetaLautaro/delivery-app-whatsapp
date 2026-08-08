@@ -29,6 +29,7 @@ let temaActualMenu = 'clasico';
 
 // Plato que está esperando confirmación en el popup de toppings.
 let platoPendiente = null;
+let configResenas = { permitirResenas: true, resenasPublicas: false, permitirVotosResenas: true };
 
 
 // ============================================================
@@ -815,8 +816,26 @@ function mostrarInfoTransferencia(mostrar) {
 
 let votoResena = {}; // clave ej. "acuerdo_1" => true
 
-function abrirModalFeedResenas() {
-    document.getElementById('modal-feed-resenas').style.display = 'flex';
+async function abrirModalFeedResenas() {
+    const modal = document.getElementById('modal-feed-resenas');
+    if (!modal) return;
+    if (!configResenas.resenasPublicas) {
+        // Si no hay feed público, abrir directamente el formulario
+        abrirModalEscribirResena();
+        return;
+    }
+    try {
+        const res = await fetch(`/api/resenas/${slugLocal}`);
+        const resenas = res.ok ? await res.json() : [];
+        const contenedor = document.getElementById('lista-resenas-publicas');
+        if (contenedor) {
+            contenedor.innerHTML = renderListaResenas(resenas);
+        }
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Error al cargar reseñas:', error);
+        modal.style.display = 'flex';
+    }
 }
 
 function cerrarModalResenas(idModal) {
@@ -835,11 +854,50 @@ function resetearEstrellas() {
     });
 }
 
-function inicializarBannerResenas() {
-    const banner = document.getElementById('banner-resenas');
-    if (banner) {
-        banner.addEventListener('click', () => abrirModalFeedResenas());
+function renderListaResenas(resenas) {
+    if (!resenas || resenas.length === 0) {
+        return '<p style="text-align:center;color:#888;padding:20px;">Todavía no hay reseñas públicas.</p>';
     }
+    return resenas.map(r => {
+        const estrellas = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
+        const fecha = new Date(r.fecha).toLocaleDateString('es-AR');
+        return `
+            <div class="tarjeta-resena">
+                <div class="resena-estrellas">${estrellas}</div>
+                <div class="resena-fecha">${fecha}</div>
+                <p class="resena-texto">${r.comentario || ''}</p>
+                ${configResenas.permitirVotosResenas ? `
+                <div class="resena-votos">
+                    <button class="btn-voto acuerdo" data-resena="${r._id}" onclick="votar(this)">👍 Estoy de acuerdo (${r.votosFavor || 0})</button>
+                    <button class="btn-voto desacuerdo" data-resena="${r._id}" onclick="votar(this)">👎 (${r.votosContra || 0})</button>
+                </div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+async function inicializarBannerResenas() {
+    const banner = document.getElementById('banner-resenas');
+    if (!banner) return;
+
+    // Cargar preferencias del local
+    try {
+        const res = await fetch(`/api/publico/perfil/${slugLocal}`);
+        const perfil = res.ok ? await res.json() : {};
+        configResenas.permitirResenas = perfil.permitirResenas ?? true;
+        configResenas.resenasPublicas = perfil.resenasPublicas ?? false;
+        configResenas.permitirVotosResenas = perfil.permitirVotosResenas ?? true;
+    } catch (error) {
+        console.error('Error al cargar config de reseñas:', error);
+    }
+
+    if (!configResenas.permitirResenas) {
+        banner.style.display = 'none';
+        return;
+    }
+
+    banner.style.display = '';
+    banner.addEventListener('click', () => abrirModalFeedResenas());
 
     const overlayFeed = document.querySelector('#modal-feed-resenas .modal-resenas-overlay');
     if (overlayFeed) overlayFeed.addEventListener('click', () => cerrarModalResenas('modal-feed-resenas'));
@@ -859,10 +917,6 @@ function inicializarBannerResenas() {
     if (btnEnviar) {
         btnEnviar.addEventListener('click', enviarResena);
     }
-
-    document.querySelectorAll('.btn-voto').forEach(btn => {
-        btn.addEventListener('click', (e) => votar(e.target));
-    });
 }
 
 function seleccionarEstrellas(valor) {
@@ -895,18 +949,49 @@ function votar(boton) {
     }
 }
 
-function enviarResena() {
+async function enviarResena() {
     const texto = document.getElementById('texto-resena').value.trim();
     const publica = document.getElementById('publica-resena').checked;
+    const estrellasActivas = document.querySelectorAll('#estrellas-rating span.activa').length;
+
     if (!texto) {
         alert('Por favor escribí algún comentario.');
         return;
     }
-    alert('✅ ¡Gracias por tu reseña! Si elegiste hacerla pública, aparecerá pronto anónimamente.');
-    document.getElementById('modal-escribir-resena').style.display = 'none';
-    document.getElementById('texto-resena').value = '';
-    document.getElementById('publica-resena').checked = true;
-    resetearEstrellas();
+    if (!estrellasActivas) {
+        alert('Elegí la cantidad de estrellas.');
+        return;
+    }
+    const cartel = document.getElementById('texto-resena');
+    cartel.disabled = true;
+    const btn = document.getElementById('enviar-resena');
+    btn.disabled = true;
+    try {
+        const resp = await fetch('/api/resenas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                slug: slugLocal,
+                estrellas: estrellasActivas,
+                comentario: texto,
+                publica: publica
+            })
+        });
+        if (!resp.ok) {
+            throw new Error('No se pudo guardar');
+        }
+        alert('✅ ¡Gracias por tu reseña! Si el local la hace pública, aparecerá anónimamente.');
+        document.getElementById('modal-escribir-resena').style.display = 'none';
+        document.getElementById('texto-resena').value = '';
+        document.getElementById('publica-resena').checked = true;
+        resetearEstrellas();
+    } catch (error) {
+        console.error('Error al enviar reseña:', error);
+        alert('Hubo un problema al guardar tu reseña. Intentalo de nuevo.');
+    } finally {
+        cartel.disabled = false;
+        btn.disabled = false;
+    }
 }
 
 // ============================================================
