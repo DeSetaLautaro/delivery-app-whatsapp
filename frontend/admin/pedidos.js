@@ -94,12 +94,23 @@ function renderizarPedidos() {
       const badgeClass = estado === 'cancelado' ? 'estado-cancelado' : estado === 'completado' ? 'estado-completado' : 'estado-pendiente';
       const badgeText = estado === 'cancelado' ? 'Cancelado' : estado === 'completado' ? 'COMPLETADO' : 'Pendiente';
       const cardClass = estado === 'cancelado' ? 'pedido-card cancelado' : estado === 'completado' ? 'pedido-card completado' : 'pedido-card';
-      const buttonsHtml = (estado === 'pendiente') ? `
-        <div class="pedido-acciones">
-          <button class="btn-completar" data-id="${p._id}">✅ Marcar como completado</button>
-          <button class="btn-cancelar" data-id="${p._id}">❌ Cancelar</button>
-        </div>
-      ` : '';
+      let buttonsHtml = '';
+      if (estado === 'pendiente') {
+        buttonsHtml = `
+          <div class="pedido-acciones">
+            <button class="btn-completar" data-id="${p._id}">✅ Marcar como completado</button>
+            <button class="btn-cancelar" data-id="${p._id}">❌ Cancelar</button>
+          </div>
+        `;
+      } else {
+        buttonsHtml = `
+          <div class="pedido-acciones-secundarias">
+            <button class="btn-revertir-pendiente" data-id="${p._id}" title="Mover a pendiente">↺ Pendiente</button>
+            ${estado === 'completado' ? `<button class="btn-revertir-cancelado" data-id="${p._id}" title="Cambiar a cancelado">❌ Cancelado</button>` : ''}
+            ${estado === 'cancelado' ? `<button class="btn-revertir-completado" data-id="${p._id}" title="Cambiar a completado">✅ Completado</button>` : ''}
+          </div>
+        `;
+      }
       const numero = p.numeroDiario ? `#${p.numeroDiario}` : 'S/N';
       const fechaHora = new Date(p.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       const itemsHtml = (p.items || []).map(item => {
@@ -226,12 +237,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Listener para acciones de pedido (completar / cancelar)
   document.addEventListener('click', async (e) => {
-    const boton = e.target.closest('.btn-completar, .btn-cancelar');
+    const boton = e.target.closest('.btn-completar, .btn-cancelar, .btn-revertir-pendiente, .btn-revertir-completado, .btn-revertir-cancelado');
     if (!boton) return;
     const id = boton.dataset.id;
-    const nuevoEstado = boton.classList.contains('btn-completar') ? 'completado' : 'cancelado';
-    const textoConfirmacion = nuevoEstado === 'cancelado' ? '¿Seguro que querés cancelar este pedido?' : '¿Marcar este pedido como completado?';
-    if (!confirm(textoConfirmacion)) return;
+    let nuevoEstado;
+    if (boton.classList.contains('btn-completar') || boton.classList.contains('btn-revertir-completado')) {
+      nuevoEstado = 'completado';
+    } else if (boton.classList.contains('btn-cancelar') || boton.classList.contains('btn-revertir-cancelado')) {
+      nuevoEstado = 'cancelado';
+    } else if (boton.classList.contains('btn-revertir-pendiente')) {
+      nuevoEstado = 'pendiente';
+    }
+    const esRevertir = boton.classList.contains('btn-revertir-pendiente') || boton.classList.contains('btn-revertir-completado') || boton.classList.contains('btn-revertir-cancelado');
+    if (!esRevertir) {
+      const textoConfirmacion = nuevoEstado === 'cancelado' ? '¿Seguro que querés cancelar este pedido?' : '¿Marcar este pedido como completado?';
+      if (!confirm(textoConfirmacion)) return;
+    }
 
 
     try {
