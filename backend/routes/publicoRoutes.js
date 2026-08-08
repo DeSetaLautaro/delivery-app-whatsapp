@@ -46,19 +46,25 @@ router.get('/menu/:slugLocal', async (req, res) => {
 
 
 
-// Ruta PÚBLICA: datos del perfil del local (número de WA + métodos de pago)
+// Ruta PÚBLICA: datos del perfil del local (número de WA + métodos de pago + config reseñas)
 router.get('/perfil/:slugLocal', async (req, res) => {
     try {
         const usuario = await Usuario.findOne({ slug: req.params.slugLocal });
         if (!usuario) return res.status(404).json({ error: 'Local no encontrado' });
-                res.json({
-            nombre:         usuario.nombreDelLocal,
-            whatsappNumero: usuario.telefono,
-            metodosPago:    usuario.metodosPago || [],
-            fotoPerfil:     usuario.fotoPerfil || '',
-            temaMenu:       usuario.temaMenu || 'clasico'
+
+        res.json({
+            _id:                  usuario._id,
+            nombre:               usuario.nombreDelLocal,
+            whatsappNumero:       usuario.telefono,
+            metodosPago:          usuario.metodosPago || [],
+            fotoPerfil:           usuario.fotoPerfil || '',
+            temaMenu:             usuario.temaMenu || 'clasico',
+            permitirResenas:      usuario.permitirResenas ?? true,
+            resenasPublicas:      usuario.resenasPublicas ?? false,
+            permitirVotosResenas: usuario.permitirVotosResenas ?? true
         });
     } catch (e) {
+        console.error('Error al obtener perfil público:', e);
         res.status(500).json({ error: 'Error del servidor' });
     }
 });

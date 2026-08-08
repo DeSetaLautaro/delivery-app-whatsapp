@@ -876,7 +876,7 @@ async function inicializarBannerResenas() {
     try {
         const res = await fetch(`/api/publico/perfil/${slugLocal}`);
         const perfil = res.ok ? await res.json() : {};
-        configResenas.permitirResenas = perfil.permitirResenas ?? true;
+        configResenas.permitirResenas = perfil.permitirResenas ?? false;
         configResenas.resenasPublicas = perfil.resenasPublicas ?? false;
         configResenas.permitirVotosResenas = perfil.permitirVotosResenas ?? true;
     } catch (error) {
