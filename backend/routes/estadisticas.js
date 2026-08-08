@@ -462,6 +462,9 @@ router.post('/mock', verificarToken, async (req, res) => {
         const localId = req.usuario.id || req.usuario._id;
 
         const pedidosMock = [];
+        // Obtenemos el último numeroDiario existente para continuar la secuencia
+        const ultimoPedido = await Pedido.findOne({ localId: new mongoose.Types.ObjectId(localId) }).sort({ numeroDiario: -1 });
+        const numeroDiarioBase = ultimoPedido && ultimoPedido.numeroDiario ? ultimoPedido.numeroDiario : 0;
         const nombresPlatos = [
             '🍔 Triple Bacon',
             '🍕 Muzza XL',
@@ -524,6 +527,7 @@ router.post('/mock', verificarToken, async (req, res) => {
                     total += precioFinal * cantidad;
                 }
             }
+            const fechaTurno = new Date(fecha.getTime() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
             pedidosMock.push({
                 localId,
                 items: itemsMock,
@@ -532,7 +536,9 @@ router.post('/mock', verificarToken, async (req, res) => {
                 telefonoCliente: `11-5555-${String(i).padStart(4, '0')}`,
                 direccion: 'Mock Street 123',
                 estado: 'pendiente',
-                estadoDelivery: 'pendiente'
+                estadoDelivery: 'pendiente',
+                numeroDiario: numeroDiarioBase + i + 1,
+                fechaTurno
             });
         }
 
