@@ -5,6 +5,7 @@ const resenaSchema = new mongoose.Schema({
     estrellas: { type: Number, default: 5 },
     comentario: { type: String, default: '' },
     usuario: { type: String, default: 'Anónimo' },
+    publica: { type: Boolean, default: false },
     fecha: { type: Date, default: Date.now },
     votosFavor: { type: Number, default: 0 },
     votosContra: { type: Number, default: 0 }

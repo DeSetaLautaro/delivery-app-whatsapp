@@ -69,6 +69,11 @@ router.patch('/:id/voto', async (req, res) => {
         const resena = await Resena.findById(id);
         if (!resena) return res.status(404).json({ error: 'Reseña no encontrada' });
 
+        const local = await Usuario.findById(resena.localId);
+        if (!local || !local.permitirVotosResenas) {
+            return res.status(403).json({ error: 'El local no permite votos comunitarios' });
+        }
+
         if (voto === 'acuerdo') {
             resena.votosFavor = (resena.votosFavor || 0) + 1;
         } else {
