@@ -44,6 +44,16 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         if (resenasPublicas) resenasPublicas.checked = !!datosPerfil.resenasPublicas;
         if (permitirVotosResenas) permitirVotosResenas.checked = !!datosPerfil.permitirVotosResenas;
 
+        // Aplicar reglas de secuencia y habilitar lo correcto
+        actualizarEstadoResenas();
+
+        // Escuchar cambios en los checkboxes para validación en tiempo real
+        if (permitirResenas && resenasPublicas && permitirVotosResenas) {
+            [permitirResenas, resenasPublicas, permitirVotosResenas].forEach(chk => {
+                chk.addEventListener('change', actualizarEstadoResenas);
+            });
+        }
+
         const btnGuardarResenas = document.getElementById('guardarConfigResenas');
         if (btnGuardarResenas) {
             btnGuardarResenas.addEventListener('click', guardarConfigResenas);
@@ -264,6 +274,29 @@ function rellenarHorarios(horariosArray) {
         if (hasta) {
             hasta.value = configDia.cierre || '';
             hasta.disabled = false;
+        }
+    });
+}
+
+function actualizarEstadoResenas() {
+    const permitir = document.getElementById('permitirResenas');
+    const publicas = document.getElementById('resenasPublicas');
+    const votos = document.getElementById('permitirVotosResenas');
+    if (!permitir || !publicas || !votos) return;
+
+    const habilitarPublicas = permitir.checked;
+    publicas.disabled = !habilitarPublicas;
+    if (!habilitarPublicas) publicas.checked = false;
+
+    const habilitarVotos = publicas.checked && habilitarPublicas;
+    votos.disabled = !habilitarVotos;
+    if (!habilitarVotos) votos.checked = false;
+
+    // Actualizar clases visuales del contenedor
+    [permitir, publicas, votos].forEach(chk => {
+        const contenedor = chk.closest('.opcion-resena');
+        if (contenedor) {
+            contenedor.classList.toggle('opcion-deshabilitada', chk.disabled);
         }
     });
 }
