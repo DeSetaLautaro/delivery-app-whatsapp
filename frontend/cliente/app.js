@@ -885,6 +885,7 @@ async function inicializarBannerResenas() {
         banner.style.display = 'none';
         return;
     }
+    console.log("es:", configResenas.permitirResenas);
 
     if (!configResenas.permitirResenas) {
         banner.style.display = 'none';
