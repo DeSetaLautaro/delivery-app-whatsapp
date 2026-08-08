@@ -5,7 +5,8 @@ const fs = require('fs');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 const path      = require('path');
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const Usuario = require('../models/usuario');
 const verificarToken = require('../middleware/verificarToken');
 
@@ -206,64 +207,55 @@ router.post('/bulk', verificarToken, async (req, res) => {
 
 async function procesarConIA(fotos)
 {
-    // Paso 1: Convertir todas las fotos a datos URL para DeepSeek
-    const bloquesDeImagen = fotos.map(file => ({
-        type: 'image_url',
-        image_url: {
-            url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
-        }
-    }));
-
-    // Paso 2: Llamar a la API de DeepSeek (compatible con OpenAI)
-    const respuesta = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
-        },
-        body: JSON.stringify({
-            model: 'deepseek-chat', // Se puede cambiar a deepseek-reasoner o deepseek-coder
-            max_tokens: 2048,
-            messages: [
-                {
-                    role: 'system',
-                    content: "Sos un asistente experto en extracción de datos. Tu única tarea es convertir imágenes de menús en un array JSON estricto. No respondas nada más, no uses markdown, solo el JSON."
-                },
-                {
-                    role: 'user',
-                    content: [
-                        ...bloquesDeImagen,
-                        {
-                            type: 'text',
-                            text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
-                            { "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
-                            Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
-                            Solo responde con el JSON.`
-                        }
-                    ]
-                }
-            ]
-        })
-    });
-
-    if (!respuesta.ok) {
-        const errorTexto = await respuesta.text();
-        throw new Error(`DeepSeek API error ${respuesta.status}: ${errorTexto}`);
+    // Verificación básica de configuración y archivos
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("Falta GEMINI_API_KEY en el archivo .env");
+    }
+    if (!Array.isArray(fotos) || fotos.length === 0) {
+        throw new Error("No se recibieron imágenes para analizar");
     }
 
-    const data = await respuesta.json();
-    const respuestaTexto = data.choices?.[0]?.message?.content ?? '';
-    return JSON.parse(respuestaTexto.replace(/```json|```/g, '').trim());
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Armamos las partes: primero el prompt y después las imágenes en base64
+    const parts = [
+        {
+            text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
+{ "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
+Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
+Solo respondé con el JSON, sin markdown ni explicaciones adicionales.`
+        },
+        ...fotos.map(file => ({
+            inlineData: {
+                mimeType: file.mimetype,
+                data: file.buffer.toString('base64')
+            }
+        }))
+    ];
+
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts }]
+    });
+
+    const respuesta = result.response;
+    let respuestaTexto = respuesta.text() || '';
+    respuestaTexto = respuestaTexto.replace(/```json|```/g, '').trim();
+
+    try {
+        return JSON.parse(respuestaTexto);
+    } catch (error) {
+        throw new Error(`No se pudo interpretar el JSON devuelto por Gemini: ${respuestaTexto}`);
+    }
 };
 
 
 // La constante la dejamos afuera, arribita de todo, para que sea más ordenado
-router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => { 
+router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
+    const fotos = req.files || [];
     try {
-        const fotos = req.files;
-        
         // 1. Recibimos los platos crudos de la IA
-        const platosDesdeIA = await procesarConIA(fotos); 
+        const platosDesdeIA = await procesarConIA(fotos);
         
         // 2. Limpiamos los datos para asegurarnos que tengan el formato correcto
         // ¡OJO! Ya NO inventamos el ID. Dejamos que Mongoose lo haga.
@@ -302,6 +294,15 @@ router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
     } catch (error) {
         console.error("Error en la ruta procesar-ia:", error);
         res.status(500).json({ error: "No pude procesar las fotos" });
+    } finally {
+        // Limpiar archivos temporales si multer los guardó en disco
+        fotos.forEach(file => {
+            if (file.path) {
+                fs.unlink(file.path, (err) => {
+                    if (err) console.error("Error al eliminar archivo temporal:", err);
+                });
+            }
+        });
     }
 });
 
