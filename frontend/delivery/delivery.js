@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     crearFiltrosDelivery();
     cargarPedidos();
+    setInterval(() => {
+        if (token) actualizarPedidos();
+    }, 5000);
 });
 
 function crearFiltrosDelivery() {
@@ -50,19 +53,28 @@ function cargarPedidos() {
         contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">Falta el token en la URL.</p>';
         return;
     }
-
     contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">Cargando pedidos...</p>';
+    if (token) {
+        actualizarPedidos();
+    }
+}
 
-    // Usamos datos de prueba para visualizar el front
-    setTimeout(() => {
-        if (!Array.isArray(MOCK_PEDIDOS_DELIVERY) || MOCK_PEDIDOS_DELIVERY.length === 0) {
-            contenedor.innerHTML = '<p style="text-align:center;color:#888;padding:40px 0;">No hay pedidos para hoy 🌙</p>';
+function actualizarPedidos() {
+    if (!token) return Promise.resolve();
+    return fetch(`/api/delivery/pedidos?token=${encodeURIComponent(token)}`)
+        .then(res => {
+            if (!res.ok) throw new Error('No se pudieron obtener los pedidos');
+            return res.json();
+        })
+        .then(data => {
+            todosLosPedidos = Array.isArray(data) ? data : [];
+            renderPedidos();
+        })
+        .catch(err => {
+            console.error('Error al cargar pedidos:', err);
             todosLosPedidos = [];
-            return;
-        }
-        todosLosPedidos = MOCK_PEDIDOS_DELIVERY;
-        renderPedidos();
-    }, 400);
+            renderPedidos();
+        });
 }
 
 function crearTarjeta(p) {
@@ -168,15 +180,16 @@ function renderPedidos() {
 
 function cambiarEstado(id, nuevoEstado) {
     if (!deliveryToken) return;
-    fetch(`/api/delivery/pedidos/${id}/estado?token=${encodeURIComponent(deliveryToken)}`, {
-        method: 'PUT',
+    const estadoPATCH = nuevoEstado === 'entregado' ? 'completado' : 'pendiente';
+    fetch(`/api/pedidos/${id}/estado?token=${encodeURIComponent(deliveryToken)}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estadoDelivery: nuevoEstado })
+        body: JSON.stringify({ estado: estadoPATCH })
     })
     .then(res => {
         if (!res.ok) throw new Error('No se pudo actualizar');
         return res.json();
     })
-    .then(() => cargarPedidos())
+    .then(() => actualizarPedidos())
     .catch(err => console.error(err));
 }

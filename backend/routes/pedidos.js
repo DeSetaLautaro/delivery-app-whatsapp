@@ -84,6 +84,11 @@ router.patch('/:id/estado', verificarToken, async (req, res) => {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
         pedido.estado = estado;
+        if (estado === 'completado') {
+            pedido.estadoDelivery = 'entregado';
+        } else if (estado === 'pendiente') {
+            pedido.estadoDelivery = 'pendiente';
+        }
         await pedido.save();
         res.json(pedido);
     } catch (error) {
