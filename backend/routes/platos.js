@@ -4,9 +4,8 @@ const router = express.Router();
 const fs = require('fs');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
-const Anthropic = require('@anthropic-ai/sdk');
 const path      = require('path');
-const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const Usuario = require('../models/usuario');
 const verificarToken = require('../middleware/verificarToken');
 
@@ -207,41 +206,54 @@ router.post('/bulk', verificarToken, async (req, res) => {
 
 async function procesarConIA(fotos)
 {
-    // Paso 1: Convertir todas las fotos a Base64
-const bloquesDeImagen = fotos.map(file => ({
-    type: 'image',
-    source: {
-        type: 'base64',
-        media_type: file.mimetype,
-        data: file.buffer.toString('base64') // Si usas memoryStorage, el archivo está en file.buffer
-    }
-}));
- const respuesta = await claude.messages.create({
-    model: 'deepsek-', // Usá un modelo estable y económico
-    max_tokens: 2048,
-    // System message: Esto es lo más importante. Le define su "personalidad"
-    system: "Sos un asistente experto en extracción de datos. Tu única tarea es convertir imágenes de menús en un array JSON estricto. No respondas nada más, no uses markdown, solo el JSON.",
-    messages: [
-        {
-            role: 'user',
-            content: [
-                // Acá agregamos tantas imágenes como quieras, una por una
-                ...bloquesDeImagen, 
+    // Paso 1: Convertir todas las fotos a datos URL para DeepSeek
+    const bloquesDeImagen = fotos.map(file => ({
+        type: 'image_url',
+        image_url: {
+            url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+        }
+    }));
+
+    // Paso 2: Llamar a la API de DeepSeek (compatible con OpenAI)
+    const respuesta = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'deepseek-chat', // Se puede cambiar a deepseek-reasoner o deepseek-coder
+            max_tokens: 2048,
+            messages: [
                 {
-                    type: 'text',
-                    text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
-                    { "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
-                    Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
-                    Solo responde con el JSON.`
+                    role: 'system',
+                    content: "Sos un asistente experto en extracción de datos. Tu única tarea es convertir imágenes de menús en un array JSON estricto. No respondas nada más, no uses markdown, solo el JSON."
+                },
+                {
+                    role: 'user',
+                    content: [
+                        ...bloquesDeImagen,
+                        {
+                            type: 'text',
+                            text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
+                            { "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
+                            Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
+                            Solo responde con el JSON.`
+                        }
+                    ]
                 }
             ]
-        }
-    ]
-});
-        // Paso 3: Limpiar la respuesta y convertirla a JSON real
-        let respuestaTexto = respuesta.content[0].text;
-    respuestaTexto = respuestaTexto.replace(/```json|```/g, '').trim();
-    return JSON.parse(respuestaTexto);
+        })
+    });
+
+    if (!respuesta.ok) {
+        const errorTexto = await respuesta.text();
+        throw new Error(`DeepSeek API error ${respuesta.status}: ${errorTexto}`);
+    }
+
+    const data = await respuesta.json();
+    const respuestaTexto = data.choices?.[0]?.message?.content ?? '';
+    return JSON.parse(respuestaTexto.replace(/```json|```/g, '').trim());
 };
 
 
