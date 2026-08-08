@@ -76,6 +76,11 @@ async function cargarMenu() {
         document.body.classList.add(`tema-${temaActual}`);
         temaActualMenu = temaActual;
 
+        // Aplicar tipografía elegida por el local
+        const fuenteActual = perfilDelLocal.fuenteMenu || 'moderna';
+        document.body.classList.remove('fuente-moderna', 'fuente-clasica', 'fuente-amigable');
+        document.body.classList.add(`fuente-${fuenteActual}`);
+
         // Forzar cambio de color de fondo si es elegante (fallback rápido)
         if (temaActual === 'elegante') {
             document.body.style.backgroundColor = '#F9FAFB';

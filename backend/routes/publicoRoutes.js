@@ -59,6 +59,7 @@ router.get('/perfil/:slugLocal', async (req, res) => {
             metodosPago:          usuario.metodosPago || [],
             fotoPerfil:           usuario.fotoPerfil || '',
             temaMenu:             usuario.temaMenu || 'clasico',
+            fuenteMenu:           usuario.fuenteMenu || 'moderna',
             permitirResenas:      usuario.permitirResenas ?? true,
             resenasPublicas:      usuario.resenasPublicas ?? false,
             permitirVotosResenas: usuario.permitirVotosResenas ?? true
