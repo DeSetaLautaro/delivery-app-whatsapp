@@ -21,19 +21,48 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const selectTema = document.getElementById('select-tema-menu');
     if (resPerfil && resPerfil.ok && selectTema) {
         const datosPerfil = await resPerfil.json();
-        selectTema.value = datosPerfil.temaMenu || 'clasico';
+        selectTema.value = datosPerfil.estiloTarjetas || 'clasico';
+
+        const colorInput = document.getElementById('color-marca');
+        const textoColor = document.getElementById('texto-color');
+        if (colorInput) {
+            colorInput.value = datosPerfil.colorMenu || '#2563eb';
+            if (textoColor) textoColor.textContent = colorInput.value;
+        }
+        const selectFuente = document.getElementById('fuente-marca');
+        if (selectFuente) {
+            selectFuente.value = datosPerfil.fuenteMenu || 'moderna';
+        }
 
         const restablecer = document.getElementById('restablecer-tema');
         if (restablecer) {
             restablecer.addEventListener('click', async () => {
-                selectTema.value = 'clasico';
-                await guardarTema('clasico');
+                if (selectTema) selectTema.value = 'clasico';
+                if (colorInput) {
+                    colorInput.value = '#2563eb';
+                    if (textoColor) textoColor.textContent = colorInput.value;
+                }
+                if (selectFuente) selectFuente.value = 'moderna';
+                await guardarApariencia({ estiloTarjetas: 'clasico', colorMenu: '#2563eb', fuenteMenu: 'moderna' });
             });
         }
 
-        selectTema.addEventListener('change', () => {
-            guardarTema(selectTema.value);
-        });
+        if (selectTema) {
+            selectTema.addEventListener('change', () => {
+                guardarApariencia({ estiloTarjetas: selectTema.value });
+            });
+        }
+        if (colorInput) {
+            colorInput.addEventListener('input', () => {
+                if (textoColor) textoColor.textContent = colorInput.value;
+                guardarApariencia({ colorMenu: colorInput.value });
+            });
+        }
+        if (selectFuente) {
+            selectFuente.addEventListener('change', () => {
+                guardarApariencia({ fuenteMenu: selectFuente.value });
+            });
+        }
 
         // ===== CONFIGURACIÓN DE RESEÑAS =====
         const permitirResenas = document.getElementById('permitirResenas');
@@ -61,17 +90,17 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     }
 });
 
-async function guardarTema(nuevoTema) {
-    const resp = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', { temaMenu: nuevoTema });
+async function guardarApariencia(campos = {}) {
+    const resp = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', campos);
     const resultado = await resp.json();
 
     if (resp.ok) {
         const userGuardado = JSON.parse(localStorage.getItem('user'));
-        userGuardado.temaMenu = nuevoTema;
+        Object.assign(userGuardado, campos);
         localStorage.setItem('user', JSON.stringify(userGuardado));
-        alert('Tema actualizado correctamente');
+        alert('Apariencia guardada correctamente');
     } else {
-        alert('Error al actualizar tema: ' + (resultado.error || 'Error desconocido'));
+        alert('Error al guardar apariencia: ' + (resultado.error || 'Error desconocido'));
     }
 }
 

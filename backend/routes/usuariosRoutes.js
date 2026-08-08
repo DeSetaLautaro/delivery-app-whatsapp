@@ -81,6 +81,15 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.temaMenu !== undefined && ['clasico', 'elegante'].includes(req.body.temaMenu)) {
             camposAActualizar.temaMenu = req.body.temaMenu;
         }
+        if (req.body.colorMenu !== undefined && /^#[0-9A-Fa-f]{6}$/.test(req.body.colorMenu)) {
+            camposAActualizar.colorMenu = req.body.colorMenu;
+        }
+        if (req.body.fuenteMenu !== undefined && ['moderna', 'clasica', 'amigable'].includes(req.body.fuenteMenu)) {
+            camposAActualizar.fuenteMenu = req.body.fuenteMenu;
+        }
+        if (req.body.estiloTarjetas !== undefined && ['clasico', 'elegante'].includes(req.body.estiloTarjetas)) {
+            camposAActualizar.estiloTarjetas = req.body.estiloTarjetas;
+        }
         if (req.body.permitirResenas !== undefined) camposAActualizar.permitirResenas = req.body.permitirResenas;
         if (req.body.resenasPublicas !== undefined) camposAActualizar.resenasPublicas = req.body.resenasPublicas;
         if (req.body.permitirVotosResenas !== undefined) camposAActualizar.permitirVotosResenas = req.body.permitirVotosResenas;
@@ -232,6 +241,9 @@ router.get('/perfil', verificarToken, async (req, res) => {
             abierto: usuario.abierto,
             plan: usuario.plan || 'web',
             temaMenu: usuario.temaMenu || 'clasico',
+            colorMenu: usuario.colorMenu || '#2563eb',
+            fuenteMenu: usuario.fuenteMenu || 'moderna',
+            estiloTarjetas: usuario.estiloTarjetas || 'clasico',
             permitirResenas: usuario.permitirResenas ?? true,
             resenasPublicas: usuario.resenasPublicas ?? false,
             permitirVotosResenas: usuario.permitirVotosResenas ?? true,
