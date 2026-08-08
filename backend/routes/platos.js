@@ -217,7 +217,7 @@ const bloquesDeImagen = fotos.map(file => ({
     }
 }));
  const respuesta = await claude.messages.create({
-    model: 'claude-haiku-4-5-20251001', // Usá un modelo estable y económico
+    model: 'deepsek-', // Usá un modelo estable y económico
     max_tokens: 2048,
     // System message: Esto es lo más importante. Le define su "personalidad"
     system: "Sos un asistente experto en extracción de datos. Tu única tarea es convertir imágenes de menús en un array JSON estricto. No respondas nada más, no uses markdown, solo el JSON.",
