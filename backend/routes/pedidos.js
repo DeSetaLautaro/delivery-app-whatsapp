@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const Pedido = require('../models/Pedido');
 const Usuario = require('../models/usuario'); // Ajustá la ruta si tu archivo se llama distinto
+const DeliveryToken = require('../models/DeliveryToken');
 const verificarToken = require('../middleware/verificarToken');
 
 // GET /api/pedidos (protegido)
@@ -68,7 +69,11 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH /api/pedidos/:id/estado (protegido)
-router.patch('/:id/estado', verificarToken, async (req, res) => {
+// Permite usar token de delivery (query) o JWT del admin (header)
+router.patch('/:id/estado', (req, res, next) => {
+    if (req.query.token) return next();
+    verificarToken(req, res, next);
+}, async (req, res) => {
     try {
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -79,7 +84,17 @@ router.patch('/:id/estado', verificarToken, async (req, res) => {
         if (!permitidos.includes(estado)) {
             return res.status(400).json({ error: 'Estado inválido' });
         }
-        const pedido = await Pedido.findOne({ _id: id, localId: req.usuario.id });
+        let localId = null;
+        if (req.query.token) {
+            const delivery = await DeliveryToken.findOne({ token: req.query.token });
+            if (delivery) localId = delivery.localId;
+        } else if (req.usuario?.id) {
+            localId = req.usuario.id;
+        }
+        if (!localId) {
+            return res.status(401).json({ error: 'No autorizado' });
+        }
+        const pedido = await Pedido.findOne({ _id: id, localId });
         if (!pedido) {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
