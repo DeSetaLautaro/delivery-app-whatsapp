@@ -927,13 +927,20 @@ function seleccionarEstrellas(valor) {
     });
 }
 
-function votar(boton) {
+async function votar(boton) {
     const resenaId = boton.dataset.resena;
     const tipo = boton.classList.contains('acuerdo') ? 'acuerdo' : 'desacuerdo';
     const key = `${tipo}_${resenaId}`;
     const activo = boton.classList.contains('active');
+    if (!configResenas.permitirVotosResenas) return;
+
+    // Prevenir doble clic rápido
+    if (boton.disabled) return;
+    boton.disabled = true;
+
     boton.classList.toggle('active', !activo);
 
+    // Actualizar visual local optimista
     const match = boton.textContent.match(/(\d+)/);
     if (match) {
         let num = parseInt(match[1], 10);
@@ -947,6 +954,29 @@ function votar(boton) {
     } else {
         localStorage.removeItem(`voto_${key}`);
     }
+
+    try {
+        const resp = await fetch(`/api/resenas/${resenaId}/voto`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ voto: tipo })
+        });
+        if (!resp.ok) {
+            console.error('Error al registrar voto');
+            // Revertir visual
+            boton.classList.toggle('active', activo);
+            if (match) {
+                let num = parseInt(match[1], 10);
+                if (activo) num -= 1;
+                else num += 1;
+                boton.textContent = boton.textContent.replace(/\d+/, num);
+            }
+        }
+    } catch (error) {
+        console.error('Error de red al votar:', error);
+        boton.disabled = false;
+    }
+    boton.disabled = false;
 }
 
 async function enviarResena() {
