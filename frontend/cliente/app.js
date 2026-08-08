@@ -881,11 +881,21 @@ async function inicializarBannerResenas() {
         configResenas.permitirVotosResenas = perfil.permitirVotosResenas ?? true;
     } catch (error) {
         console.error('Error al cargar config de reseñas:', error);
+        // Si falla la conexión, ocultamos el banner para no mostrar algo que no funciona
+        banner.style.display = 'none';
+        return;
     }
 
     if (!configResenas.permitirResenas) {
         banner.style.display = 'none';
         return;
+    }
+
+    // Si el local permite reseñas pero no las muestra públicamente, cambiamos el texto
+    if (!configResenas.resenasPublicas) {
+        banner.textContent = '💬 ¿Cómo fue tu experiencia? Dejá tu reseña anónima.';
+    } else {
+        banner.textContent = '💬 ¿Cómo fue tu experiencia? Leé y dejá tu reseña anónima.';
     }
 
     banner.style.display = '';
