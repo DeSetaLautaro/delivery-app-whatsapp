@@ -80,7 +80,7 @@ function crearTarjeta(p) {
     `).join('');
 
     const estadoActual = p.estadoDelivery || 'pendiente';
-    const numero = p.numeroDiario ? `#${p.numeroDiario}` : '#?';
+    const numero = p.numeroDiario ? `#${p.numeroDiario}` : 'S/N';
     const entregado = estadoActual === 'entregado';
     const estiloEntregado = entregado ? 'opacity:0.5; filter:grayscale(0.3);' : '';
     const cancelado = p.estado === 'cancelado';

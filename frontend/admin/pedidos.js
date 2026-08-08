@@ -94,7 +94,7 @@ function renderizarPedidos() {
           <button class="btn-cancelar" data-id="${p._id}">❌ Cancelar</button>
         </div>
       ` : '';
-      const numero = p.numeroDiario !== undefined ? `#${p.numeroDiario}` : '#?';
+      const numero = p.numeroDiario ? `#${p.numeroDiario}` : 'S/N';
       const fechaHora = new Date(p.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       const itemsHtml = (p.items || []).map(item => {
         const cantidad = item.cantidad || 1;
