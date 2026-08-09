@@ -327,7 +327,7 @@ router.post('/upload-excel', verificarToken, uploadExcel.single('archivo'), asyn
         const prompt = `Sos un procesador de datos experto. 
 Recibís un texto que representa la primera hoja de un Excel con el menú de un restaurante. 
 Debés devolver ÚNICAMENTE un array JSON válido, sin explicaciones ni markdown. 
-Cada objeto debe tener: nombre (string), precio (number), categoria (string) y toppings (array). 
+Cada objeto debe tener: plato (string), precio (number), categoria (string) y toppings (array). 
 Interpretá la variable toppings según estas reglas: si está vacía, devolvé []; 
 si tiene el formato 'Grupo: Opcion1, Opcion2 | Grupo2: Opcion3', devolvé 
 [{grupo:'Grupo', opciones:['Opcion1','Opcion2']}, ...]. 
@@ -338,7 +338,7 @@ ${contenidoCSV}`;
 
         // 3. Llamar a Gemini (modelo 1.5-flash)
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }]
         });
