@@ -102,6 +102,7 @@ mongoose.connect(process.env.MONGODB_URI)
 // que bloquea el fetch() por politica de seguridad del navegador (CORS).
 
 // 1. Archivos globales compartidos (ej. features.css, logos) en la raíz "/"
+app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 app.use(express.static(path.join(__dirname, '../frontend/api')));
 app.use(express.static(path.join(__dirname, '../frontend/publico')));
 
