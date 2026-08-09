@@ -69,6 +69,15 @@
                 </button>
             </div>
 
+            <!-- Barra de acciones masivas -->
+            <div class="bulk-acciones" id="bulkAcciones" style="display:none;">
+                <span id="bulkSeleccionadosCount">0 plato(s) seleccionado(s)</span>
+                <button type="button" class="btn-accion" id="btnBulkOcultar">Ocultar</button>
+                <button type="button" class="btn-accion" id="btnBulkMostrar">Mostrar</button>
+                <button type="button" class="btn-accion" id="btnBulkBorrar">Borrar</button>
+                <button type="button" class="btn-accion" id="btnBulkEditar" disabled>Editar</button>
+            </div>
+
             <!-- Panel de filtros (oculto por defecto) -->
             <div class="filtros-panel" id="filtrosPanel" hidden>
                 <div class="filtro-grupo">
@@ -187,10 +196,10 @@
                 const promoFiltro = document.getElementById('filtroPromocion').value;
 
                 document.querySelectorAll('#lista-platos tr').forEach(fila => {
-                    const nombre   = fila.cells[0]?.textContent.toLowerCase().trim() || '';
+                    const nombre   = fila.cells[1]?.textContent.toLowerCase().trim() || '';
                     const precFila = parseFloat(
-                        fila.cells[1]?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-                    const catFila  = fila.cells[2]?.textContent.toLowerCase().trim() || '';
+                        fila.cells[2]?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+                    const catFila  = fila.cells[3]?.textContent.toLowerCase().trim() || '';
 
                     const okTexto = nombre.includes(texto);
                     const okCat   = cat ? catFila.includes(cat) : true;
@@ -227,7 +236,7 @@
             function poblarCategorias() {
                 const cats = new Set();
                 document.querySelectorAll('#lista-platos tr').forEach(fila => {
-                    const c = fila.cells[1]?.textContent.trim();
+                    const c = fila.cells[3]?.textContent.trim();
                     if (c) cats.add(c);
                 });
                 const select = document.getElementById('filtroCat');

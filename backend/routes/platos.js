@@ -409,6 +409,65 @@ ${contenidoCSV}`;
     }
 });
 
+// ============================================================
+// ACCIONES MASIVAS (Checkboxes)
+// ============================================================
+router.patch('/masivo/estado', verificarToken, async (req, res) => {
+    const { ids, disponible } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de ids' });
+    }
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        let modificados = 0;
+        usuario.platos.forEach(p => {
+            if (ids.includes(p._id.toString())) {
+                p.disponible = disponible;
+                modificados++;
+            }
+        });
+
+        if (modificados === 0) {
+            return res.status(404).json({ error: 'No se encontraron platos con esos ids' });
+        }
+
+        usuario.markModified('platos');
+        await usuario.save();
+        res.json({ modificados });
+    } catch (error) {
+        console.error('Error al cambiar estado masivo:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+router.delete('/masivo', verificarToken, async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de ids' });
+    }
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        const idsSet = new Set(ids.map(id => id.toString()));
+        const platosRestantes = usuario.platos.filter(p => !idsSet.has(p._id.toString()));
+        const eliminados = usuario.platos.length - platosRestantes.length;
+
+        if (eliminados === 0) {
+            return res.status(404).json({ error: 'No se encontraron platos con esos ids' });
+        }
+
+        usuario.platos = platosRestantes;
+        await usuario.save();
+        res.json({ eliminados });
+    } catch (error) {
+        console.error('Error al borrar masivo:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
 // OCULTAR PLATO
 router.patch('/:id', verificarToken, async (req, res) => {
     try {

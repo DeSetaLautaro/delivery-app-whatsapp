@@ -1,6 +1,77 @@
 let listaPlatosGlobal = [];
 
 // ==========================================
+// SELECCIÓN MASIVA DE PLATOS
+// ==========================================
+function obtenerIdsSeleccionados() {
+    const checkboxes = document.querySelectorAll('.check-plato:checked');
+    return Array.from(checkboxes).map(cb => cb.dataset.id);
+}
+
+function actualizarBulkAcciones() {
+    const ids = obtenerIdsSeleccionados();
+    const count = ids.length;
+    const bar = document.getElementById('bulkAcciones');
+    if (bar) {
+        bar.style.display = count > 0 ? 'flex' : 'none';
+    }
+    const spanCount = document.getElementById('bulkSeleccionadosCount');
+    if (spanCount) spanCount.textContent = `${count} plato(s) seleccionado(s)`;
+    const btnEditar = document.getElementById('btnBulkEditar');
+    if (btnEditar) btnEditar.disabled = count !== 1;
+}
+
+async function bulkCambiarEstado(ids, disponible) {
+    const respuesta = await peticionAPI('/api/platos/masivo/estado', 'PATCH', { ids, disponible });
+    if (!respuesta || !respuesta.ok) {
+        console.error('Error al cambiar estado');
+        return false;
+    }
+    return true;
+}
+
+function abrirModalEdicion(plato) {
+    const modalOverlay = document.getElementById('modalOverlay');
+    if (!modalOverlay) return;
+
+    document.querySelector('input[name="id"]').value = plato._id;
+    document.querySelector('input[name="nombre"]').value = plato.nombre || '';
+    document.querySelector('input[name="precio"]').value = plato.precio || '';
+    document.querySelector('input[name="categoria"]').value = plato.categoria || '';
+    const descInput = document.querySelector('input[name="descripcion"]');
+    if (descInput) descInput.value = plato.descripcion || '';
+    const fotoInput = document.querySelector('input[name="foto"]');
+    if (fotoInput) fotoInput.value = plato.fotoUrl || '';
+    const preview = document.getElementById('previewFotoPlato');
+    if (preview) preview.innerHTML = plato.fotoUrl ? `<img src="${plato.fotoUrl}" alt="Vista previa" />` : '';
+
+    document.getElementById('checkMenuDelDia').checked = !!plato.esMenuDelDia;
+    document.getElementById('checkEspecialidad').checked = !!plato.esEspecialidad;
+    document.getElementById('checkEnPromocion').checked = !!plato.enPromocion;
+    const inputPorcentaje = document.getElementById('porcentajeDescuento');
+    if (inputPorcentaje) inputPorcentaje.value = plato.porcentajeDescuento || '';
+    const promoContainer = document.getElementById('promoContainer');
+    if (promoContainer) promoContainer.style.display = plato.enPromocion ? 'block' : 'none';
+    const precioFinal = document.getElementById('precioFinalCalc');
+    if (precioFinal) {
+        const precio = parseFloat(plato.precio);
+        const porc = parseFloat(plato.porcentajeDescuento);
+        if (!isNaN(precio)) {
+            let mostrar = precio;
+            if (plato.enPromocion && !isNaN(porc) && porc > 0) {
+                mostrar = precio - (precio * (porc / 100));
+            }
+            precioFinal.textContent = 'Precio final calculado: $' + mostrar.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+            precioFinal.textContent = 'Precio final calculado: $0,00';
+        }
+    }
+    document.getElementById('tituloModal').innerText = 'Editar Plato';
+    document.getElementById('btnGuardarPlato').innerText = 'Guardar Cambios';
+    modalOverlay.hidden = false;
+}
+
+// ==========================================
 // 1. ZONA DE FUNCIONES
 // ==========================================
 
@@ -30,6 +101,12 @@ async function cargarListaDePlatos() {
         listaDePlatos.forEach(plato => {
             cargarHTMLListaDePlatos(plato);
         });
+
+        // Limpiar selección global después de refrescar
+        const checkTodos = document.getElementById('checkSeleccionarTodos');
+        if (checkTodos) checkTodos.checked = false;
+        actualizarBulkAcciones();
+
         generarCheckboxesCategorias();
         
     } catch (error) {
