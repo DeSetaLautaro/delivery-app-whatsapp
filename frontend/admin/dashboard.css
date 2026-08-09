@@ -517,6 +517,10 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
 }
 
 /* Botones de la barra de acciones masivas: mismo estilo que los de cada fila */
+#bulkAcciones {
+    gap: 12px;
+}
+
 #bulkAcciones .btn-accion {
     padding: 7px 14px;
     border-radius: 8px;
