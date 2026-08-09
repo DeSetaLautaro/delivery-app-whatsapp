@@ -104,26 +104,44 @@ async function cargarMenu() {
         platosCache = platos;
 
         // Actualizamos el badge de estado en el header
-        const badgeEstado = document.getElementById('badgeEstadoLocal');
-        if (badgeEstado) {
-            if (estaAbierto.abierto) {
-                badgeEstado.textContent = '● Abierto';
-                badgeEstado.classList.add('badge-abierto');
-                badgeEstado.classList.remove('badge-cerrado');
-            } else {
-                badgeEstado.textContent = '● Cerrado';
-                badgeEstado.classList.add('badge-cerrado');
-                badgeEstado.classList.remove('badge-abierto');
-            }
-        }
+        actualizarBadgeEstado(estaAbierto.abierto);
 
         // 4. Le pasamos los platos a la función dibujante
         dibujarPlatos(platos, estaAbierto.abierto);
+
+        // Comenzar a escuchar cambios de estado cada 30 segundos
+        iniciarPollingEstado();
 
     } catch (error) {
         console.error('[ERROR] No se pudo cargar el menú:', error);
         contenedor.innerHTML = '<p class="menu-error">Error al conectar con el servidor.</p>';
     }
+}
+
+function actualizarBadgeEstado(abierto) {
+    const badge = document.getElementById('badgeEstadoLocal');
+    if (!badge) return;
+    if (abierto) {
+        badge.textContent = '● Abierto';
+        badge.classList.add('badge-abierto');
+        badge.classList.remove('badge-cerrado');
+    } else {
+        badge.textContent = '● Cerrado';
+        badge.classList.add('badge-cerrado');
+        badge.classList.remove('badge-abierto');
+    }
+}
+
+async function iniciarPollingEstado() {
+    setInterval(async () => {
+        try {
+            const res = await fetch(`/api/publico/estadoLocal/${slugLocal}`);
+            const data = await res.json();
+            actualizarBadgeEstado(!!data.abierto);
+        } catch (e) {
+            console.error('Error al obtener estado del local:', e);
+        }
+    }, 30000);
 }
 
 function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está abierto o no
