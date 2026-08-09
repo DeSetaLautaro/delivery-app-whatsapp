@@ -832,14 +832,47 @@ inputOculto.addEventListener('change', (e) => {
         const libro = XLSX.read(datosCrudos, { type: 'array' });
         const hoja = libro.Sheets[libro.SheetNames[0]];
         
-        const platosJSON = XLSX.utils.sheet_to_json(hoja); 
-        console.log("El JSON listo:", platosJSON);
-        
+        // sheet_to_json usa los títulos de las columnas como claves.
+        // Por eso normalizamos a los campos que espera el backend.
+        const platosCrudos = XLSX.utils.sheet_to_json(hoja, { defval: '' });
+        console.log("El JSON crudo del Excel:", platosCrudos);
+
+        const platosJSON = platosCrudos.map(fila => {
+            const obtener = (...claves) => {
+                for (const clave of claves) {
+                    if (fila[clave] !== undefined && fila[clave] !== '') return fila[clave];
+                }
+                return '';
+            };
+
+            const toppingsTexto = String(obtener('toppings', 'Toppings', 'TOPPINGS', 'Agregados', 'agregados')).trim();
+            const toppings = toppingsTexto
+                ? toppingsTexto.split('|').map(grupo => {
+                    const [nombreGrupo, opciones] = grupo.split(':');
+                    return {
+                        grupo: (nombreGrupo || '').trim(),
+                        opciones: (opciones || '').split(',').map(op => op.trim()).filter(Boolean)
+                    };
+                  }).filter(g => g.grupo && g.opciones.length > 0)
+                : [];
+
+            return {
+                nombre: String(obtener('nombre', 'Nombre', 'plato', 'Plato', 'NOMBRE', 'Producto')).trim() || 'Sin nombre',
+                descripcion: String(obtener('descripcion', 'Descripcion', 'Descripción', 'Detalle')).trim(),
+                precio: Number(obtener('precio', 'Precio', 'PRECIO')) || 0,
+                categoria: String(obtener('categoria', 'Categoria', 'Categoría', 'CATEGORIA', 'Rubro')).trim() || 'Varios',
+                toppings: toppings
+            };
+        });
+
+        console.log("El JSON normalizado:", platosJSON);
+
         const respuesta = await peticionAPI('/api/platos/bulk', 'POST', platosJSON);
 
         if (respuesta && respuesta.ok) {
             alert("¡Menú cargado con éxito!");
-            // Acá podrías llamar a la función que actualiza la tablita visual
+            cargarListaDePlatos();
+            document.getElementById('modalExcel').hidden = true;
         } else {
             alert("Hubo un error al subir los platos.");
         }

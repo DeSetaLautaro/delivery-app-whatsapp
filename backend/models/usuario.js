@@ -30,7 +30,11 @@ const platoSchema = new mongoose.Schema({
     esEspecialidad: { type: Boolean, default: false },
     enPromocion: { type: Boolean, default: false },
     porcentajeDescuento: { type: Number, default: 0 },
-    fotoUrl: { type: String, default: '' } // URL de la foto del plato (opcional)
+    fotoUrl: { type: String, default: '' }, // URL de la foto del plato (opcional)
+    toppings: [{
+        grupo: { type: String },
+        opciones: [{ type: String }]
+    }]
 });
 
 
