@@ -838,14 +838,27 @@ inputOculto.addEventListener('change', (e) => {
         console.log("El JSON crudo del Excel:", platosCrudos);
 
         const platosJSON = platosCrudos.map(fila => {
-            const obtener = (...claves) => {
-                for (const clave of claves) {
-                    if (fila[clave] !== undefined && fila[clave] !== '') return fila[clave];
+            const claves = Object.keys(fila);
+            const buscar = (...patrones) => {
+                for (const patron of patrones) {
+                    const patronNorm = patron.toLowerCase().replace(/[\s\-_]/g, '');
+                    const clave = claves.find(c => c.toLowerCase().replace(/[\s\-_]/g, '') === patronNorm);
+                    if (clave && fila[clave] !== undefined && fila[clave] !== '') return fila[clave];
+                }
+                for (const patron of patrones) {
+                    const patMin = patron.toLowerCase();
+                    const clave = claves.find(c => c.toLowerCase().includes(patMin));
+                    if (clave && fila[clave] !== undefined && fila[clave] !== '') return fila[clave];
                 }
                 return '';
             };
 
-            const toppingsTexto = String(obtener('toppings', 'Toppings', 'TOPPINGS', 'Agregados', 'agregados')).trim();
+            const nombre = buscar('nombre','Nombre','plato','Plato','producto','Producto','comida','Comida','menu','Menú','articulo','Artículo','item','Item');
+            const descripcion = buscar('descripcion','Descripcion','Descripción','detalle','Detalle');
+            const precio = Number(buscar('precio','Precio','PRECIO','importe','Importe')) || 0;
+            const categoria = buscar('categoria','Categoria','Categoría','CATEGORIA','rubro','Rubro','tipo','Tipo') || 'Varios';
+
+            const toppingsTexto = String(buscar('toppings','Toppings','TOPPINGS','agregados','Agregados','adicionales','Adicionales','extras','Extras')).trim();
             const toppings = toppingsTexto
                 ? toppingsTexto.split('|').map(grupo => {
                     const [nombreGrupo, opciones] = grupo.split(':');
@@ -857,11 +870,11 @@ inputOculto.addEventListener('change', (e) => {
                 : [];
 
             return {
-                nombre: String(obtener('nombre', 'Nombre', 'plato', 'Plato', 'NOMBRE', 'Producto')).trim() || 'Sin nombre',
-                descripcion: String(obtener('descripcion', 'Descripcion', 'Descripción', 'Detalle')).trim(),
-                precio: Number(obtener('precio', 'Precio', 'PRECIO')) || 0,
-                categoria: String(obtener('categoria', 'Categoria', 'Categoría', 'CATEGORIA', 'Rubro')).trim() || 'Varios',
-                toppings: toppings
+                nombre: nombre || 'Sin nombre',
+                descripcion: descripcion,
+                precio,
+                categoria,
+                toppings
             };
         });
 

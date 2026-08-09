@@ -262,11 +262,16 @@ router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
         // 2. Limpiamos los datos para asegurarnos que tengan el formato correcto
         // ¡OJO! Ya NO inventamos el ID. Dejamos que Mongoose lo haga.
         const menuLimpio = platosDesdeIA.map(plato => {
+            const nombre = plato.nombre || plato.plato || 'Sin nombre';
             return {
-                nombre: plato.nombre,
+                nombre,
                 descripcion: plato.descripcion || '',
                 precio: Number(plato.precio) || 0, // Nos aseguramos de que sea número
-                categoria: plato.categoria || 'Varios'
+                categoria: plato.categoria || 'Varios',
+                toppings: Array.isArray(plato.toppings) ? plato.toppings.map(g => ({
+                    grupo: g.grupo || g.nombre || '',
+                    opciones: Array.isArray(g.opciones) ? g.opciones.map(o => (o.nombre || o.opcion || o)) : []
+                })) : []
             };
         });
         
@@ -327,7 +332,7 @@ router.post('/upload-excel', verificarToken, uploadExcel.single('archivo'), asyn
         const prompt = `Sos un procesador de datos experto. 
 Recibís un texto que representa la primera hoja de un Excel con el menú de un restaurante. 
 Debés devolver ÚNICAMENTE un array JSON válido, sin explicaciones ni markdown. 
-Cada objeto debe tener: plato (string), precio (number), categoria (string) y toppings (array). 
+Cada objeto debe tener: nombre (string), precio (number), categoria (string) y toppings (array). 
 Interpretá la variable toppings según estas reglas: si está vacía, devolvé []; 
 si tiene el formato 'Grupo: Opcion1, Opcion2 | Grupo2: Opcion3', devolvé 
 [{grupo:'Grupo', opciones:['Opcion1','Opcion2']}, ...]. 
@@ -349,13 +354,32 @@ ${contenidoCSV}`;
         const platosDesdeGemini = JSON.parse(textoRespuesta);
 
         // 4. Normalizar cada plato
-        const menuLimpio = platosDesdeGemini.map(plato => ({
-            nombre: plato.nombre,
-            descripcion: plato.descripcion || '',
-            precio: Number(plato.precio) || 0,
-            categoria: plato.categoria || 'Varios',
-            toppings: Array.isArray(plato.toppings) ? plato.toppings : []
-        }));
+        const menuLimpio = platosDesdeGemini.map(plato => {
+            const nombre = plato.nombre || plato.plato || 'Sin nombre';
+            const toppings = Array.isArray(plato.toppings)
+                ? plato.toppings.map(g => {
+                    if (typeof g === 'string') {
+                        // Permitir formato simple "grupo: op1, op2"
+                        const [grupo, opciones] = g.split(':');
+                        return {
+                            grupo: (grupo || '').trim(),
+                            opciones: (opciones || '').split(',').map(s => s.trim()).filter(Boolean)
+                        };
+                    }
+                    return {
+                        grupo: g.grupo || g.nombre || '',
+                        opciones: Array.isArray(g.opciones) ? g.opciones.map(o => (o.nombre || o.opcion || o)) : []
+                    };
+                })
+                : [];
+            return {
+                nombre,
+                descripcion: plato.descripcion || '',
+                precio: Number(plato.precio) || 0,
+                categoria: plato.categoria || 'Varios',
+                toppings
+            };
+        });
 
         // 5. Guardar en MongoDB (push al array de platos del usuario)
         const usuarioActualizado = await Usuario.findByIdAndUpdate(
