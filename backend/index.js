@@ -34,6 +34,7 @@ app.use(express.json());// Importás la ruta
 
 // 3. DESPUÉS conectamos las rutas (así ya pueden leer el JSON)
 app.use('/api/platos', adminPlatos);
+app.use('/api/menu', adminPlatos);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/publico', publicoRoutes);
 app.use('/api/estadisticas', estadisticasRouter);

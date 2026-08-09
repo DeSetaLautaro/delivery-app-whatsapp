@@ -4,6 +4,8 @@ const router = express.Router();
 const fs = require('fs');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
+const XLSX = require('xlsx');
+const uploadExcel = multer({ dest: 'uploads/' });
 const path      = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -303,6 +305,83 @@ router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
                 });
             }
         });
+    }
+});
+
+// ============================================================
+// RUTA POST /upload-excel  (subida de menú desde Excel)
+// ============================================================
+router.post('/upload-excel', verificarToken, uploadExcel.single('archivo'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
+
+    try {
+        // 1. Leer el Excel y extraer la primera hoja como CSV
+        const workbook = XLSX.readFile(req.file.path);
+        const nombreHoja = workbook.SheetNames[0];
+        const hoja = workbook.Sheets[nombreHoja];
+        const contenidoCSV = XLSX.utils.sheet_to_csv(hoja);
+
+        // 2. Construir el prompt estricto para Gemini
+        const prompt = `Sos un procesador de datos experto. 
+Recibís un texto que representa la primera hoja de un Excel con el menú de un restaurante. 
+Debés devolver ÚNICAMENTE un array JSON válido, sin explicaciones ni markdown. 
+Cada objeto debe tener: nombre (string), precio (number), categoria (string) y toppings (array). 
+Interpretá la variable toppings según estas reglas: si está vacía, devolvé []; 
+si tiene el formato 'Grupo: Opcion1, Opcion2 | Grupo2: Opcion3', devolvé 
+[{grupo:'Grupo', opciones:['Opcion1','Opcion2']}, ...]. 
+El array JSON debe ser el único contenido de tu respuesta. 
+
+Datos del Excel:
+${contenidoCSV}`;
+
+        // 3. Llamar a Gemini (modelo 1.5-flash)
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }]
+        });
+
+        let textoRespuesta = result.response.text() || '';
+        textoRespuesta = textoRespuesta.replace(/```json|```/g, '').trim();
+
+        const platosDesdeGemini = JSON.parse(textoRespuesta);
+
+        // 4. Normalizar cada plato
+        const menuLimpio = platosDesdeGemini.map(plato => ({
+            nombre: plato.nombre,
+            descripcion: plato.descripcion || '',
+            precio: Number(plato.precio) || 0,
+            categoria: plato.categoria || 'Varios',
+            toppings: Array.isArray(plato.toppings) ? plato.toppings : []
+        }));
+
+        // 5. Guardar en MongoDB (push al array de platos del usuario)
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { $push: { platos: { $each: menuLimpio } } },
+            { new: true }
+        );
+
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        console.log(`[OK] Menú Excel procesado y guardado (${menuLimpio.length} platos).`);
+        res.status(200).json({
+            mensaje: 'Menú subido correctamente desde Excel',
+            platos: usuarioActualizado.platos
+        });
+
+    } catch (error) {
+        console.error('[ERROR] upload-excel:', error);
+        res.status(500).json({ error: `Error al procesar el Excel: ${error.message}` });
+    } finally {
+        // 6. Borrar el archivo temporal
+        if (req.file && req.file.path) {
+            fs.unlinkSync(req.file.path);
+        }
     }
 });
 
