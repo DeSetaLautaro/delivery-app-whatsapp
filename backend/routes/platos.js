@@ -216,7 +216,7 @@ async function procesarConIA(fotos)
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     // Armamos las partes: primero el prompt y después las imágenes en base64
     const parts = [
