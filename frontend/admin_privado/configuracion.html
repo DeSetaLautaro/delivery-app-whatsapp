@@ -162,17 +162,73 @@
             </select>
         </div>
 
-        <!-- Opción 3: Subir Logo -->
+
+        <!-- Opción 4: Tema visual -->
         <div class="opcion-diseno">
             <div class="info-opcion">
-                <label>Logo del negocio</label>
-                <span class="detalle-opcion">Formato JPG o PNG</span>
+                <label for="select-tema-menu">Estilo visual del catálogo</label>
+                <span class="detalle-opcion">Cambiá el aspecto que ven tus clientes</span>
             </div>
-            <input type="file" accept="image/*" class="input-archivo">
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <select id="select-tema-menu" class="select-diseno">
+                    <option value="clasico">Clásico (por defecto)</option>
+                    <option value="elegante">Elegante</option>
+                </select>
+                <span id="restablecer-tema" style="cursor:pointer; font-size:0.82rem; color:#c94e1a; text-decoration:underline; margin-left:8px;">Restablecer formato original</span>
+            </div>
         </div>
 
     </div>
 </div>
+    <!-- ====== TARJETA GESTIÓN DE RESEÑAS ====== -->
+    <div class="tarjeta config-card" id="tarjeta-resenas">
+        <h3>💬 Gestión de Reseñas y Feedback</h3>
+        <p class="texto-descriptivo">Controlá cómo los clientes pueden opinar sobre sus pedidos.</p>
+
+        <!-- Switch 1 -->
+        <div class="opcion-resena">
+            <div class="resena-info">
+                <label for="permitirResenas" style="font-weight:600;">Permitir que los clientes envíen opiniones</label>
+                <span class="resena-descripcion">Los clientes podrán calificar su pedido con estrellas y dejar comentarios.</span>
+            </div>
+            <div class="switch-wrapper">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="permitirResenas">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Switch 2 -->
+        <div class="opcion-resena">
+            <div class="resena-info">
+                <label for="resenasPublicas" style="font-weight:600;">Mostrar reseñas públicamente en el menú</label>
+                <span class="resena-descripcion">Si está activo, los clientes podrán leer las reseñas de otros en el menú. Si está apagado, funcionará solo como buzón privado.</span>
+            </div>
+            <div class="switch-wrapper">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="resenasPublicas">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Switch 3 -->
+        <div class="opcion-resena">
+            <div class="resena-info">
+                <label for="permitirVotosResenas" style="font-weight:600;">Permitir votos comunitarios ('Estoy de acuerdo')</label>
+                <span class="resena-descripcion">Habilita los botones de pulgar arriba/abajo para validar las opiniones de la comunidad.</span>
+            </div>
+            <div class="switch-wrapper">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="permitirVotosResenas">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <button id="guardarConfigResenas" class="btn-guardar-resenas">Guardar Configuración de Reseñas</button>
+    </div>
     </section>
 
 

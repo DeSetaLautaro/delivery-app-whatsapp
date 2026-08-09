@@ -73,8 +73,20 @@ router.put('/editarToppings', verificarToken, async (req, res) => {
         }
 
         // Actualizamos los datos de ese grupo específico
-        usuario.gruposToppings[grupoIndex].categoriaDestino = categoriaDestino;
-        usuario.gruposToppings[grupoIndex].opciones = opciones;
+        const grupoActual = usuario.gruposToppings[grupoIndex];
+        grupoActual.categoriaDestino = categoriaDestino;
+
+        // Preservamos la disponibilidad de las opciones existentes
+        const opcionesConEstados = opciones.map(op => {
+            const opcionAnterior = grupoActual.opciones.find(o => o.nombre === op.nombre);
+            return {
+                nombre: op.nombre,
+                precio: op.precio,
+                disponible: opcionAnterior ? opcionAnterior.disponible : true
+            };
+        });
+
+        grupoActual.opciones = opcionesConEstados;
 
         // Guardamos los cambios
         await usuario.save();
@@ -237,6 +249,37 @@ router.delete('/eliminarToppings/:nombreGrupo', verificarToken, async (req, res)
     } catch (error) {
         console.error("Error al eliminar toppings:", error);
         return res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+// ==========================================
+// CAMBIAR DISPONIBILIDAD DE UNA OPCIÓN
+// ==========================================
+router.patch('/:idGrupo/opcion/:idOpcion', verificarToken, async (req, res) => {
+    try {
+        const { idGrupo, idOpcion } = req.params;
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        const grupo = usuario.gruposToppings.id(idGrupo);
+        if (!grupo) {
+            return res.status(404).json({ error: "Grupo no encontrado" });
+        }
+
+        const opcion = grupo.opciones.id(idOpcion);
+        if (!opcion) {
+            return res.status(404).json({ error: "Opción no encontrada" });
+        }
+
+        opcion.disponible = !opcion.disponible;
+        await usuario.save();
+
+        res.json({ disponible: opcion.disponible });
+    } catch (error) {
+        console.error("Error al cambiar disponibilidad de topping:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 });
 

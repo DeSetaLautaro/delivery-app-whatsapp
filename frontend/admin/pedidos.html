@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis Pedidos</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#f5f5f5;color:#1a1a1a;padding:24px;}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
+  .header h1{font-size:1.6rem;font-weight:800;}
+  .btn{background:#ff6b35;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.2s;}
+  .btn:hover{background:#e55a26;}
+  .btn-secundario{background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:8px;padding:10px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.2s;}
+  .btn-secundario:hover{background:#ebebeb;}
+  .grupo-dia{margin-bottom:28px;}
+  .grupo-dia h2{font-size:1.1rem;font-weight:700;margin-bottom:12px;border-bottom:2px solid #ff6b35;padding-bottom:6px;}
+  .pedido-card{
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    padding:16px 20px;
+    margin-bottom:10px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .pedido-card.completado{
+    background:#f0fdf4;
+    border-left:4px solid #22c55e;
+  }
+  .pedido-card.cancelado{
+    opacity:0.7;
+    filter:grayscale(0.5);
+  }
+  .pedido-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .numero-pedido{
+    font-size:1.5rem;
+    font-weight:800;
+    color:#2563eb;
+  }
+  .pedido-card .fecha{
+    font-size:0.85rem;
+    color:#888;
+  }
+  .pedido-body{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .pedido-body .total{
+    font-size:1.8rem;
+    font-weight:900;
+    color:#1a1a1a;
+  }
+  .estado-badge{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:0.8rem;
+    font-weight:700;
+    width:fit-content;
+  }
+  .estado-pendiente{
+    background:#dbeafe;
+    color:#1d4ed8;
+  }
+  .estado-completado{
+    background:#dcfce7;
+    color:#15803d;
+  }
+  .estado-cancelado{
+    background:#fee2e2;
+    color:#b91c1c;
+  }
+  .pedido-body .items{
+    font-size:1.15rem;
+    color:#333;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    line-height:1.4;
+  }
+  .pedido-body .items strong{
+    font-weight:800;
+    color:#1f2937;
+  }
+  .pedido-body .linea-item{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .pedido-body .precio-item{
+    font-weight:700;
+    color:#111827;
+  }
+  .pedido-body .metodo,
+  .pedido-body .direccion{
+    font-size:0.85rem;
+    color:#555;
+  }
+  .pedido-acciones{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+  }
+  .btn-completar,
+  .btn-cancelar{
+    flex:1;
+    padding:10px 12px;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background 0.2s;
+  }
+  .btn-completar{
+    background:#22c55e;
+    color:#fff;
+  }
+  .btn-completar:hover{
+    background:#16a34a;
+  }
+  .btn-cancelar{
+    background:#ef4444;
+    color:#fff;
+  }
+  .btn-cancelar:hover{
+    background:#dc2626;
+  }
+  .pedido-acciones-secundarias{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .pedido-acciones-secundarias button{
+    background:#f3f4f6;
+    border:1px solid #d1d5db;
+    color:#4b5563;
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:0.78rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:background 0.2s, color 0.2s;
+  }
+  .pedido-acciones-secundarias button:hover{
+    background:#e5e7eb;
+    color:#111827;
+  }
+  #closeBox{display:flex;justify-content:flex-end;margin-bottom:20px;}
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>🛎️ Mis Pedidos</h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="/admin/dashboard" class="btn-secundario">← Volver al Dashboard</a>
+      <button id="btnVerPanel" class="btn" style="background:#2563eb;">📋 Ver Panel Repartidor</button>
+      <button id="btnCompartir" class="btn-secundario">🔗 Compartir Link</button>
+      <button id="btnRegenerar" class="btn-secundario" style="color:#c0392b;">🔄 Regenerar Link</button>
+    </div>
+  </div>
+  <div class="stats-cards" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="stat-card" style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex:1;min-width:200px;">
+      <div class="stat-label" style="font-size:0.85rem;font-weight:600;color:#888;">Facturación de Hoy</div>
+      <div id="facturacionHoy" class="stat-value" style="font-size:1.4rem;font-weight:800;color:#ff6b35;margin-top:4px;">$0</div>
+    </div>
+    <div class="stat-card" style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex:1;min-width:200px;">
+      <div class="stat-label" style="font-size:0.85rem;font-weight:600;color:#888;">Pedidos de Hoy</div>
+      <div id="pedidosHoy" class="stat-value" style="font-size:1.4rem;font-weight:800;color:#1a1a1a;margin-top:4px;">0</div>
+    </div>
+    <div class="stat-card" style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex:1;min-width:200px;">
+      <div class="stat-label" style="font-size:0.85rem;font-weight:600;color:#888;">Producto Estrella del Día</div>
+      <div id="productoEstrella" class="stat-value" style="font-size:1.4rem;font-weight:800;color:#28a745;margin-top:4px;">—</div>
+    </div>
+  </div>
+  <div class="filtros-admin" style="margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap;">
+    <button class="btn-filtro-admin" data-filtro="todos" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">Todos</button>
+    <button class="btn-filtro-admin" data-filtro="pendientes" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">Pendientes</button>
+    <button class="btn-filtro-admin" data-filtro="cancelados" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">❌ Cancelados</button>
+    <button class="btn-filtro-admin" data-filtro="completados" style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.2s;">✅ Completados</button>
+  </div>
+  <div id="contenedorPedidos">Cargando pedidos...</div>
+  <script src="/api.js"></script>
+  <script src="/admin/pedidos.js"></script>
+</body>
+</html>

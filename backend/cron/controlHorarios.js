@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const Usuario = require('../models/usuario.js');
+const Pedido = require('../models/Pedido.js');
 
 function iniciarRobotHorarios() {
     console.log("🤖 Robot de horarios encendido. Vigilando cada 1 minuto...");
@@ -31,32 +32,39 @@ function iniciarRobotHorarios() {
 
                 let deberiaEstarAbierto = false; // Por defecto asumimos que está cerrado
 
-                // Si hoy tiene configurada apertura y cierre, calculamos:
-                if (horarioHoy && horarioHoy.apertura && horarioHoy.cierre) {
+               if (horarioHoy && horarioHoy.apertura && horarioHoy.cierre) {
                     const { apertura, cierre } = horarioHoy;
 
-                    // Lógica para saber si la hora actual está DENTRO del rango de trabajo
-                    if (apertura < cierre) {
-                        // Horario normal de día (ej: 10:00 a 18:00)
-                        deberiaEstarAbierto = (horaActual >= apertura && horaActual < cierre);
-                    } else {
-                        // Horario nocturno: cruza la medianoche (ej: 20:00 a 02:00)
-                        deberiaEstarAbierto = (horaActual >= apertura || horaActual < cierre);
+                    // 1. ¿Es el minuto EXACTO de apertura?
+                    if (horaActual === apertura && local.abierto === false) {
+                        local.abierto = true;
+                        await local.save();
+                        console.log(`[${horaActual}] 🟢 APERTURA AUTOMÁTICA: ${local.nombre || 'Local'} ahora está ABIERTO`);
                     }
-                }
 
-                // 3. ¡EL TOQUE MAESTRO! Solo guardamos en MongoDB si el estado REALMENTE cambió.
-                // Esto evita hacer 1440 guardados innecesarios por día en tu base de datos.
-                if (local.abierto !== deberiaEstarAbierto) {
-                    local.abierto = deberiaEstarAbierto;
-                    await local.save();
-                    
-                    const estadoTexto = deberiaEstarAbierto ? 'ABIERTO ✅' : 'CERRADO 🛑';
-                    console.log(`[${horaActual}] Cambio: ${local.nombre || 'Local'} ahora está ${estadoTexto}`);
+                    // 2. ¿Es el minuto EXACTO de cierre?
+                    if (horaActual === cierre && local.abierto === true) {
+                        local.abierto = false;
+                        await local.save();
+                        console.log(`[${horaActual}] 🔴 CIERRE AUTOMÁTICO: ${local.nombre || 'Local'} ahora está CERRADO`);
+                    }
                 }
             }
         } catch (error) {
             console.error("❌ Error en el robot de horarios:", error);
+        }
+    });
+
+    // Cierre automático diario de pedidos pendientes
+    cron.schedule('0 4 * * *', async () => {
+        try {
+            const resultado = await Pedido.updateMany(
+                { estado: 'pendiente' },
+                { $set: { estado: 'completado' } }
+            );
+            console.log(`[Cierre diario] ${resultado.modifiedCount} pedidos pendientes fueron marcados como completados.`);
+        } catch (error) {
+            console.error('Error al cerrar pedidos automáticamente:', error);
         }
     });
 }

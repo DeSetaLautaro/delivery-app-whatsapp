@@ -1,6 +1,77 @@
 let listaPlatosGlobal = [];
 
 // ==========================================
+// SELECCIÓN MASIVA DE PLATOS
+// ==========================================
+function obtenerIdsSeleccionados() {
+    const checkboxes = document.querySelectorAll('.check-plato:checked');
+    return Array.from(checkboxes).map(cb => cb.dataset.id);
+}
+
+function actualizarBulkAcciones() {
+    const ids = obtenerIdsSeleccionados();
+    const count = ids.length;
+    const bar = document.getElementById('bulkAcciones');
+    if (bar) {
+        bar.style.display = count > 0 ? 'flex' : 'none';
+    }
+    const spanCount = document.getElementById('bulkSeleccionadosCount');
+    if (spanCount) spanCount.textContent = `${count} plato(s) seleccionado(s)`;
+    const btnEditar = document.getElementById('btnBulkEditar');
+    if (btnEditar) btnEditar.disabled = count !== 1;
+}
+
+async function bulkCambiarEstado(ids, disponible) {
+    const respuesta = await peticionAPI('/api/platos/masivo/estado', 'PATCH', { ids, disponible });
+    if (!respuesta || !respuesta.ok) {
+        console.error('Error al cambiar estado');
+        return false;
+    }
+    return true;
+}
+
+function abrirModalEdicion(plato) {
+    const modalOverlay = document.getElementById('modalOverlay');
+    if (!modalOverlay) return;
+
+    document.querySelector('input[name="id"]').value = plato._id;
+    document.querySelector('input[name="nombre"]').value = plato.nombre || '';
+    document.querySelector('input[name="precio"]').value = plato.precio || '';
+    document.querySelector('input[name="categoria"]').value = plato.categoria || '';
+    const descInput = document.querySelector('input[name="descripcion"]');
+    if (descInput) descInput.value = plato.descripcion || '';
+    const fotoInput = document.querySelector('input[name="foto"]');
+    if (fotoInput) fotoInput.value = plato.fotoUrl || '';
+    const preview = document.getElementById('previewFotoPlato');
+    if (preview) preview.innerHTML = plato.fotoUrl ? `<img src="${plato.fotoUrl}" alt="Vista previa" />` : '';
+
+    document.getElementById('checkMenuDelDia').checked = !!plato.esMenuDelDia;
+    document.getElementById('checkEspecialidad').checked = !!plato.esEspecialidad;
+    document.getElementById('checkEnPromocion').checked = !!plato.enPromocion;
+    const inputPorcentaje = document.getElementById('porcentajeDescuento');
+    if (inputPorcentaje) inputPorcentaje.value = plato.porcentajeDescuento || '';
+    const promoContainer = document.getElementById('promoContainer');
+    if (promoContainer) promoContainer.style.display = plato.enPromocion ? 'block' : 'none';
+    const precioFinal = document.getElementById('precioFinalCalc');
+    if (precioFinal) {
+        const precio = parseFloat(plato.precio);
+        const porc = parseFloat(plato.porcentajeDescuento);
+        if (!isNaN(precio)) {
+            let mostrar = precio;
+            if (plato.enPromocion && !isNaN(porc) && porc > 0) {
+                mostrar = precio - (precio * (porc / 100));
+            }
+            precioFinal.textContent = 'Precio final calculado: $' + mostrar.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+            precioFinal.textContent = 'Precio final calculado: $0,00';
+        }
+    }
+    document.getElementById('tituloModal').innerText = 'Editar Plato';
+    document.getElementById('btnGuardarPlato').innerText = 'Guardar Cambios';
+    modalOverlay.hidden = false;
+}
+
+// ==========================================
 // 1. ZONA DE FUNCIONES
 // ==========================================
 
@@ -30,6 +101,12 @@ async function cargarListaDePlatos() {
         listaDePlatos.forEach(plato => {
             cargarHTMLListaDePlatos(plato);
         });
+
+        // Limpiar selección global después de refrescar
+        const checkTodos = document.getElementById('checkSeleccionarTodos');
+        if (checkTodos) checkTodos.checked = false;
+        actualizarBulkAcciones();
+
         generarCheckboxesCategorias();
         
     } catch (error) {
@@ -100,9 +177,7 @@ async function borrarPlato(idPlato) {
 
 // =============== FUNCIÓN OCULTAR PLATO ===========================
 
-async function ocultarPlato(idPlato)
-{
-   async function ocultarPlato(idPlato) {
+async function ocultarPlato(idPlato) {
     try {
         const res = await peticionAPI(`/api/platos/${idPlato}`, 'PATCH');
         
@@ -117,8 +192,6 @@ async function ocultarPlato(idPlato)
         console.error("Error en ocultarPlato:", error);
         return false;
     }
-}
-
 }
 
 async function cargarGruposEnSelect() {
@@ -170,18 +243,34 @@ async function cargarHTMLListaDePlatos(datosPlato){
     
         const bloqueHTML = `
     <tr class = ${claseFila}>
-        <td>${datosPlato.nombre}</td>
+        <td style="width:30px;"><input type="checkbox" class="check-plato" data-id="${datosPlato._id}" style="cursor:pointer;"></td>
+        <td>
+            ${datosPlato.nombre}
+            ${datosPlato.enPromocion ? `<span class="badge-promo">🔥 ${datosPlato.porcentajeDescuento != null ? datosPlato.porcentajeDescuento + '% OFF' : 'En Promoción'}</span>` : ''}
+            ${datosPlato.esEspecialidad ? '<span class="badge-especialidad">⭐ Especialidad</span>' : ''}
+            ${datosPlato.esMenuDelDia ? '<span class="badge-menu-dia">☀️ Menú del Día</span>' : ''}
+        </td>
         <td>$ ${datosPlato.precio}</td>
         <td>${datosPlato.categoria}</td>
         <td class="tdBotones">
             <!-- Desktop: botones normales -->
             <div class="acciones-desktop">
-                <button class="btn-accion btn-editar"
+                                <button class="btn-accion btn-editar"
                     data-id="${datosPlato._id}"
                     data-nombre="${datosPlato.nombre}"
                     data-precio="${datosPlato.precio}"
-                    data-categoria="${datosPlato.categoria}">
+                    data-categoria="${datosPlato.categoria}"
+                    data-foto="${datosPlato.fotoUrl || ''}"
+                    data-menu-del-dia="${datosPlato.esMenuDelDia}"
+                    data-especialidad="${datosPlato.esEspecialidad}"
+                    data-en-promocion="${datosPlato.enPromocion}"
+                    data-porcentaje-descuento="${datosPlato.porcentajeDescuento ?? ''}">
                     Editar
+                </button>
+                <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
+                    data-id="${datosPlato._id}"
+                    data-disponible="${estaDisponible}">
+                    ${textoBotonOcultar}
                 </button>
                 <button class="btn-accion btn-borrar"
                     data-id="${datosPlato._id}"
@@ -189,11 +278,6 @@ async function cargarHTMLListaDePlatos(datosPlato){
                     data-precio="${datosPlato.precio}"
                     data-categoria="${datosPlato.categoria}">
                     Eliminar
-                </button>
-                <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
-                    data-id="${datosPlato._id}"
-                    data-disponible="${estaDisponible}">
-                    ${textoBotonOcultar}
                 </button>
             </div>
             <!-- Mobile: tres puntos -->
@@ -204,21 +288,26 @@ async function cargarHTMLListaDePlatos(datosPlato){
                         data-id="${datosPlato._id}"
                         data-nombre="${datosPlato.nombre}"
                         data-precio="${datosPlato.precio}"
-                        data-categoria="${datosPlato.categoria}">
+                        data-categoria="${datosPlato.categoria}"
+                        data-foto="${datosPlato.fotoUrl || ''}"
+                        data-menu-del-dia="${datosPlato.esMenuDelDia}"
+                        data-especialidad="${datosPlato.esEspecialidad}"
+                        data-en-promocion="${datosPlato.enPromocion}"
+                        data-porcentaje-descuento="${datosPlato.porcentajeDescuento ?? ''}">
                         ✏️ Editar
-                    </button>
-                    <button class="btn-accion btn-borrar"
-                        data-id="${datosPlato._id}"
-                        data-nombre="${datosPlato.nombre}"
-                        data-precio="${datosPlato.precio}"
-                        data-categoria="${datosPlato.categoria}">
-                        🗑️ Eliminar
                     </button>
                    <button class="btn-accion btn-ocultar ${estaDisponible ? '' : 'plato-oculto'}"
                     data-id="${datosPlato._id}"
                     data-disponible="${estaDisponible}">
                     ${emojiBotonOcultar}
                 </button>
+                <button class="btn-accion btn-borrar"
+                        data-id="${datosPlato._id}"
+                        data-nombre="${datosPlato.nombre}"
+                        data-precio="${datosPlato.precio}"
+                        data-categoria="${datosPlato.categoria}">
+                        🗑️ Eliminar
+                    </button>
                 </div>
             </div>
         </td>
@@ -380,7 +469,26 @@ const btnCargaManual = document.getElementById('btnCargaManual');
 const btnCerrarModal = document.getElementById('btnCerrarModal');
 const btnCerrarSesion = document.getElementById('btnCerrarSesion');
 const modalExcel = document.getElementById("modalExcel");
-    
+
+// Botón eliminar todos los platos
+const btnBorrarTodosPlatos = document.getElementById('btnBorrarTodosPlatos');
+if (btnBorrarTodosPlatos) {
+    btnBorrarTodosPlatos.addEventListener('click', async () => {
+        const confirmar = confirm('¿Estás seguro de querer borrar TODOS tus platos? Esta acción no se puede deshacer.');
+        if (!confirmar) return;
+
+        const respuesta = await peticionAPI('/api/platos/todos', 'DELETE');
+        if (respuesta && respuesta.ok) {
+            const data = await respuesta.json().catch(() => ({}));
+            alert(data.mensaje || 'Todos los platos fueron eliminados');
+            limpiarFiltros();
+            cargarListaDePlatos();
+        } else {
+            alert('No se pudo borrar los platos. Intentalo de nuevo.');
+        }
+    });
+}
+
 if (btnCerrarSesion) {
         btnCerrarSesion.addEventListener('click', () => {
             cerrarSesion(); // Llamamos a la función que guardamos en api.js
@@ -391,7 +499,18 @@ if (btnCerrarSesion) {
 btnCargaManual.addEventListener('click', () => {
         document.getElementById("tituloModal").innerText = "Crear Plato";
         document.getElementById("btnGuardarPlato").innerText = "Guardar Plato";
-        modalOverlay.hidden = false; 
+        // Limpiar campos de marketing
+        document.getElementById('checkMenuDelDia').checked = false;
+        document.getElementById('checkEspecialidad').checked = false;
+        document.getElementById('checkEnPromocion').checked = false;
+        const inputPorcentaje = document.getElementById('porcentajeDescuento');
+        if (inputPorcentaje) inputPorcentaje.value = '';
+        const promoContainerEl = document.getElementById('promoContainer');
+        if (promoContainerEl) promoContainerEl.style.display = 'none';
+        const precioFinalCalcEl = document.getElementById('precioFinalCalc');
+        if (precioFinalCalcEl) precioFinalCalcEl.textContent = 'Precio final calculado: $0';
+        modalOverlay.hidden = false;
+        limpiarCamposFoto();
     });
 
 // 5. Cuando el modal está activado y usuario hace click en la cruz este se cierra.
@@ -414,6 +533,10 @@ botonesCerrar.forEach( boton => {
                 limpiarModalIA();
             }
             
+            if (modalPadre.id === 'modalGestionarToppings') {
+                resetearModalGestionarToppings();
+            }
+            
         }
         
     });
@@ -431,13 +554,100 @@ botonesCerrar.forEach( boton => {
 
 
 
+// ============================================================
+// SUBIR FOTO DE PLATO (selector de archivo)
+// ============================================================
+const inputFotoPlato       = document.getElementById('inputFotoPlato');
+const previewFotoPlato     = document.getElementById('previewFotoPlato');
+const fotoUploadTexto      = document.getElementById('fotoUploadTexto');
+const labelAplicarCategoria = document.getElementById('labelAplicarCategoria');
+const checkAplicarCategoria = document.getElementById('checkAplicarCategoria');
+
+/** Sube el archivo al backend y devuelve la URL. También actualiza UI. */
+async function subirFotoSeleccionada() {
+    const archivo = inputFotoPlato.files[0];
+    if (!archivo) return null;
+
+    // Actualizamos el texto del área mientras sube
+    fotoUploadTexto.textContent = 'Subiendo...';
+
+    const formData = new FormData();
+    formData.append('foto', archivo);
+
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/platos/subir-foto', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+
+    if (!res.ok) {
+        fotoUploadTexto.textContent = 'Error al subir. Intentá de nuevo.';
+        return null;
+    }
+
+    const data = await res.json();
+
+    // Guardamos la URL en el hidden
+    document.getElementById('fotoUrlPlato').value = data.url;
+
+    // Mostramos nombre del archivo en el área
+    fotoUploadTexto.textContent = archivo.name;
+
+    // Mostramos la vista previa
+    previewFotoPlato.innerHTML = `<img src="${data.url}" alt="Vista previa" />`;
+
+    // Mostramos el checkbox de "aplicar a categoría"
+    labelAplicarCategoria.style.display = 'flex';
+
+    return data.url;
+}
+
+/** Limpia todos los campos de foto del modal */
+function limpiarCamposFoto() {
+    inputFotoPlato.value         = '';
+    document.getElementById('fotoUrlPlato').value = '';
+    previewFotoPlato.innerHTML   = '';
+    fotoUploadTexto.textContent  = 'Elegir imagen del ordenador';
+    labelAplicarCategoria.style.display = 'none';
+    checkAplicarCategoria.checked = false;
+}
+
+/** Aplica la foto a todos los platos de la categoría sin foto */
+async function aplicarFotoACategoria(fotoUrl) {
+    const categoria = document.querySelector('input[name="categoria"]').value;
+    if (!categoria || !fotoUrl) return;
+
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/platos/aplicar-foto-categoria', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fotoUrl, categoria })
+    });
+
+    if (res.ok) {
+        const data = await res.json();
+        if (data.actualizados > 0) {
+            alert(`¡Foto aplicada a ${data.actualizados} plato(s) más de "${categoria}" que no tenían foto!`);
+        }
+    }
+}
+
+// Cuando el usuario elige un archivo → subir automáticamente
+inputFotoPlato.addEventListener('change', async () => {
+    const url = await subirFotoSeleccionada();
+    if (!url) {
+        fotoUploadTexto.textContent = 'Elegir imagen del ordenador';
+    }
+});
+
 // ============= BOTÓN GUARDAR PLATO ===============
 const btnGuardar = document.getElementById("btnGuardarPlato");
 const listaPlatos = document.getElementById("lista-platos");
 
 /**
- * PROPÓSITO: Al hacer clicj en guardar plato este se guarda en la BD y además se mostrará en pantalla 
- * la lista de los platos del dashbord
+ * PROPÓSITO: Al hacer clic en guardar plato, este se guarda en la BD
+ * y además se mostrará en pantalla la lista de los platos del dashboard
  */
 
 btnGuardar.addEventListener('click', async (e) => {
@@ -446,27 +656,84 @@ btnGuardar.addEventListener('click', async (e) => {
     const formPlato = document.getElementById("formCrearPlato");
     const datosForm = new FormData(formPlato);
     
+    // Capturamos la URL que generó la subida (si es que hubo) o la vieja
+    const urlFotoSubida = document.getElementById('fotoUrlPlato').value;
     
+    // Obtenemos la foto que ya tenía el plato antes de ser editado 
+    // Ojo: Asegurate de que tu input hidden para recuperar fotos viejas se llame 'foto' 
+    // en tu HTML (o cambialo por el nombre que estés usando)
+    const fotoExistente = datosForm.get('foto'); 
+
+    // El flujo correcto:
+    const descripcion = datosForm.get('descripción') || datosForm.get('descripcion') || '';
+    const enPromocion = document.getElementById('checkEnPromocion').checked;
+    const porcentajeDescuento = enPromocion
+        ? (parseFloat(document.getElementById('porcentajeDescuento').value) || 0)
+        : 0;
+
     const datosPlato = {
         nombre: datosForm.get('nombre'),
         precio: Number(datosForm.get('precio')),
-        categoria : datosForm.get('categoria'),
-        descripcion: datosForm.get('descripcion'),
+        categoria: datosForm.get('categoria'),
+        descripcion: descripcion,
+        esMenuDelDia: document.getElementById('checkMenuDelDia').checked,
+        esEspecialidad: document.getElementById('checkEspecialidad').checked,
+        enPromocion: enPromocion,
+        porcentajeDescuento: porcentajeDescuento,
+        // Si hay una foto subida recientemente, usamos esa.
+        // Si no, usamos la foto que ya existía (si estaba editando un plato).
+        fotoUrl: urlFotoSubida || fotoExistente || "",
         id: datosForm.get('id')
     };
 
     const idOculto = datosPlato.id;
+
+     // Si el checkbox está tildado, aplicamos la foto a toda la categoría
+    if (checkAplicarCategoria.checked && datosPlato.fotoUrl) {
+        await aplicarFotoACategoria(datosPlato.fotoUrl);
+    }
 
     if (idOculto === "") {
         await crearPlato(datosPlato, formPlato);
     } else {
         await editarPlato(idOculto, datosPlato, formPlato);
     }
+
     
     cargarHTMLListaDePlatos(datosPlato);
-    terminarYRedibujar(formPlato)
-    
+    terminarYRedibujar(formPlato);
 });
+
+// ==========================================
+// LÓGICA DE PROMOCIONES (porcentaje)
+// ==========================================
+const checkEnPromo = document.getElementById('checkEnPromocion');
+const promoContainerDiv = document.getElementById('promoContainer');
+const inputPorcentajePromo = document.getElementById('porcentajeDescuento');
+const inputPrecioPlato = document.querySelector('input[name="precio"]');
+const precioFinalCalcSpan = document.getElementById('precioFinalCalc');
+
+if (checkEnPromo && promoContainerDiv && inputPorcentajePromo && inputPrecioPlato && precioFinalCalcSpan) {
+    function actualizarPromoUI() {
+        const enPromo = checkEnPromo.checked;
+        promoContainerDiv.style.display = enPromo ? 'block' : 'none';
+        const precio = parseFloat(inputPrecioPlato.value);
+        const porciento = parseFloat(inputPorcentajePromo.value);
+        if (!isNaN(precio)) {
+            let mostrar = precio;
+            if (enPromo && !isNaN(porciento) && porciento > 0) {
+                mostrar = precio - (precio * (porciento / 100));
+            }
+            precioFinalCalcSpan.textContent = 'Precio final calculado: $' + mostrar.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+            precioFinalCalcSpan.textContent = 'Precio final calculado: $0,00';
+        }
+    }
+    checkEnPromo.addEventListener('change', actualizarPromoUI);
+    inputPrecioPlato.addEventListener('input', actualizarPromoUI);
+    inputPorcentajePromo.addEventListener('input', actualizarPromoUI);
+    actualizarPromoUI();
+}
 
 
 
@@ -492,15 +759,56 @@ tbodyPlatos.addEventListener('click', async (e) => {
         const idPlato = btnEditar.getAttribute('data-id');
         console.log("1. Hice clic en editar. El ID de la mochila es:", idPlato);
         
-        const nombrePlato = btnEditar.getAttribute('data-nombre');
+                const nombrePlato = btnEditar.getAttribute('data-nombre');
         const precioPlato = btnEditar.getAttribute('data-precio');
         const catPlato = btnEditar.getAttribute('data-categoria');
+        const fotoPlato = btnEditar.getAttribute('data-foto') || '';
 
         // 5. Autocompletamos los inputs del modal con esos datos
         document.querySelector('input[name="id"]').value = idPlato;        
         document.querySelector('input[name="nombre"]').value = nombrePlato;
         document.querySelector('input[name="precio"]').value = precioPlato;
         document.querySelector('input[name="categoria"]').value = catPlato;
+        document.querySelector('input[name="foto"]').value = fotoPlato;
+
+        // Mostramos la vista previa si el plato ya tiene foto
+        const preview = document.getElementById('previewFotoPlato');
+        if (fotoPlato) {
+            preview.innerHTML = `<img src="${fotoPlato}" alt="Vista previa" />`;
+        } else {
+            preview.innerHTML = '';
+        }
+        //limpiarCamposFoto(); // limpiamos selector, preview y checkbox
+
+        // ---- Destacar Marketing ----
+        const menuDelDia = btnEditar.getAttribute('data-menu-del-dia') === 'true';
+        const especialidad = btnEditar.getAttribute('data-especialidad') === 'true';
+        const enPromocion = btnEditar.getAttribute('data-en-promocion') === 'true';
+        const porcentaje = btnEditar.getAttribute('data-porcentaje-descuento') || '';
+
+        document.getElementById('checkMenuDelDia').checked = menuDelDia;
+        document.getElementById('checkEspecialidad').checked = especialidad;
+        document.getElementById('checkEnPromocion').checked = enPromocion;
+        const inputPorcentaje = document.getElementById('porcentajeDescuento');
+        if (inputPorcentaje) inputPorcentaje.value = porcentaje;
+
+        const promoContainerEl = document.getElementById('promoContainer');
+        if (promoContainerEl) promoContainerEl.style.display = enPromocion ? 'block' : 'none';
+
+        const precioFinalCalcEl = document.getElementById('precioFinalCalc');
+        const precioNum = parseFloat(precioPlato);
+        const porcNum = parseFloat(porcentaje);
+        if (precioFinalCalcEl) {
+            if (!isNaN(precioNum)) {
+                let mostrar = precioNum;
+                if (enPromocion && !isNaN(porcNum) && porcNum > 0) {
+                    mostrar = precioNum - (precioNum * (porcNum / 100));
+                }
+                precioFinalCalcEl.textContent = 'Precio final calculado: $' + mostrar.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                precioFinalCalcEl.textContent = 'Precio final calculado: $0,00';
+            }
+        }
 
         // 6. Abrimos el modal
         modalOverlay.hidden = false;
@@ -602,14 +910,60 @@ inputOculto.addEventListener('change', (e) => {
         const libro = XLSX.read(datosCrudos, { type: 'array' });
         const hoja = libro.Sheets[libro.SheetNames[0]];
         
-        const platosJSON = XLSX.utils.sheet_to_json(hoja); 
-        console.log("El JSON listo:", platosJSON);
-        
+        // sheet_to_json usa los títulos de las columnas como claves.
+        // Por eso normalizamos a los campos que espera el backend.
+        const platosCrudos = XLSX.utils.sheet_to_json(hoja, { defval: '' });
+        console.log("El JSON crudo del Excel:", platosCrudos);
+
+        const platosJSON = platosCrudos.map(fila => {
+            const claves = Object.keys(fila);
+            const buscar = (...patrones) => {
+                for (const patron of patrones) {
+                    const patronNorm = patron.toLowerCase().replace(/[\s\-_]/g, '');
+                    const clave = claves.find(c => c.toLowerCase().replace(/[\s\-_]/g, '') === patronNorm);
+                    if (clave && fila[clave] !== undefined && fila[clave] !== '') return fila[clave];
+                }
+                for (const patron of patrones) {
+                    const patMin = patron.toLowerCase();
+                    const clave = claves.find(c => c.toLowerCase().includes(patMin));
+                    if (clave && fila[clave] !== undefined && fila[clave] !== '') return fila[clave];
+                }
+                return '';
+            };
+
+            const nombre = buscar('nombre','Nombre','plato','Plato','producto','Producto','comida','Comida','menu','Menú','articulo','Artículo','item','Item');
+            const descripcion = buscar('descripcion','Descripcion','Descripción','detalle','Detalle');
+            const precio = Number(buscar('precio','Precio','PRECIO','importe','Importe')) || 0;
+            const categoria = buscar('categoria','Categoria','Categoría','CATEGORIA','rubro','Rubro','tipo','Tipo') || 'Varios';
+
+            const toppingsTexto = String(buscar('toppings','Toppings','TOPPINGS','agregados','Agregados','adicionales','Adicionales','extras','Extras')).trim();
+            const toppings = toppingsTexto
+                ? toppingsTexto.split('|').map(grupo => {
+                    const [nombreGrupo, opciones] = grupo.split(':');
+                    return {
+                        grupo: (nombreGrupo || '').trim(),
+                        opciones: (opciones || '').split(',').map(op => op.trim()).filter(Boolean)
+                    };
+                  }).filter(g => g.grupo && g.opciones.length > 0)
+                : [];
+
+            return {
+                nombre: nombre || 'Sin nombre',
+                descripcion: descripcion,
+                precio,
+                categoria,
+                toppings
+            };
+        });
+
+        console.log("El JSON normalizado:", platosJSON);
+
         const respuesta = await peticionAPI('/api/platos/bulk', 'POST', platosJSON);
 
         if (respuesta && respuesta.ok) {
             alert("¡Menú cargado con éxito!");
-            // Acá podrías llamar a la función que actualiza la tablita visual
+            cargarListaDePlatos();
+            document.getElementById('modalExcel').hidden = true;
         } else {
             alert("Hubo un error al subir los platos.");
         }
@@ -1032,8 +1386,18 @@ const modalGestionarToppings = document.getElementById('modalGestionarToppings')
 
 btnGestionarToppings.addEventListener('click', async (e)=>{
     e.preventDefault();
+    // Reset del modal para que no queden datos de una sesión anterior
+    resetearModalGestionarToppings();
     cargarGruposParaGestionar();
     modalGestionarToppings.removeAttribute('hidden');
+});
+
+// Al hacer clic en el fondo oscuro también se cierra y resetea
+modalGestionarToppings.addEventListener('click', (e) => {
+    if (e.target === modalGestionarToppings) {
+        modalGestionarToppings.setAttribute('hidden', '');
+        resetearModalGestionarToppings();
+    }
 });
 
 // Variable global para guardar los toppings y no tener que pedirselos al backend a cada rato
@@ -1089,6 +1453,48 @@ async function cargarGruposParaGestionar() {
     });
 }
 
+/**
+ * RESETEA COMPLETAMENTE EL MODAL GESTIONAR TOPPINGS
+ * para que no queden datos de una sesión anterior.
+ */
+function resetearModalGestionarToppings() {
+    // Selector de grupo
+    const selectEditar = document.getElementById('selectEditarGrupo');
+    if (selectEditar) selectEditar.value = '';
+
+    // Checkboxes de categorías
+    document.querySelectorAll('#contenedorEditarCategoriasTopping input[type="checkbox"]')
+        .forEach(chk => chk.checked = false);
+
+    // Opciones (filas)
+    const contenedorOpciones = document.getElementById('contenedorEditarOpcionesTopping');
+    if (contenedorOpciones) contenedorOpciones.innerHTML = '';
+
+    // Resultados de la pestaña "Por Categoría"
+    const contenedorResultados = document.getElementById('contenedorResultadosCategoria');
+    if (contenedorResultados) {
+        contenedorResultados.innerHTML = '<p class="topping-hint" style="text-align: center;">Seleccioná una categoría para ver qué toppings tiene asociados.</p>';
+    }
+    const selectCategoria = document.getElementById('selectFiltroCategoria');
+    if (selectCategoria) selectCategoria.value = '';
+
+    // Reset de las pestañas a "Por Topping"
+    const tabTopping = document.getElementById('tabPorTopping');
+    const tabCategoria = document.getElementById('tabPorCategoria');
+    const vistaTopping = document.getElementById('vistaPorTopping');
+    const vistaCategoria = document.getElementById('vistaPorCategoria');
+    if (tabTopping) {
+        tabTopping.classList.add('activo');
+        tabTopping.style.opacity = '1';
+    }
+    if (tabCategoria) {
+        tabCategoria.classList.remove('activo');
+        tabCategoria.style.opacity = '0.6';
+    }
+    if (vistaTopping) vistaTopping.style.display = 'block';
+    if (vistaCategoria) vistaCategoria.style.display = 'none';
+}
+
 // 3. CUANDO EL USUARIO ELIGE UN GRUPO PARA EDITAR
 const selectEditarGrupo = document.getElementById('selectEditarGrupo');
 selectEditarGrupo.addEventListener('change', (e) => {
@@ -1117,10 +1523,14 @@ selectEditarGrupo.addEventListener('change', (e) => {
     contenedorOpciones.innerHTML = ''; // Limpiamos
 
     grupo.opciones.forEach(opcion => {
+        const disponible = opcion.disponible !== false;
         contenedorOpciones.insertAdjacentHTML('beforeend', `
-            <div class="fila-opcion">
+            <div class="fila-opcion ${disponible ? '' : 'inactiva'}">
                 <input type="text" class="topping-nombre" value="${opcion.nombre}" required />
                 <input type="number" class="topping-precio" value="${opcion.precio}" min="0" required />
+                <button type="button" class="btn-toggle-disponibilidad-topping" data-id-grupo="${grupo._id}" data-id-opcion="${opcion._id}" data-disponible="${disponible}" title="${disponible ? 'Ocultar opción' : 'Mostrar opción'}">
+                    ${disponible ? '👁️' : '🙈'}
+                </button>
                 <button type="button" class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
             </div>
         `);
@@ -1138,10 +1548,30 @@ document.getElementById('btnAgregarFilaEditarTopping').addEventListener('click',
     `);
 });
 
-// Delegación de eventos para los botones de eliminar fila en el modal de edición
-document.getElementById('contenedorEditarOpcionesTopping').addEventListener('click', (e) => {
-    if (e.target.classList.contains('btn-eliminar-fila')) {
+// Delegación de eventos para los botones de eliminar fila y cambiar disponibilidad en el modal de edición
+document.getElementById('contenedorEditarOpcionesTopping').addEventListener('click', async (e) => {
+    const btnEliminar = e.target.closest('.btn-eliminar-fila');
+    if (btnEliminar) {
         e.target.closest('.fila-opcion').remove();
+        return;
+    }
+
+    const btnToggle = e.target.closest('.btn-toggle-disponibilidad-topping');
+    if (btnToggle) {
+        const idGrupo = btnToggle.getAttribute('data-id-grupo');
+        const idOpcion = btnToggle.getAttribute('data-id-opcion');
+
+        const respuesta = await peticionAPI(`/api/toppings/${idGrupo}/opcion/${idOpcion}`, 'PATCH');
+        if (respuesta && respuesta.ok) {
+            const data = await respuesta.json();
+            btnToggle.setAttribute('data-disponible', data.disponible);
+            btnToggle.textContent = data.disponible ? '👁️' : '🙈';
+            btnToggle.title = data.disponible ? 'Ocultar opción' : 'Mostrar opción';
+            const fila = btnToggle.closest('.fila-opcion');
+            fila.classList.toggle('inactiva', data.disponible === false);
+        } else {
+            alert('No se pudo cambiar la disponibilidad de la opción.');
+        }
     }
 });
 
@@ -1386,3 +1816,75 @@ if (selectFiltroCategoria) {
         renderizarToppingsPorCategoria(e.target.value);
     });
 }
+
+
+// ==========================================
+// SELECCIÓN MASIVA - EVENTOS
+// ==========================================
+document.addEventListener('change', (e) => {
+    // Checkbox individual
+    if (e.target.classList.contains('check-plato')) {
+        actualizarBulkAcciones();
+
+        // Actualizar el "seleccionar todos" si todos los visibles están marcados
+        const visibles = Array.from(document.querySelectorAll('#lista-platos tr'));
+        const checksVisibles = visibles
+            .filter(fila => fila.style.display !== 'none')
+            .map(fila => fila.querySelector('.check-plato'))
+            .filter(Boolean);
+
+        const todosMarcados = checksVisibles.length > 0 && checksVisibles.every(cb => cb.checked);
+        const checkTodos = document.getElementById('checkSeleccionarTodos');
+        if (checkTodos) checkTodos.checked = todosMarcados;
+    }
+
+    // Checkbox "seleccionar todos"
+    if (e.target.id === 'checkSeleccionarTodos') {
+        const marcar = e.target.checked;
+        document.querySelectorAll('#lista-platos tr').forEach(fila => {
+            if (fila.style.display !== 'none') {
+                const cb = fila.querySelector('.check-plato');
+                if (cb) cb.checked = marcar;
+            }
+        });
+        actualizarBulkAcciones();
+    }
+});
+
+document.addEventListener('click', async (e) => {
+    const btnOcultar = e.target.closest('#btnBulkOcultar');
+    const btnMostrar = e.target.closest('#btnBulkMostrar');
+    const btnBorrar = e.target.closest('#btnBulkBorrar');
+    const btnEditar = e.target.closest('#btnBulkEditar');
+
+    if (btnOcultar || btnMostrar) {
+        const ids = obtenerIdsSeleccionados();
+        if (ids.length === 0) return;
+        const disponible = btnOcultar ? false : true;
+        const ok = await bulkCambiarEstado(ids, disponible);
+        if (ok) {
+            cargarListaDePlatos();
+        } else {
+            alert('Error al cambiar estado');
+        }
+    }
+
+    if (btnBorrar) {
+        const ids = obtenerIdsSeleccionados();
+        if (ids.length === 0) return;
+        if (!confirm(`¿Borrar ${ids.length} plato(s) seleccionado(s)?`)) return;
+        const respuesta = await peticionAPI('/api/platos/masivo', 'DELETE', { ids });
+        if (respuesta && respuesta.ok) {
+            cargarListaDePlatos();
+        } else {
+            alert('Error al borrar los platos');
+        }
+    }
+
+    if (btnEditar) {
+        const ids = obtenerIdsSeleccionados();
+        if (ids.length !== 1) return;
+        const plato = listaPlatosGlobal.find(p => p._id === ids[0]);
+        if (plato) abrirModalEdicion(plato);
+    }
+});

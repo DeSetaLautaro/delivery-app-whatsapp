@@ -59,18 +59,20 @@ router.post('/login', async (req, res) => {
         // el cliente la guarda y la presenta en cada request protegido.
         const token = jwt.sign(
             { id: usuario._id, email: usuario.email },  // payload (datos dentro del token)
-            process.env.JWT_SECRET,                      // clave secreta para firmarlo
+            process.env.JWT_SECRET || 'secreto',         // clave secreta para firmarlo (con respaldo)
             { expiresIn: '8h' }                          // expira en 8 horas
         );
 
         res.status(200).json({ token,
-            user: {nombre : usuario.nombre,
+                        user: {nombre : usuario.nombre,
                     email : usuario.email,
                     id : usuario.id,
                     telefono : usuario.telefono,
                     nombreDelLocal: usuario.nombreDelLocal,
                     slug: usuario.slug,
-                    direccion : usuario.direccion
+                    plan: usuario.plan || 'web',
+                    direccion : usuario.direccion,
+                    fotoPerfil : usuario.fotoPerfil || ''
             }
          });
 
@@ -100,7 +102,7 @@ router.post('/login', async (req, res) => {
  *   - 500: Error interno
  */
 router.post('/registro', async (req, res) => {
-    const { nombre, email, password, telefono, nombreDelLocal } = req.body;
+    const { nombre, email, password, telefono, codigoPais, nombreDelLocal } = req.body;
 
     // Creamos el primer intento de slug (Ej: "la-esquina")
      let slugFinal = crearSlugBase(nombreDelLocal);
@@ -126,7 +128,7 @@ router.post('/registro', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         // Guardar el usuario nuevo
-        await Usuario.create({ nombre, email, password: hash, telefono, nombreDelLocal, slug: slugFinal });
+        await Usuario.create({ nombre, email, password: hash, telefono, codigoPais, nombreDelLocal, slug: slugFinal });
 
         res.status(201).json({ message: 'Usuario creado con exito' });
 
@@ -137,5 +139,29 @@ router.post('/registro', async (req, res) => {
 });
 
 
+
+// ============================================================
+// GET /api/existe-email
+// ============================================================
+/**
+ * PROPOSITO:
+ *   Verifica si un email ya está registrado en la base de datos.
+ *   Se usa en el frontend para validar en vivo mientras el usuario escribe.
+ */
+router.get('/existe-email', async (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Falta el parámetro email' });
+    }
+
+    try {
+        const usuario = await Usuario.findOne({ email });
+        res.json({ existe: !!usuario });
+    } catch (error) {
+        console.error('[ERROR] Existe-email:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 module.exports = router;

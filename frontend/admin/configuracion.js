@@ -15,7 +15,94 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     }
     const horariosEstructurados = await res.json();
     rellenarHorarios(horariosEstructurados.horarios);
+
+    // ===== TEMA VISUAL =====
+    const resPerfil = await peticionAPI('/api/usuarios/perfil', 'GET');
+    const selectTema = document.getElementById('select-tema-menu');
+    if (resPerfil && resPerfil.ok && selectTema) {
+        const datosPerfil = await resPerfil.json();
+        selectTema.value = datosPerfil.estiloTarjetas || 'clasico';
+
+        const colorInput = document.getElementById('color-marca');
+        const textoColor = document.getElementById('texto-color');
+        if (colorInput) {
+            colorInput.value = datosPerfil.colorMenu || '#2563eb';
+            if (textoColor) textoColor.textContent = colorInput.value;
+        }
+        const selectFuente = document.getElementById('fuente-marca');
+        if (selectFuente) {
+            selectFuente.value = datosPerfil.fuenteMenu || 'moderna';
+        }
+
+        const restablecer = document.getElementById('restablecer-tema');
+        if (restablecer) {
+            restablecer.addEventListener('click', async () => {
+                if (selectTema) selectTema.value = 'clasico';
+                if (colorInput) {
+                    colorInput.value = '#2563eb';
+                    if (textoColor) textoColor.textContent = colorInput.value;
+                }
+                if (selectFuente) selectFuente.value = 'moderna';
+                await guardarApariencia({ estiloTarjetas: 'clasico', colorMenu: '#2563eb', fuenteMenu: 'moderna' });
+            });
+        }
+
+        if (selectTema) {
+            selectTema.addEventListener('change', () => {
+                guardarApariencia({ estiloTarjetas: selectTema.value });
+            });
+        }
+        if (colorInput) {
+            colorInput.addEventListener('input', () => {
+                if (textoColor) textoColor.textContent = colorInput.value;
+                guardarApariencia({ colorMenu: colorInput.value });
+            });
+        }
+        if (selectFuente) {
+            selectFuente.addEventListener('change', () => {
+                guardarApariencia({ fuenteMenu: selectFuente.value });
+            });
+        }
+
+        // ===== CONFIGURACIÓN DE RESEÑAS =====
+        const permitirResenas = document.getElementById('permitirResenas');
+        const resenasPublicas = document.getElementById('resenasPublicas');
+        const permitirVotosResenas = document.getElementById('permitirVotosResenas');
+
+        if (permitirResenas) permitirResenas.checked = !!datosPerfil.permitirResenas;
+        if (resenasPublicas) resenasPublicas.checked = !!datosPerfil.resenasPublicas;
+        if (permitirVotosResenas) permitirVotosResenas.checked = !!datosPerfil.permitirVotosResenas;
+
+        // Aplicar reglas de secuencia y habilitar lo correcto
+        actualizarEstadoResenas();
+
+        // Escuchar cambios en los checkboxes para validación en tiempo real
+        if (permitirResenas && resenasPublicas && permitirVotosResenas) {
+            [permitirResenas, resenasPublicas, permitirVotosResenas].forEach(chk => {
+                chk.addEventListener('change', actualizarEstadoResenas);
+            });
+        }
+
+        const btnGuardarResenas = document.getElementById('guardarConfigResenas');
+        if (btnGuardarResenas) {
+            btnGuardarResenas.addEventListener('click', guardarConfigResenas);
+        }
+    }
 });
+
+async function guardarApariencia(campos = {}) {
+    const resp = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', campos);
+    const resultado = await resp.json();
+
+    if (resp.ok) {
+        const userGuardado = JSON.parse(localStorage.getItem('user'));
+        Object.assign(userGuardado, campos);
+        localStorage.setItem('user', JSON.stringify(userGuardado));
+        alert('Apariencia guardada correctamente');
+    } else {
+        alert('Error al guardar apariencia: ' + (resultado.error || 'Error desconocido'));
+    }
+}
 
 // Seleccionamos todos los botones de variables
 const botonesVar = document.querySelectorAll('.btn-var');
@@ -88,33 +175,40 @@ document.querySelectorAll('.fila-dia input[type="time"]').forEach(inputTiempo =>
 
 // ... Acá sigue tu Paso 3 (recolectarHorarios) y Paso 4 (guardarHorarios) exactamente igual
 
-// ── Paso 3: Recolectar string (humanos) y array (computadora) ─────────
+const DIAS_SEMANA = [
+    { id: 'lunes', label: 'Lunes' },
+    { id: 'martes', label: 'Martes' },
+    { id: 'miercoles', label: 'Miércoles' },
+    { id: 'jueves', label: 'Jueves' },
+    { id: 'viernes', label: 'Viernes' },
+    { id: 'sabado', label: 'Sábado' },
+    { id: 'domingo', label: 'Domingo' }
+];
+
 function recolectarHorarios() {
-    const filas = document.querySelectorAll('.fila-dia');
-    const partesTexto = [];        // Acá guardamos "Lunes 20:00 a 23:30"
-    const arrayEstructurado = [];  // Acá guardamos objetos { dia: "Lunes", apertura: "20:00", ... }
+    const partesTexto = [];
+    const arrayEstructurado = [];
 
-    filas.forEach(fila => {
-        const checkbox = fila.querySelector('input[type="checkbox"]');
-        if (!checkbox.checked) return; // Saltamos los días no seleccionados
+    DIAS_SEMANA.forEach(dia => {
+        const checkActivo = document.getElementById(`${dia.id}-activo`);
+        const inputDesde = document.getElementById(`${dia.id}-desde`);
+        const inputHasta = document.getElementById(`${dia.id}-hasta`);
 
-        const dia     = fila.querySelector('.dia-check span').innerText.trim();
-        const tiempos = fila.querySelectorAll('input[type="time"]');
-        const desde   = tiempos[0].value; // Ej: "20:00"
-        const hasta   = tiempos[1].value; // Ej: "23:30"
+        const activo = checkActivo && checkActivo.checked;
+        const desde = activo && inputDesde ? inputDesde.value : '';
+        const hasta = activo && inputHasta ? inputHasta.value : '';
 
-        // 1. Armamos el texto para humanos
-        partesTexto.push(`${dia} ${desde} a ${hasta}`);
+        if (activo && desde && hasta) {
+            partesTexto.push(`${dia.label} ${desde} a ${hasta}`);
+        }
 
-        // 2. Armamos el objeto para la computadora
         arrayEstructurado.push({
-            dia: dia,
-            apertura: desde,
-            cierre: hasta
+            dia: dia.label,
+            apertura: activo ? desde : '',
+            cierre: activo ? hasta : ''
         });
     });
 
-    // Devolvemos ambas cosas empaquetadas
     return {
         textoLegible: partesTexto.join(' | '),
         datosParaNode: arrayEstructurado
@@ -165,33 +259,91 @@ async function guardarHorarios() {
 //=====================
 
 function rellenarHorarios(horariosArray) {
-    // Si no hay horarios guardados o el array está vacío, no hacemos nada
-    if (!horariosArray || horariosArray.length === 0) return;
+    // Primero dejamos todos los días desactivados
+    DIAS_SEMANA.forEach(dia => {
+        const check = document.getElementById(`${dia.id}-activo`);
+        const desde = document.getElementById(`${dia.id}-desde`);
+        const hasta = document.getElementById(`${dia.id}-hasta`);
 
-    // Recorremos la lista de días uno por uno
-    horariosArray.forEach(configDia => {
-        // configDia es cada objetito: { dia: "lunes", apertura: "20:00", cierre: "23:30" }
-         console.log(`el formato de horarios es:`, configDia);
-        // Nos aseguramos de que el día esté en minúsculas para que coincida con los IDs del HTML
-        const dia = configDia.dia.toLowerCase(); 
-        console.log(`pasé por acá y hoy es: ${dia}`);
-
-        // Buscamos las 3 cajitas de ESE día en el HTML
-        const checkActivo = document.getElementById(`${dia}-activo`);
-        checkActivo.disabled = false;
-        const inputDesde = document.getElementById(`${dia}-desde`);
-        inputDesde.disabled = false;
-        const inputHasta = document.getElementById(`${dia}-hasta`);
-        inputHasta.disabled = false;
-
-        // 1. Rellenamos las horas usando las propiedades de tu MongoDB (apertura y cierre)
-        if (inputDesde) inputDesde.value = configDia.apertura || "";
-        if (inputHasta) inputHasta.value = configDia.cierre || "";
-
-        // 2. ¿Cómo sabemos si marcamos el Checkbox (activo)? 
-        // Lógica simple: Si tiene hora de apertura guardada, asumimos que ese día abre.
-        if (checkActivo) {
-            checkActivo.checked = configDia.apertura ? true : false;
+        if (check) {
+            check.checked = false;
+        }
+        if (desde) {
+            desde.value = '';
+            desde.disabled = true;
+        }
+        if (hasta) {
+            hasta.value = '';
+            hasta.disabled = true;
         }
     });
+
+    // Si no hay datos guardados, terminamos
+    if (!horariosArray || horariosArray.length === 0) return;
+
+    // Ahora aplicamos los datos guardados
+    horariosArray.forEach(configDia => {
+        const diaKey = (configDia.dia || '').toLowerCase();
+        const entrada = DIAS_SEMANA.find(
+            d => d.id === diaKey || d.label.toLowerCase() === diaKey
+        );
+        if (!entrada) return;
+
+        const check = document.getElementById(`${entrada.id}-activo`);
+        const desde = document.getElementById(`${entrada.id}-desde`);
+        const hasta = document.getElementById(`${entrada.id}-hasta`);
+
+        if (check) {
+            check.checked = true;
+        }
+        if (desde) {
+            desde.value = configDia.apertura || '';
+            desde.disabled = false;
+        }
+        if (hasta) {
+            hasta.value = configDia.cierre || '';
+            hasta.disabled = false;
+        }
+    });
+}
+
+function actualizarEstadoResenas() {
+    const permitir = document.getElementById('permitirResenas');
+    const publicas = document.getElementById('resenasPublicas');
+    const votos = document.getElementById('permitirVotosResenas');
+    if (!permitir || !publicas || !votos) return;
+
+    const habilitarPublicas = permitir.checked;
+    publicas.disabled = !habilitarPublicas;
+    if (!habilitarPublicas) publicas.checked = false;
+
+    const habilitarVotos = publicas.checked && habilitarPublicas;
+    votos.disabled = !habilitarVotos;
+    if (!habilitarVotos) votos.checked = false;
+
+    // Actualizar clases visuales del contenedor
+    [permitir, publicas, votos].forEach(chk => {
+        const contenedor = chk.closest('.opcion-resena');
+        if (contenedor) {
+            contenedor.classList.toggle('opcion-deshabilitada', chk.disabled);
+        }
+    });
+}
+
+async function guardarConfigResenas() {
+    const permitirResenas = document.getElementById('permitirResenas').checked;
+    const resenasPublicas = document.getElementById('resenasPublicas').checked;
+    const permitirVotosResenas = document.getElementById('permitirVotosResenas').checked;
+
+    const resp = await peticionAPI('/api/usuarios/modificarDatos', 'PATCH', {
+        permitirResenas,
+        resenasPublicas,
+        permitirVotosResenas
+    });
+    if (!resp.ok) {
+        const result = await resp.json();
+        alert('Error al guardar la configuración de reseñas: ' + (result.error || 'Error desconocido'));
+        return;
+    }
+    alert('Configuración de reseñas guardada correctamente ✅');
 }

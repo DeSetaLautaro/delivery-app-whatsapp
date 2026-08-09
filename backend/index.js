@@ -2,6 +2,8 @@ require('dotenv').config();
 const express   = require('express');
 const multer    = require('multer');
 const Anthropic = require('@anthropic-ai/sdk');
+const crypto    = require('crypto');
+const jwt       = require('jsonwebtoken');
 const fs        = require('fs');
 const path      = require('path');
 const mongoose  = require('mongoose');
@@ -13,6 +15,15 @@ const adminPlatos = require('./routes/platos');
 const usuariosRouter = require('./routes/usuariosRoutes');
 const rutasToppings = require('./routes/toppings');
 const publicoRoutes = require('./routes/publicoRoutes');
+const pedidosRoutes = require('./routes/pedidos');
+const analisisRoutes = require('./routes/analisis');
+const estadisticasRouter = require('./routes/estadisticas');
+const deliveryRoutes = require('./routes/delivery');
+const pagosRoutes = require('./routes/pagos');
+const DeliveryToken = require('./models/DeliveryToken');
+const Resena = require('./models/Resena');
+const Visita = require('./models/Visita');
+const verificarToken = require('./middleware/verificarToken');
 
 const app    = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -23,10 +34,62 @@ app.use(express.json());// Importás la ruta
 
 // 3. DESPUÉS conectamos las rutas (así ya pueden leer el JSON)
 app.use('/api/platos', adminPlatos);
+app.use('/api/menu', adminPlatos);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/publico', publicoRoutes);
+app.use('/api/estadisticas', estadisticasRouter);
 app.use('/api', authRouter);
 app.use('/api/toppings', rutasToppings);
+app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/analisis', analisisRoutes);
+app.use('/api/delivery', deliveryRoutes);
+app.use('/api/pagos', pagosRoutes);
+
+// ============================================================
+// RUTAS PARA GESTIÓN DEL TOKEN DE DELIVERY (PROTEGIDAS)
+// ============================================================
+const authMiddleware = (req, res, next) => {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'No autorizado' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secreto');
+        req.usuarioId = decoded.id || decoded._id;
+        next();
+    } catch (e) {
+        return res.status(401).json({ error: 'Token inválido' });
+    }
+};
+
+app.get('/api/local/delivery-token', authMiddleware, async (req, res) => {
+    try {
+        const localId = req.usuarioId;
+        const doc = await DeliveryToken.findOne({ localId });
+        res.json({ token: doc ? doc.token : null });
+    } catch (error) {
+        console.error('Error obteniendo token:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+app.post('/api/local/regenerar-token-delivery', authMiddleware, async (req, res) => {
+    try {
+        const localId = req.usuarioId;
+        const nuevoToken = crypto.randomBytes(24).toString('hex');
+        let doc = await DeliveryToken.findOne({ localId });
+        if (doc) {
+            doc.token = nuevoToken;
+            await doc.save();
+        } else {
+            doc = new DeliveryToken({ localId, token: nuevoToken });
+            await doc.save();
+        }
+        res.json({ token: nuevoToken });
+    } catch (error) {
+        console.error('Error regenerando token:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
 
 // 4. Conexión a la Base de Datos
 mongoose.connect(process.env.MONGODB_URI)
@@ -40,6 +103,7 @@ mongoose.connect(process.env.MONGODB_URI)
 // que bloquea el fetch() por politica de seguridad del navegador (CORS).
 
 // 1. Archivos globales compartidos (ej. features.css, logos) en la raíz "/"
+app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 app.use(express.static(path.join(__dirname, '../frontend/api')));
 app.use(express.static(path.join(__dirname, '../frontend/publico')));
 
@@ -49,6 +113,14 @@ app.use(express.static(path.join(__dirname, '../frontend/cliente')));
 
 // 3. ¡EL CAMBIO CLAVE! Ponemos todo lo del admin detrás de la puerta "/admin"
 app.use('/admin', express.static(path.join(__dirname, '../frontend/admin')));
+
+// Vista pública para repartidores
+app.use('/delivery', express.static(path.join(__dirname, '../frontend/delivery')));
+
+app.get('/delivery', (req, res) => {
+    const archivoDelivery = path.join(__dirname, '../frontend/delivery/delivery.html');
+    res.sendFile(archivoDelivery);
+});
 
 // RUTA PARA SERVIR EL HTML DEL MENÚ PÚBLICO
 app.get('/menu/:slug', (req, res) => {
@@ -97,14 +169,24 @@ app.get('/admin/perfil', (req,res) =>{
     res.sendFile(archivoConfig);
 });
 
+app.get('/admin/analisis', (req,res) =>{
+
+    const archivoAnalisis = path.join(__dirname, '../frontend/admin/analisis.html');
+    res.sendFile(archivoAnalisis);
+});
+
 
 // Multer: guarda los archivos recibidos en la carpeta /uploads
 const upload = multer({ dest: 'uploads/' });
+
+// Servimos la carpeta /uploads como archivos estáticos para poder mostrar las fotos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Ruta donde se va a guardar el menu procesado por la IA.
 // __dirname es la carpeta del archivo actual (backend/)
 // El archivo se llama menu.json y vive dentro de backend/
 const MENU_PATH = path.join(__dirname, 'menu.json');
+const CALENDARIO_PATH = path.join(__dirname, 'calendario_gastronomico.json');
 
 // Claude: inicializa el cliente con la key del .env
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -236,6 +318,26 @@ app.get('/config', (req, res) => {
     });
 });
 
+// ============================================================
+// RUTA PÚBLICA: POST /api/visitas/:localId
+// ============================================================
+app.post('/api/visitas/:localId', async (req, res) => {
+    try {
+        const localId = req.params.localId;
+        const hoy = new Date();
+        const fechaStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        await Visita.findOneAndUpdate(
+            { localId, fecha: fechaStr },
+            { $inc: { cantidad: 1 } },
+            { upsert: true, new: true }
+        );
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('[ERROR] Registrar visita:', error);
+        res.status(200).json({ success: true });
+    }
+});
+
 
 // ============================================================
 // RUTA: GET /menu
@@ -267,6 +369,50 @@ app.get('/menu', (req, res) => {
     res.status(200).json(menuJSON);
 });
 
+
+// ============================================================
+// RUTA: GET /api/calendario
+// ============================================================
+app.get('/api/calendario', (req, res) => {
+    try {
+        const raw = fs.readFileSync(CALENDARIO_PATH, 'utf8');
+        const eventos = JSON.parse(raw);
+        const hoy = new Date();
+        const mesActual = hoy.getMonth() + 1;
+        const diaActual = hoy.getDate();
+
+        const enriquecido = eventos.map(ev => {
+            let diasFaltantes;
+
+            if (ev.mes === 'todos') {
+                const fechaHoy = new Date(hoy.getFullYear(), mesActual - 1, diaActual);
+                let fechaProx = new Date(hoy.getFullYear(), mesActual - 1, ev.dia);
+                if (fechaProx < fechaHoy) {
+                    const mesSiguiente = mesActual === 12 ? 1 : mesActual + 1;
+                    const anioSiguiente = mesActual === 12 ? hoy.getFullYear() + 1 : hoy.getFullYear();
+                    fechaProx = new Date(anioSiguiente, mesSiguiente - 1, ev.dia);
+                }
+                diasFaltantes = Math.ceil((fechaProx - fechaHoy) / (1000 * 60 * 60 * 24));
+            } else {
+                let anioEvento = hoy.getFullYear();
+                const fechaHoy = new Date(hoy.getFullYear(), mesActual - 1, diaActual);
+                let fechaEvento = new Date(anioEvento, ev.mes - 1, ev.dia);
+                if (fechaEvento < fechaHoy) {
+                    anioEvento++;
+                    fechaEvento = new Date(anioEvento, ev.mes - 1, ev.dia);
+                }
+                diasFaltantes = Math.ceil((fechaEvento - fechaHoy) / (1000 * 60 * 60 * 24));
+            }
+            return { ...ev, diasFaltantes };
+        });
+
+        enriquecido.sort((a, b) => a.diasFaltantes - b.diasFaltantes);
+        res.status(200).json(enriquecido);
+    } catch (error) {
+        console.error('[ERROR] Calendario gastronómico:', error.message);
+        res.status(500).json({ error: 'No se pudo leer el calendario gastronómico' });
+    }
+});
 
 // ============================================================
 // Iniciar el servidor

@@ -1,0 +1,9 @@
+[
+  { "mes": 2, "dia": 9, "evento": "Día de la Pizza", "icono": "🍕" },
+  { "mes": 3, "dia": 17, "evento": "San Patricio", "icono": "☘️" },
+  { "mes": 5, "dia": 28, "evento": "Día de la Hamburguesa", "icono": "🍔" },
+  { "mes": 7, "dia": 9, "evento": "Día de la Independencia", "icono": "🥟" },
+  { "mes": 7, "dia": 20, "evento": "Día del Amigo", "icono": "🍻" },
+  { "mes": 9, "dia": 28, "evento": "Día de la Empanada", "icono": "🥟" },
+  { "mes": "todos", "dia": 29, "evento": "Día de los Ñoquis", "icono": "🍝" }
+]

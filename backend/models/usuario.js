@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 // A. El esquema para una opción individual (Ej: "Cheddar" - $500)
 const opcionToppingSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
-    precio: { type: Number, default: 0 }
+    precio: { type: Number, default: 0 },
+    disponible: { type: Boolean, default: true }
 });
 
 // B. El esquema para el grupo entero (Ej: "Agregados para Hamburguesas")
@@ -24,7 +25,16 @@ const platoSchema = new mongoose.Schema({
     descripcion: { type: String },
     precio: { type: Number, required: true },
     categoria: { type: String, required: true },
-    disponible: { type: Boolean, default: true }
+    disponible: { type: Boolean, default: true },
+    esMenuDelDia: { type: Boolean, default: false },
+    esEspecialidad: { type: Boolean, default: false },
+    enPromocion: { type: Boolean, default: false },
+    porcentajeDescuento: { type: Number, default: 0 },
+    fotoUrl: { type: String, default: '' }, // URL de la foto del plato (opcional)
+    toppings: [{
+        grupo: { type: String },
+        opciones: [{ type: String }]
+    }]
 });
 
 
@@ -46,10 +56,26 @@ const usuarioSchema = new mongoose.Schema({
         apertura: { type: String },
         cierre: { type: String }
     }],
-    telefono: { type: String, default: "" },
+            telefono: { type: String, default: "" },
     direccion: { type: String, default: "" },
+    fotoPerfil: { type: String, default: '' }, // URL de la foto/logo del local
     abierto: { type: Boolean, default: true },
+    plan: { type: String, enum: ['web', 'bot', 'pro'], default: 'web' },
+    temaMenu: { type: String, enum: ['clasico', 'elegante'], default: 'clasico' },
+    colorMenu: { type: String, default: '#2563eb' },
+    fuenteMenu: { type: String, enum: ['moderna', 'clasica', 'amigable'], default: 'moderna' },
+    estiloTarjetas: { type: String, enum: ['clasico', 'elegante'], default: 'clasico' },
+    permitirResenas: { type: Boolean, default: true },
+    resenasPublicas: { type: Boolean, default: false },
+    permitirVotosResenas: { type: Boolean, default: true },
     slug: { type: String, required: true, unique: true },
+
+    // Métodos de pago que acepta el local
+    metodosPago: [{
+        tipo:    { type: String, enum: ['efectivo', 'transferencia', 'tarjeta'] },
+        alias:   { type: String, default: '' },   // solo para transferencia
+        titular: { type: String, default: '' }    // solo para transferencia
+    }],
 
     // Listas (Subdocumentos)
     platos: [platoSchema],

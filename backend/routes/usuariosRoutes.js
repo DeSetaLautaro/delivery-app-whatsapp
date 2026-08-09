@@ -2,10 +2,51 @@ require('dotenv').config();
 const express  = require('express');
 const bcrypt   = require('bcrypt'); 
 const jwt      = require('jsonwebtoken');
+const fs       = require('fs');
+const path     = require('path');
+const multer   = require('multer');
 const Usuario  = require('../models/usuario'); 
 const verificarToken = require('../middleware/verificarToken');
 
 const router = express.Router();
+
+// Multer: guarda la foto del perfil en la carpeta /uploads
+const uploadFotoPerfil = multer({ dest: 'uploads/' });
+
+
+// ==========================================
+// RUTA PARA SUBIR LA FOTO/LOGO DEL LOCAL
+// ==========================================
+router.post('/subirFotoPerfil', verificarToken, uploadFotoPerfil.single('foto'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se recibió archivo' });
+        }
+
+        // 1. Le damos la extensión correcta y lo movemos a /uploads
+        const ext          = path.extname(req.file.originalname) || '.jpg';
+        const nuevoNombre  = `${req.file.filename}${ext}`;
+        const rutaActual   = req.file.path;
+        const rutaFinal    = path.join(__dirname, '../uploads', nuevoNombre);
+        fs.renameSync(rutaActual, rutaFinal);
+
+        const url = `/uploads/${nuevoNombre}`;
+
+        // 2. Guardamos la URL en la base de datos del usuario
+        await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { $set: { fotoPerfil: url } },
+            { new: true }
+        );
+
+        // 3. Devolvemos la URL para que el frontend la use al instante
+        res.status(200).json({ url });
+
+    } catch (error) {
+        console.error('Error al subir la foto de perfil:', error);
+        res.status(500).json({ error: 'No se pudo subir la foto' });
+    }
+});
 
 
 // ==========================================
@@ -25,8 +66,33 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
         if (req.body.telefono !== undefined) camposAActualizar.telefono = req.body.telefono;
         if (req.body.direccion !== undefined) camposAActualizar.direccion = req.body.direccion;
         if (req.body.horarios !== undefined) camposAActualizar.horarios = req.body.horarios;
-        if (req.body.abierto !== undefined) camposAActualizar.abierto = req.body.abierto; 
-        if (req.body.horariosEstructurados !== undefined) camposAActualizar.horariosEstructurados = req.body.horariosEstructurados;
+                if (req.body.abierto             !== undefined) camposAActualizar.abierto             = req.body.abierto; 
+        if (req.body.horariosEstructurados !== undefined) {
+            // Solo guardamos los días que tienen hora de apertura y de cierre
+            const horariosSinVacios = req.body.horariosEstructurados.filter(
+                h => h && h.apertura && h.cierre
+            );
+            camposAActualizar.horariosEstructurados = horariosSinVacios;
+        }
+        if (req.body.metodosPago          !== undefined) camposAActualizar.metodosPago          = req.body.metodosPago;
+        if (req.body.plan !== undefined && ['web', 'bot', 'pro'].includes(req.body.plan)) {
+            camposAActualizar.plan = req.body.plan;
+        }
+        if (req.body.temaMenu !== undefined && ['clasico', 'elegante'].includes(req.body.temaMenu)) {
+            camposAActualizar.temaMenu = req.body.temaMenu;
+        }
+        if (req.body.colorMenu !== undefined && /^#[0-9A-Fa-f]{6}$/.test(req.body.colorMenu)) {
+            camposAActualizar.colorMenu = req.body.colorMenu;
+        }
+        if (req.body.fuenteMenu !== undefined && ['moderna', 'clasica', 'amigable'].includes(req.body.fuenteMenu)) {
+            camposAActualizar.fuenteMenu = req.body.fuenteMenu;
+        }
+        if (req.body.estiloTarjetas !== undefined && ['clasico', 'elegante'].includes(req.body.estiloTarjetas)) {
+            camposAActualizar.estiloTarjetas = req.body.estiloTarjetas;
+        }
+        if (req.body.permitirResenas !== undefined) camposAActualizar.permitirResenas = req.body.permitirResenas;
+        if (req.body.resenasPublicas !== undefined) camposAActualizar.resenasPublicas = req.body.resenasPublicas;
+        if (req.body.permitirVotosResenas !== undefined) camposAActualizar.permitirVotosResenas = req.body.permitirVotosResenas;
 
         console.log("2. Cajón a actualizar en Mongo:", camposAActualizar);
 
@@ -57,6 +123,27 @@ router.patch('/modificarDatos', verificarToken, async(req, res) => {
 });
 
 
+
+// ==========================================
+// RUTA PARA ACTUALIZAR EL PLAN DEL LOCAL
+// ==========================================
+router.put('/plan', verificarToken, async (req, res) => {
+    try {
+        const { plan } = req.body;
+        const planesValidos = ['web', 'bot', 'pro'];
+
+        if (!plan || !planesValidos.includes(plan)) {
+            return res.status(400).json({ error: 'Plan inválido' });
+        }
+
+        await Usuario.findByIdAndUpdate(req.usuario.id, { $set: { plan } });
+
+        res.json({ mensaje: 'Plan actualizado con éxito', plan });
+    } catch (error) {
+        console.error('Error al actualizar plan:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 router.patch('/cambiarPassword', verificarToken, async (req, res) => {
     try {
@@ -123,5 +210,51 @@ router.get('/horarios', verificarToken, async (req, res) =>
 
 })
 
+
+// Ruta para leer los métodos de pago del local (protegida)
+router.get('/metodosPago', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findById(req.usuario.id).select('metodosPago');
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+        res.json({ metodosPago: usuario.metodosPago || [] });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener métodos de pago' });
+    }
+});
+
+// Ruta para leer TODOS los datos del perfil (protegida)
+// Se usa para cargar cada input con su valor al abrir la página.
+router.get('/perfil', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        res.json({
+            nombre: usuario.nombre,
+            nombreDelLocal: usuario.nombreDelLocal,
+            email: usuario.email,
+            telefono: usuario.telefono,
+            codigoPais: usuario.codigoPais,
+            direccion: usuario.direccion,
+            slug: usuario.slug,
+            fotoPerfil: usuario.fotoPerfil,
+            abierto: usuario.abierto,
+            plan: usuario.plan || 'web',
+            temaMenu: usuario.temaMenu || 'clasico',
+            colorMenu: usuario.colorMenu || '#2563eb',
+            fuenteMenu: usuario.fuenteMenu || 'moderna',
+            estiloTarjetas: usuario.estiloTarjetas || 'clasico',
+            permitirResenas: usuario.permitirResenas ?? true,
+            resenasPublicas: usuario.resenasPublicas ?? false,
+            permitirVotosResenas: usuario.permitirVotosResenas ?? true,
+            horarios: usuario.horarios,
+            horariosEstructurados: usuario.horariosEstructurados,
+            metodosPago: usuario.metodosPago || []
+        });
+    } catch (error) {
+        console.error('Error al obtener perfil:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 module.exports = router;

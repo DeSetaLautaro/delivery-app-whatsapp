@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>La Esquina 🍕🍔 | Menú Digital</title>
+    <title>Cargando menú | Menú Digital</title>
     <link rel="stylesheet" href="/styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,26 +17,38 @@
     <!-- ===== HEADER ===== -->
     <header class="site-header">
       <div class="header-inner">
-        <div class="brand">
-          <span class="brand-logo" aria-hidden="true">🍕</span>
+                <div class="brand">
+          <span class="brand-logo" id="brandLogoFallback" aria-hidden="true">🍕</span>
+          <img class="brand-logo" id="brandLogoImg" src="" alt="Logo del local" hidden />
           <div class="brand-text">
-            <h1 class="brand-name">La Esquina</h1>
+            <h1 class="brand-name" id="brandName">Cargando...</h1>
             <p class="brand-tagline">Pedí desde donde estés</p>
           </div>
         </div>
         <div class="header-meta">
-          <span class="badge-open">● Abierto</span>
+          <span class="badge-open" id="badgeEstadoLocal">● Abierto</span>
         </div>
       </div>
     </header>
+
+
 
     <!-- ===== HERO BANNER ===== -->
     <section class="hero" aria-label="Bienvenida">
       <p class="hero-subtitle">Elegí tus favoritos y envianos tu pedido por WhatsApp 🚀</p>
     </section>
+    
+    <!-- ===== BANNER RESEÑAS ===== -->
+    <div id="banner-resenas" class="review-banner" style="display:none;">💬 ¿Cómo fue tu experiencia? Leé y dejá tu reseña anónima.</div>
 
         <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
+
+      <div class="search-wrapper">
+        <input type="search" id="buscadorPlatos" class="search-input" placeholder="🔍 Buscá tu plato..." aria-label="Buscar platos" autocomplete="off" />
+      </div>
+
+      <div id="categoriasCarrusel" class="categorias-carrusel" aria-label="Categorías del menú"></div>
 
       <!--
         Este div es el único punto de entrada para el menú.
@@ -47,6 +59,8 @@
       <div id="menu-contenedor">
         <p class="menu-cargando">Cargando menú...</p>
       </div>
+
+      <p id="searchNoResults" class="search-no-results" hidden>No contamos con este plato 😔</p>
 
     </main>
 
@@ -78,17 +92,44 @@
       aria-labelledby="modalTitle"
       hidden
     >
-      <div class="modal">
+            <div class="modal">
+
         <header class="modal-header">
           <h2 class="modal-title" id="modalTitle">🛒 Tu Pedido</h2>
           <button class="modal-close" id="modalClose" aria-label="Cerrar carrito">✕</button>
         </header>
 
+        <!-- Todo lo que scrollea va acá -->
         <div class="modal-body">
-          <ul class="cart-list" id="cartList" aria-label="Ítems en el carrito">
-            <!-- Renderizado dinámicamente -->
-          </ul>
+
+          <!-- Lista de items -->
+          <ul class="cart-list" id="cartList" aria-label="Ítems en el carrito"></ul>
           <p class="cart-empty-msg" id="cartEmptyMsg">Tu carrito está vacío 🛒</p>
+
+          <!-- Dirección y comentarios -->
+          <div class="checkout-fields">
+            <div class="field-group campo-direccion">
+              <label for="direccionEntrega" class="field-label">📍 Dirección de entrega</label>
+              <input type="text" id="direccionEntrega" class="field-input"
+                     placeholder="Ej: Av. Siempreviva 742, Dpto 2B" />
+            </div>
+            <div class="field-group">
+              <label for="notasPedido" class="field-label">📝 Comentarios (opcional)</label>
+              <input type="text" id="notasPedido" class="field-input"
+                     placeholder="Sin cebolla, timbre roto..." />
+            </div>
+          </div>
+
+          <!-- Métodos de pago dinámicos (JS los inyecta) -->
+          <div id="contenedorMetodosPago"></div>
+
+          <!-- Info de transferencia (se muestra solo si eligen transferencia) -->
+          <div id="infoTransferencia" class="transfer-info" hidden>
+            <p class="transfer-info-titulo">🏦 Datos para transferir</p>
+            <p>Alias: <strong id="transferenciaAlias"></strong></p>
+            <p>A nombre de: <strong id="transferenciaTitular"></strong></p>
+          </div>
+
         </div>
 
         <footer class="modal-footer">
@@ -99,10 +140,78 @@
           <button class="btn-whatsapp" id="btnWhatsapp" disabled>
             <span aria-hidden="true">💬</span> Enviar pedido por WhatsApp
           </button>
-          <button class="btn-clear" id="btnClear">
-            🗑️ Vaciar carrito
-          </button>
+          <button class="btn-clear" id="btnClear">🗑️ Vaciar carrito</button>
         </footer>
+
+      </div>
+    </div>
+
+    <!-- ===== MODAL TOPPINGS ===== -->
+    <div class="modal-overlay" id="modalToppings" hidden
+         role="dialog" aria-modal="true" aria-labelledby="toppingModalTitle">
+        <div class="modal modal-toppings-sel">
+
+            <header class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="toppingModalTitle">Personalizá tu plato</h2>
+                    <p class="topping-modal-subtitulo" id="toppingModalSubtitulo"></p>
+                </div>
+                <button class="modal-close" id="cerrarModalToppings" aria-label="Cerrar">✕</button>
+            </header>
+
+            <!-- Acá se inyectan los grupos de toppings dinámicamente -->
+            <div class="modal-body" id="toppingsContenido"></div>
+
+            <footer class="modal-footer">
+                <button class="btn-whatsapp" id="btnConfirmarToppings">Confirmar y agregar al carrito 🛒</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ===== MODAL FEED RESEÑAS ===== -->
+    <div id="modal-feed-resenas" class="modal-resenas" style="display:none;">
+      <div class="modal-resenas-overlay" id="overlay-feed-resenas"></div>
+      <div class="modal-resenas-content">
+        <header class="modal-header-resenas">
+          <h2>Opiniones de la Comunidad</h2>
+          <button class="modal-cerrar" onclick="cerrarModalResenas('modal-feed-resenas')" aria-label="Cerrar">✕</button>
+        </header>
+        <button class="btn-escribir-resena" onclick="abrirModalEscribirResena()">✏️ Escribir mi reseña</button>
+        <div id="lista-resenas-publicas" class="lista-resenas-publicas">
+          <!-- Tarjetas de ejemplo -->
+          <div class="tarjeta-resena">
+            <div class="resena-fecha">12/05/2024</div>
+            <p class="resena-texto">¡Las mejores empanadas! Llegaron súper calientes y riquísimas. El repartidor muy amable.</p>
+            <div class="resena-votos">
+              <button class="btn-voto acuerdo" data-resena="1">👍 Estoy de acuerdo (12)</button>
+              <button class="btn-voto desacuerdo" data-resena="1">👎 (1)</button>
+            </div>
+          </div>
+          <div class="tarjeta-resena">
+            <div class="resena-fecha">28/04/2024</div>
+            <p class="resena-texto">La pizza estaba buena pero la demora fue mucha. Igual la recomiendo.</p>
+            <div class="resena-votos">
+              <button class="btn-voto acuerdo" data-resena="2">👍 Estoy de acuerdo (4)</button>
+              <button class="btn-voto desacuerdo" data-resena="2">👎 (2)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL ESCRIBIR RESEÑA ===== -->
+    <div id="modal-escribir-resena" class="modal-resenas" style="display:none;">
+      <div class="modal-resenas-overlay" onclick="cerrarModalResenas('modal-escribir-resena')"></div>
+      <div class="modal-resenas-content">
+        <header class="modal-header-resenas">
+          <h2>Dejá tu reseña</h2>
+          <button class="modal-cerrar" onclick="cerrarModalResenas('modal-escribir-resena')" aria-label="Cerrar">✕</button>
+        </header>
+        <textarea id="texto-resena" placeholder="¡Las mejores empanadas! Llegaron súper calientes..." rows="4"></textarea>
+        <label class="checkbox-anonimo">
+          <input type="checkbox" id="publica-resena" checked> Hacer pública mi reseña (100% anónima)
+        </label>
+        <button class="btn-enviar-resena" id="enviar-resena">Enviar Reseña</button>
       </div>
     </div>
 

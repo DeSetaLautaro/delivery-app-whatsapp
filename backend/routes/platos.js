@@ -4,13 +4,100 @@ const router = express.Router();
 const fs = require('fs');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
-const Anthropic = require('@anthropic-ai/sdk');
+const XLSX = require('xlsx');
+const uploadExcel = multer({ dest: 'uploads/' });
 const path      = require('path');
-const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const Usuario = require('../models/usuario');
 const verificarToken = require('../middleware/verificarToken');
 
 
+
+
+
+// Ruta en tu backend para aplicar foto a toda la categoría
+router.post('/aplicar-foto-categoria', verificarToken, async (req, res) => {
+    const { categoria, fotoUrl } = req.body;
+    console.log("llegue");
+    // Validación mínima para no hacer consultas raras
+    if (!categoria || !fotoUrl) {
+        return res.status(400).json({ error: "Faltan datos (categoria o fotoUrl)" });
+    }
+
+    try {
+        // 1. Los platos viven adentro del documento del dueño (usuario.platos),
+        //    así que buscamos al usuario logueado con su lista completa.
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // 2. Recorremos sus platos y les ponemos la foto SOLO a los que
+        //    sean de la misma categoría y no tengan foto (vacía o inexistente).
+        let actualizados = 0;
+        usuario.platos.forEach(plato => {
+            const sinFoto = !plato.fotoUrl || plato.fotoUrl === '';
+            if (plato.categoria === categoria && sinFoto) {
+                plato.fotoUrl = fotoUrl;
+                actualizados++;
+            }
+        });
+
+        // 3. Si cambió alguno, guardamos los cambios en MongoDB.
+        if (actualizados > 0) {
+            usuario.markModified('platos');
+            await usuario.save();
+        }
+
+        // 4. Le avisamos al frontend cuántos platos actualizó.
+        res.json({ actualizados });
+
+    } catch (error) {
+        console.error("Error al aplicar la foto:", error);
+        res.status(500).json({ error: "Error al aplicar la foto" });
+    }
+});
+
+
+const uploadFoto = multer({ dest: 'uploads/' });
+
+// Agregamos una función espía justo después de '/subir-foto'
+router.post('/subir-foto', 
+    (req, res, next) => {
+        console.log("🚨 1. LA PETICIÓN LLEGÓ A LA RUTA CORRECTA");
+        next();
+    }, 
+    verificarToken, 
+    (req, res, next) => {
+        console.log("✅ 2. EL TOKEN SE VERIFICÓ CORRECTAMENTE");
+        next();
+    },
+    uploadFoto.single('foto'), 
+    async (req, res) => {
+        console.log("📸 3. MULTER PROCESÓ LA FOTO. Entrando al try/catch...");
+        try {
+            if (!req.file) {
+                console.log("❌ Error: No llegó req.file");
+                return res.status(400).json({ error: 'No se recibió archivo' });
+            }
+
+            const ext = path.extname(req.file.originalname) || '.jpg';
+            const nuevoNombre = `${req.file.filename}${ext}`;
+            const rutaActual = req.file.path;
+            const rutaFinal  = path.join(__dirname, '../uploads', nuevoNombre); 
+
+            fs.renameSync(rutaActual, rutaFinal);
+            
+            console.log("✅ 4. LA FOTO SE MOVIÓ CON ÉXITO");
+            const url = `/uploads/${nuevoNombre}`;
+            res.status(200).json({ url });
+
+        } catch (error) {
+            console.error('🔥 ERROR CRÍTICO AL SUBIR LA FOTO:', error);
+            res.status(500).json({ error: 'No se pudo subir la foto' });
+        }
+});
 
 
 /*
@@ -22,12 +109,24 @@ const verificarToken = require('../middleware/verificarToken');
 
 
 
+
+
 router.post('/', verificarToken, async (req, res) => {
     // 1. Recibimos los datos del front
-    const { nombre, precio, categoria } = req.body;
+    const { nombre, precio, categoria, descripcion, fotoUrl } = req.body;
 
     // 2. Armamos el plato (¡Sin ID! MongoDB lo hace solo)
-    const platoNuevo = { nombre, precio, categoria };
+    const platoNuevo = { 
+        nombre, 
+        precio, 
+        categoria, 
+        descripcion: descripcion || '', 
+        fotoUrl: fotoUrl || '',
+        esMenuDelDia: req.body.esMenuDelDia || false,
+        esEspecialidad: req.body.esEspecialidad || false,
+        enPromocion: req.body.enPromocion || false,
+        porcentajeDescuento: req.body.porcentajeDescuento || 0
+    };
 
     try {
         // 3. El comando mágico de MongoDB
@@ -110,60 +209,69 @@ router.post('/bulk', verificarToken, async (req, res) => {
 
 async function procesarConIA(fotos)
 {
-    // Paso 1: Convertir todas las fotos a Base64
-const bloquesDeImagen = fotos.map(file => ({
-    type: 'image',
-    source: {
-        type: 'base64',
-        media_type: file.mimetype,
-        data: file.buffer.toString('base64') // Si usas memoryStorage, el archivo está en file.buffer
+    // Verificación básica de configuración y archivos
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("Falta GEMINI_API_KEY en el archivo .env");
     }
-}));
- const respuesta = await claude.messages.create({
-    model: 'claude-haiku-4-5-20251001', // Usá un modelo estable y económico
-    max_tokens: 2048,
-    // System message: Esto es lo más importante. Le define su "personalidad"
-    system: "Sos un asistente experto en extracción de datos. Tu única tarea es convertir imágenes de menús en un array JSON estricto. No respondas nada más, no uses markdown, solo el JSON.",
-    messages: [
+    if (!Array.isArray(fotos) || fotos.length === 0) {
+        throw new Error("No se recibieron imágenes para analizar");
+    }
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+
+    // Armamos las partes: primero el prompt y después las imágenes en base64
+    const parts = [
         {
-            role: 'user',
-            content: [
-                // Acá agregamos tantas imágenes como quieras, una por una
-                ...bloquesDeImagen, 
-                {
-                    type: 'text',
-                    text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
-                    { "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
-                    Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
-                    Solo responde con el JSON.`
-                }
-            ]
-        }
-    ]
-});
-        // Paso 3: Limpiar la respuesta y convertirla a JSON real
-        let respuestaTexto = respuesta.content[0].text;
+            text: `Analiza las imágenes proporcionadas y devuelve un array JSON de objetos con la siguiente estructura exacta: 
+{ "nombre": string, "descripcion": string, "precio": number, "categoria": string }. 
+Si no hay descripción, usa cadena vacía. Si no hay categoría, usa 'Varios'. 
+Solo respondé con el JSON, sin markdown ni explicaciones adicionales.`
+        },
+        ...fotos.map(file => ({
+            inlineData: {
+                mimeType: file.mimetype,
+                data: file.buffer.toString('base64')
+            }
+        }))
+    ];
+
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts }]
+    });
+
+    const respuesta = result.response;
+    let respuestaTexto = respuesta.text() || '';
     respuestaTexto = respuestaTexto.replace(/```json|```/g, '').trim();
-    return JSON.parse(respuestaTexto);
+
+    try {
+        return JSON.parse(respuestaTexto);
+    } catch (error) {
+        throw new Error(`No se pudo interpretar el JSON devuelto por Gemini: ${respuestaTexto}`);
+    }
 };
 
 
 // La constante la dejamos afuera, arribita de todo, para que sea más ordenado
-router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => { 
+router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
+    const fotos = req.files || [];
     try {
-        const fotos = req.files;
-        
         // 1. Recibimos los platos crudos de la IA
-        const platosDesdeIA = await procesarConIA(fotos); 
+        const platosDesdeIA = await procesarConIA(fotos);
         
         // 2. Limpiamos los datos para asegurarnos que tengan el formato correcto
         // ¡OJO! Ya NO inventamos el ID. Dejamos que Mongoose lo haga.
         const menuLimpio = platosDesdeIA.map(plato => {
+            const nombre = plato.nombre || plato.plato || 'Sin nombre';
             return {
-                nombre: plato.nombre,
+                nombre,
                 descripcion: plato.descripcion || '',
                 precio: Number(plato.precio) || 0, // Nos aseguramos de que sea número
-                categoria: plato.categoria || 'Varios'
+                categoria: plato.categoria || 'Varios',
+                toppings: Array.isArray(plato.toppings) ? plato.toppings.map(g => ({
+                    grupo: g.grupo || g.nombre || '',
+                    opciones: Array.isArray(g.opciones) ? g.opciones.map(o => (o.nombre || o.opcion || o)) : []
+                })) : []
             };
         });
         
@@ -193,19 +301,195 @@ router.post('/procesar-ia', verificarToken, upload.any(), async (req, res) => {
     } catch (error) {
         console.error("Error en la ruta procesar-ia:", error);
         res.status(500).json({ error: "No pude procesar las fotos" });
+    } finally {
+        // Limpiar archivos temporales si multer los guardó en disco
+        fotos.forEach(file => {
+            if (file.path) {
+                fs.unlink(file.path, (err) => {
+                    if (err) console.error("Error al eliminar archivo temporal:", err);
+                });
+            }
+        });
+    }
+});
+
+// ============================================================
+// RUTA POST /upload-excel  (subida de menú desde Excel)
+// ============================================================
+router.post('/upload-excel', verificarToken, uploadExcel.single('archivo'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
+
+    try {
+        // 1. Leer el Excel y extraer la primera hoja como CSV
+        const workbook = XLSX.readFile(req.file.path);
+        const nombreHoja = workbook.SheetNames[0];
+        const hoja = workbook.Sheets[nombreHoja];
+        const contenidoCSV = XLSX.utils.sheet_to_csv(hoja);
+
+        // 2. Construir el prompt estricto para Gemini
+        const prompt = `Sos un procesador de datos experto. 
+Recibís un texto que representa la primera hoja de un Excel con el menú de un restaurante. 
+Debés devolver ÚNICAMENTE un array JSON válido, sin explicaciones ni markdown. 
+Cada objeto debe tener: nombre (string), precio (number), categoria (string) y toppings (array). 
+Interpretá la variable toppings según estas reglas: si está vacía, devolvé []; 
+si tiene el formato 'Grupo: Opcion1, Opcion2 | Grupo2: Opcion3', devolvé 
+[{grupo:'Grupo', opciones:['Opcion1','Opcion2']}, ...]. 
+El array JSON debe ser el único contenido de tu respuesta. 
+
+Datos del Excel:
+${contenidoCSV}`;
+
+        // 3. Llamar a Gemini (modelo 1.5-flash)
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }]
+        });
+
+        let textoRespuesta = result.response.text() || '';
+        textoRespuesta = textoRespuesta.replace(/```json|```/g, '').trim();
+
+        const platosDesdeGemini = JSON.parse(textoRespuesta);
+
+        // 4. Normalizar cada plato
+        const menuLimpio = platosDesdeGemini.map(plato => {
+            const nombre = plato.nombre || plato.plato || 'Sin nombre';
+            const toppings = Array.isArray(plato.toppings)
+                ? plato.toppings.map(g => {
+                    if (typeof g === 'string') {
+                        // Permitir formato simple "grupo: op1, op2"
+                        const [grupo, opciones] = g.split(':');
+                        return {
+                            grupo: (grupo || '').trim(),
+                            opciones: (opciones || '').split(',').map(s => s.trim()).filter(Boolean)
+                        };
+                    }
+                    return {
+                        grupo: g.grupo || g.nombre || '',
+                        opciones: Array.isArray(g.opciones) ? g.opciones.map(o => (o.nombre || o.opcion || o)) : []
+                    };
+                })
+                : [];
+            return {
+                nombre,
+                descripcion: plato.descripcion || '',
+                precio: Number(plato.precio) || 0,
+                categoria: plato.categoria || 'Varios',
+                toppings
+            };
+        });
+
+        // 5. Guardar en MongoDB (push al array de platos del usuario)
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { $push: { platos: { $each: menuLimpio } } },
+            { new: true }
+        );
+
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        console.log(`[OK] Menú Excel procesado y guardado (${menuLimpio.length} platos).`);
+        res.status(200).json({
+            mensaje: 'Menú subido correctamente desde Excel',
+            platos: usuarioActualizado.platos
+        });
+
+    } catch (error) {
+        console.error('[ERROR] upload-excel:', error);
+        res.status(500).json({ error: `Error al procesar el Excel: ${error.message}` });
+    } finally {
+        // 6. Borrar el archivo temporal
+        if (req.file && req.file.path) {
+            fs.unlinkSync(req.file.path);
+        }
+    }
+});
+
+// ============================================================
+// ACCIONES MASIVAS (Checkboxes)
+// ============================================================
+router.patch('/masivo/estado', verificarToken, async (req, res) => {
+    const { ids, disponible } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de ids' });
+    }
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        let modificados = 0;
+        usuario.platos.forEach(p => {
+            if (ids.includes(p._id.toString())) {
+                p.disponible = disponible;
+                modificados++;
+            }
+        });
+
+        if (modificados === 0) {
+            return res.status(404).json({ error: 'No se encontraron platos con esos ids' });
+        }
+
+        usuario.markModified('platos');
+        await usuario.save();
+        res.json({ modificados });
+    } catch (error) {
+        console.error('Error al cambiar estado masivo:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+router.delete('/masivo', verificarToken, async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de ids' });
+    }
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        const idsSet = new Set(ids.map(id => id.toString()));
+        const platosRestantes = usuario.platos.filter(p => !idsSet.has(p._id.toString()));
+        const eliminados = usuario.platos.length - platosRestantes.length;
+
+        if (eliminados === 0) {
+            return res.status(404).json({ error: 'No se encontraron platos con esos ids' });
+        }
+
+        usuario.platos = platosRestantes;
+        await usuario.save();
+        res.json({ eliminados });
+    } catch (error) {
+        console.error('Error al borrar masivo:', error);
+        res.status(500).json({ error: 'Error interno' });
     }
 });
 
 // OCULTAR PLATO
 router.patch('/:id', verificarToken, async (req, res) => {
-    const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id }); // "platos._id": Traeme al usuario SOLO SI ese usuario es realmente el dueño de un plato con ese ID exacto". Es un escudo.
-    const plato = usuario.platos.id(req.params.id);
+    try {
+        const usuario = await Usuario.findOne({ _id: req.usuario.id, "platos._id": req.params.id });
+        if (!usuario) {
+            return res.status(404).json({ error: 'Plato no encontrado' });
+        }
 
-    // El backend decide por sí solo invertir el estado
-    plato.disponible = !plato.disponible;
-    await usuario.save();
+        const plato = usuario.platos.id(req.params.id);
+        if (!plato) {
+            return res.status(404).json({ error: 'Plato no encontrado' });
+        }
 
-    res.json({ disponible: plato.disponible });
+        // El backend decide por sí solo invertir el estado
+        plato.disponible = !plato.disponible;
+        await usuario.save();
+
+        res.json({ disponible: plato.disponible });
+    } catch (error) {
+        console.error('Error al cambiar disponibilidad:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
 
@@ -213,8 +497,8 @@ router.patch('/:id', verificarToken, async (req, res) => {
 router.put('/:id', verificarToken, async (req, res) => {
     try {
         // 1. Capturamos el ID del plato de la URL y los datos nuevos del body
-        const idPlato = req.params.id; 
-        const { nombre, precio, categoria, descripcion } = req.body; 
+                const idPlato = req.params.id; 
+        const { nombre, precio, categoria, descripcion, fotoUrl } = req.body;  
 
         // 2. Le pedimos a MongoDB que haga la búsqueda y el reemplazo en un solo paso
         const usuarioActualizado = await Usuario.findOneAndUpdate(
@@ -225,12 +509,17 @@ router.put('/:id', verificarToken, async (req, res) => {
             { 
                 // El $set le dice "modificá solo estos campos"
                 // El símbolo $ significa "el renglón exacto que coincidió en la búsqueda"
-                $set: { 
+                                $set: { 
                     "platos.$.nombre": nombre,
                     "platos.$.precio": precio,
                     "platos.$.categoria": categoria,
-                    "platos.$.descripcion": descripcion 
-                } 
+                    "platos.$.descripcion": descripcion,
+                    "platos.$.fotoUrl": fotoUrl || '',
+                    "platos.$.esMenuDelDia": req.body.esMenuDelDia || false,
+                    "platos.$.esEspecialidad": req.body.esEspecialidad || false,
+                    "platos.$.enPromocion": req.body.enPromocion || false,
+                    "platos.$.porcentajeDescuento": req.body.porcentajeDescuento || 0
+                }  
             },
             { new: true } // Para que nos devuelva el documento ya actualizado
         );
@@ -249,6 +538,30 @@ router.put('/:id', verificarToken, async (req, res) => {
     }
 });
 
+
+
+
+// ============================================================
+// ELIMINAR TODOS LOS PLATOS
+// ============================================================
+router.delete('/todos', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findByIdAndUpdate(
+            req.usuario.id,
+            { $set: { platos: [] } },
+            { new: true }
+        );
+
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        res.json({ mensaje: 'Todos los platos fueron eliminados', platos: usuario.platos });
+    } catch (error) {
+        console.error('Error al borrar todos los platos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 // Atrapamos las peticiones DELETE que apuntan a un ID específico
 // Acordate de que este archivo ya tiene que tener importado Usuario y verificarToken
@@ -276,11 +589,15 @@ router.delete('/:id', verificarToken, async (req, res) => {
         // 3. Todo salió perfecto
         res.status(200).json({ mensaje: "Plato eliminado con éxito" });
 
-    } catch (error) {
+        } catch (error) {
         console.error("Error al borrar el plato:", error);
         res.status(500).json({ error: "No se pudo borrar el plato" });
     }
 });
+
+
+
+
 
 
 

@@ -46,4 +46,49 @@ router.get('/menu/:slugLocal', async (req, res) => {
 
 
 
+// Ruta PÚBLICA: datos del perfil del local (número de WA + métodos de pago + config reseñas)
+router.get('/perfil/:slugLocal', async (req, res) => {
+    try {
+        const usuario = await Usuario.findOne({ slug: req.params.slugLocal });
+        if (!usuario) return res.status(404).json({ error: 'Local no encontrado' });
+
+        res.json({
+            _id:                  usuario._id,
+            nombre:               usuario.nombreDelLocal,
+            whatsappNumero:       usuario.telefono,
+            metodosPago:          usuario.metodosPago || [],
+            fotoPerfil:           usuario.fotoPerfil || '',
+            temaMenu:             usuario.temaMenu || 'clasico',
+            fuenteMenu:           usuario.fuenteMenu || 'moderna',
+            permitirResenas:      usuario.permitirResenas ?? true,
+            resenasPublicas:      usuario.resenasPublicas ?? false,
+            permitirVotosResenas: usuario.permitirVotosResenas ?? true
+        });
+    } catch (e) {
+        console.error('Error al obtener perfil público:', e);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+// Ruta PÚBLICA: devuelve los grupos de toppings de un local filtrados por categoría.
+// El cliente la llama cuando toca "+ Agregar" en un plato.
+router.get('/toppings/:slugLocal/:categoria', async (req, res) => {
+    try {
+        const { slugLocal, categoria } = req.params;
+
+        const usuario = await Usuario.findOne({ slug: slugLocal });
+        if (!usuario) return res.status(404).json({ error: 'Local no encontrado' });
+
+        // Filtramos solo los grupos cuyo categoriaDestino incluye la categoría pedida
+        const grupos = usuario.gruposToppings.filter(g =>
+            g.categoriaDestino.includes(categoria)
+        );
+
+        res.status(200).json(grupos); // puede ser [] si no hay toppings para esa cat
+    } catch (error) {
+        console.error('Error al traer toppings públicos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = router;

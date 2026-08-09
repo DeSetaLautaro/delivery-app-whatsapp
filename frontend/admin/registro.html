@@ -6,7 +6,6 @@
     <title>Admin | Menú Digital</title>
     <link rel="stylesheet" href="/admin/registro.css" />
     <link rel="stylesheet" href="/features.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -25,8 +24,32 @@
 
         <div class="registro-field">
             <label>Teléfono</label>
-            <input type="text" id="Telefono" name="telefono" placeholder="Teléfono" required />
-
+            <div class="telefono-wrapper">
+                <span id="flagPais" class="flag-phone">🇦🇷</span>
+                <select id="codigoPais" name="codigoPais" class="codigo-pais">
+                    <option value="+54" selected>🇦🇷 +54</option>
+                    <option value="+56">🇨🇱 +56</option>
+                    <option value="+57">🇨🇴 +57</option>
+                    <option value="+58">🇻🇪 +58</option>
+                    <option value="+51">🇵🇪 +51</option>
+                    <option value="+52">🇲🇽 +52</option>
+                    <option value="+55">🇧🇷 +55</option>
+                    <option value="+593">🇪🇨 +593</option>
+                    <option value="+591">🇧🇴 +591</option>
+                    <option value="+595">🇵🇾 +595</option>
+                    <option value="+598">🇺🇾 +598</option>
+                    <option value="+507">🇵🇦 +507</option>
+                    <option value="+506">🇨🇷 +506</option>
+                    <option value="+503">🇸🇻 +503</option>
+                    <option value="+502">🇬🇹 +502</option>
+                    <option value="+504">🇭🇳 +504</option>
+                    <option value="+505">🇳🇮 +505</option>
+                    <option value="+53">🇨🇺 +53</option>
+                    <option value="+1809">🇩🇴 +1809</option>
+                </select>
+                <input type="text" id="Telefono" name="telefono" placeholder="Ej: 11 2345 6789" required />
+            </div>
+            <span class="error-text" id="errorTelefono"></span>
         </div>
         
         <div class="registro-field">
@@ -44,12 +67,18 @@
         <div class="registro-field">
             <label>Email</label>
             <input type="text" id="Email" name="email" placeholder="Email" required />
-
+            <span class="error-text" id="errorEmail"></span>
         </div>
 
         <div class="registro-field">
             <label>Contraseña</label>
-            <input type="password"  id="Contraseña"  name="contraseña" placeholder="Contraseña" required />
+            <input type="password" id="Contraseña" name="contraseña" placeholder="Contraseña" required />
+        </div>
+
+        <div class="registro-field">
+            <label>Confirmar Contraseña</label>
+            <input type="password" id="ConfirmarContraseña" name="confirmarContraseña" placeholder="Repetir contraseña" required />
+            <span class="error-text" id="errorConfirmar"></span>
         </div>
 
         <p class="registro-error" id="registroError"></p>
@@ -61,5 +90,6 @@
 
 
     </form>
+    <script src="/api.js"></script>
     <script src="/admin/registro.js"></script>
   </body>

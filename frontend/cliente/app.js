@@ -18,6 +18,19 @@
  */
 let carrito = {};
 
+// Cache del menú: se llena al cargar para no repetir el fetch cada vez que
+// el usuario toca "+ Agregar".
+let platosCache = [];
+
+// Slug del local (ej: "la-esquina"), sacado una sola vez de la URL.
+const slugLocal = window.location.pathname.split('/')[2] || '';
+
+let temaActualMenu = 'clasico';
+
+// Plato que está esperando confirmación en el popup de toppings.
+let platoPendiente = null;
+let configResenas = { permitirResenas: true, resenasPublicas: false, permitirVotosResenas: true };
+
 
 // ============================================================
 // INICIO: Cargar el menú al abrir la página
@@ -50,14 +63,85 @@ async function cargarMenu() {
         const platos = await respuesta.json();
         estaAbierto = await estaAbierto.json();
 
+        // 4. Logo del header: si el local tiene foto, reemplazamos la pizza
+        const perfilDelLocal = await (await fetch(`/api/publico/perfil/${slugDelLocal}`)).json();
+
+        // Registro silencioso de visita (no bloquea la carga del menú)
+        if (perfilDelLocal && perfilDelLocal._id) {
+            fetch(`/api/visitas/${perfilDelLocal._id}`, { method: 'POST' }).catch(() => {});
+        }
+        // Aplicar tema visual elegido por el local
+        const temaActual = perfilDelLocal.temaMenu || 'clasico';
+        document.body.classList.remove('tema-clasico', 'tema-elegante');
+        document.body.classList.add(`tema-${temaActual}`);
+        temaActualMenu = temaActual;
+
+        // Aplicar tipografía elegida por el local
+        const fuenteActual = perfilDelLocal.fuenteMenu || 'moderna';
+        document.body.classList.remove('fuente-moderna', 'fuente-clasica', 'fuente-amigable');
+        document.body.classList.add(`fuente-${fuenteActual}`);
+
+        // Forzar cambio de color de fondo si es elegante (fallback rápido)
+        if (temaActual === 'elegante') {
+            document.body.style.backgroundColor = '#F9FAFB';
+        } else {
+            document.body.style.backgroundColor = '';
+        }
+        const logoHeader     = document.getElementById('brandLogoImg');
+        if (perfilDelLocal.fotoPerfil) {
+            logoHeader.src    = perfilDelLocal.fotoPerfil;
+            logoHeader.hidden = false;
+            document.getElementById('brandLogoFallback').hidden = true;
+        }
+
+        // Nombre del local en el header y en la pestaña del navegador
+        const nombreLocalBar = perfilDelLocal.nombre || '';
+        const brandNameEl = document.getElementById('brandName');
+        if (brandNameEl) brandNameEl.textContent = nombreLocalBar || 'Cargando...';
+        document.title = (nombreLocalBar ? `${nombreLocalBar} | Menú Digital` : 'Cargando menú | Menú Digital');
+
+        // Guardamos en caché para usarlos en agregarAlCarrito sin refetch
+        platosCache = platos;
+
+        // Actualizamos el badge de estado en el header
+        actualizarBadgeEstado(estaAbierto.abierto);
 
         // 4. Le pasamos los platos a la función dibujante
         dibujarPlatos(platos, estaAbierto.abierto);
+
+        // Comenzar a escuchar cambios de estado cada 30 segundos
+        iniciarPollingEstado();
 
     } catch (error) {
         console.error('[ERROR] No se pudo cargar el menú:', error);
         contenedor.innerHTML = '<p class="menu-error">Error al conectar con el servidor.</p>';
     }
+}
+
+function actualizarBadgeEstado(abierto) {
+    const badge = document.getElementById('badgeEstadoLocal');
+    if (!badge) return;
+    if (abierto) {
+        badge.textContent = '● Abierto';
+        badge.classList.add('badge-abierto');
+        badge.classList.remove('badge-cerrado');
+    } else {
+        badge.textContent = '● Cerrado';
+        badge.classList.add('badge-cerrado');
+        badge.classList.remove('badge-abierto');
+    }
+}
+
+async function iniciarPollingEstado() {
+    setInterval(async () => {
+        try {
+            const res = await fetch(`/api/publico/estadoLocal/${slugLocal}`);
+            const data = await res.json();
+            actualizarBadgeEstado(!!data.abierto);
+        } catch (e) {
+            console.error('Error al obtener estado del local:', e);
+        }
+    }, 30000);
 }
 
 function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está abierto o no
@@ -79,6 +163,21 @@ function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está a
         return grupos;
     }, {});
 
+    // Generar botones para el carrusel sticky de categorías
+    const categorias = Object.keys(porCategoria);
+    const carrusel = document.getElementById('categoriasCarrusel');
+    if (carrusel) {
+        if (categorias.length === 0) {
+            carrusel.style.display = 'none';
+        } else {
+            carrusel.style.display = '';
+            carrusel.innerHTML = categorias.map(cat => {
+                const idCat = 'cat-' + cat.toLowerCase().replace(/\s+/g, '-');
+                return `<button class="categoria-chip" data-target="${idCat}" onclick="irACategoria('${idCat}')">${obtenerEmoji(cat)} ${cat}</button>`;
+            }).join('');
+        }
+    }
+
     // Armamos SOLO el HTML de las tarjetas de los platos
     const htmlPlatos = Object.entries(porCategoria)
         .map(([categoria, items]) => crearSeccionCategoria(categoria, items))
@@ -99,6 +198,19 @@ function dibujarPlatos(todosLosPlatos, abierto) { // <-- Ahora recibe si está a
     } else {
         // Si está abierto, inyectamos los platos normalmente
         contenedor.innerHTML = htmlPlatos;
+    }
+
+    // Aplicar filtro de búsqueda si ya hay algo escrito
+    if (document.getElementById('buscadorPlatos')) {
+        filtrarPlatosBuscador();
+    }
+}
+
+// Función global para salto suave a una categoría
+function irACategoria(id) {
+    const destino = document.getElementById(id);
+    if (destino) {
+        destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
@@ -123,7 +235,7 @@ function crearSeccionCategoria(categoria, items) {
                 ${obtenerEmoji(categoria)} ${categoria}
             </h2>
             <div class="products-grid" role="list">
-                ${items.map(plato => crearTarjetaPlato(plato)).join('')}
+                ${items.map(plato => crearTarjetaPlato(plato, categoria)).join('')}
             </div>
         </section>
     `;
@@ -136,7 +248,7 @@ function crearSeccionCategoria(categoria, items) {
  * @param {Object} plato - { plato, descripcion, precio, categoria }
  * @returns {string}     - HTML de la tarjeta
  */
-function crearTarjetaPlato(plato) {
+function crearTarjetaPlato(plato, categoria) {
     // 1. Escudo para el nombre: Probamos si viene como 'nombre' o como 'plato'
     const nombreDelPlato = plato.nombre || plato.nombre || 'Plato sin nombre';
     
@@ -146,21 +258,50 @@ function crearTarjetaPlato(plato) {
     // 3. Escudo para el precio: Si no hay precio, mostramos 0
     const precioSeguro = plato.precio ? Number(plato.precio).toLocaleString('es-AR') : '0';
 
+    // 4. Foto del plato: si hay URL la mostramos, si no, el emoji de la categoría
+    const emojiCategoria = obtenerEmoji(categoria || plato.categoria || '');
+    const fotoelegante = plato.fotoUrl
+        ? `<div class="product-img"><img src="${plato.fotoUrl}" alt="${nombreDelPlato}" loading="lazy" /></div>`
+        : `<div class="product-img product-img-emoji">${emojiCategoria}</div>`;
+
+    // 5. Construir tarjeta según el tema del local
+    if (temaActualMenu === 'elegante') {
+        return `
+            <article class="product-card" data-categoria="${categoria.toLowerCase()}" role="listitem">
+                ${fotoelegante}
+                <div class="product-info">
+                    <h3 class="product-name">${nombreDelPlato}</h3>
+                    <p class="product-desc">${plato.descripcion || 'Sin descripción'}</p>
+                    <p class="product-price">$${precioSeguro}</p>
+                </div>
+                <div class="qty-control">
+                    <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
+                    <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
+                    <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
+                </div>
+            </article>
+        `;
+    }
+
+    // Versión clásica (vertical)
+    const imgClasica = plato.fotoUrl
+        ? `<img src="${plato.fotoUrl}" alt="${nombreDelPlato}" loading="lazy" />`
+        : `<span style="font-size:2.6rem;color:#ff6b35;">${emojiCategoria}</span>`;
+
     return `
-        <article class="product-card" role="listitem">
-            <div class="product-info">
-                <h3 class="product-name">${nombreDelPlato}</h3>
-                ${plato.descripcion ? `<p class="product-desc">${plato.descripcion}</p>` : ''}
-                <p class="product-price">$${precioSeguro}</p>
+        <div class="tarjeta-clasica" data-categoria="${categoria.toLowerCase()}">
+            <div class="clasica-img-container">${imgClasica}</div>
+            <div class="clasica-info">
+                <h3 class="clasica-nombre product-name">${nombreDelPlato}</h3>
+                <p class="clasica-desc product-desc">${plato.descripcion || 'Sin descripción'}</p>
+                <span class="clasica-precio product-price">$${precioSeguro}</span>
             </div>
-            <button
-                class="btn-agregar"
-                onclick="agregarAlCarrito('${nombreSeguro}')"
-                aria-label="Agregar ${nombreSeguro} al carrito"
-            >
-                + Agregar
-            </button>
-        </article>
+            <div class="clasica-controles">
+                <button type="button" class="qty-btn qty-minus" aria-label="Quitar uno de ${nombreSeguro}" onclick="quitarDelCarrito('${nombreSeguro}')">−</button>
+                <span class="qty-value" data-nombre="${nombreSeguro}">0</span>
+                <button type="button" class="qty-btn qty-plus" aria-label="Agregar ${nombreSeguro} al carrito" onclick="agregarAlCarrito('${nombreSeguro}', '${plato.categoria || categoria || ''}')">+</button>
+            </div>
+        </div>
     `;
 }
 
@@ -198,40 +339,120 @@ function obtenerEmoji(categoria) {
  *
  * @param {string} nombrePlato - Nombre del plato a agregar
  */
-async function agregarAlCarrito(nombrePlato) {
+/**
+ * Cuando el usuario toca "+ Agregar":
+ *   - Consulta si la categoría del plato tiene toppings públicos.
+ *   - SI tiene → abre el popup de personalización.
+ *   - NO tiene → agrega directo al carrito (comportamiento anterior).
+ */
+async function agregarAlCarrito(nombrePlato, categoria) {
+    // Buscamos en el caché (sin fetch extra)
+    const plato = platosCache.find(p => p.nombre === nombrePlato);
+    if (!plato) return;
+
     try {
-        // 1. Leemos la URL actual. Ej: si está en "/menu/pepito", esto guarda "pepito"
-        const nombreLocal = window.location.pathname.split('/').pop();
+        const res = await fetch(`/api/publico/toppings/${slugLocal}/${encodeURIComponent(categoria)}`);
+        const grupos = res.ok ? await res.json() : [];
 
-        // 2. Hacemos el fetch a la ruta correcta (👇 ACÁ TENEMOS QUE PONER TU RUTA REAL)
-        const respuesta = await fetch(`/api/publico/menu/${nombreLocal}`); 
-        
-        if (!respuesta.ok) {
-            throw new Error("No se pudo cargar el menú del servidor");
-        }
-
-        const platos = await respuesta.json();
-        console.log("platos:", platos);
-        const plato = platos.find(p => p.nombre === nombrePlato);
-        console.log("el plato es:", plato);
-
-
-        if (!plato) return;
-
-        if (carrito[nombrePlato]) {
-            carrito[nombrePlato].cantidad += 1;
+        if (grupos.length > 0) {
+            // Hay toppings: guardamos el plato y abrimos el popup
+            platoPendiente = plato;
+            abrirModalToppings(plato, grupos);
         } else {
-            carrito[nombrePlato] = { ...plato, cantidad: 1 };
+            // Sin toppings: agregamos directo
+            _sumarAlCarrito(plato);
         }
-
-        actualizarUI();
-        mostrarToast(`${nombrePlato} agregado al carrito 🛒`);
-
     } catch (error) {
-        console.error("Error al agregar al carrito:", error);
-        mostrarToast("Hubo un problema al agregar el plato.");
+        console.error('Error al buscar toppings:', error);
+        _sumarAlCarrito(plato); // Si falla, no bloqueamos al usuario
     }
 }
+
+/**
+ * Escribe en el carrito. Es la única función que modifica `carrito`.
+ * Crea una clave única que incluye los toppings elegidos, así la misma
+ * hamburguesa con y sin cheddar quedan como entradas separadas.
+ */
+function _sumarAlCarrito(plato, toppings = []) {
+    const extraPrecio = toppings.reduce((sum, t) => sum + (t.precio || 0), 0);
+
+    const clave = toppings.length
+        ? `${plato.nombre} (${toppings.map(t => t.opcionNombre).join(', ')})`
+        : plato.nombre;
+
+    if (carrito[clave]) {
+        carrito[clave].cantidad += 1;
+    } else {
+        carrito[clave] = { ...plato, nombre: clave, precio: plato.precio + extraPrecio, cantidad: 1, toppings: toppings.map(t => ({...t})) };
+    }
+
+    actualizarUI();
+    mostrarToast(`${plato.nombre} agregado al carrito 🛒`);
+}
+
+
+// ============================================================
+// POPUP DE TOPPINGS
+// ============================================================
+
+function abrirModalToppings(plato, grupos) {
+    document.getElementById('toppingModalSubtitulo').textContent = plato.nombre;
+
+    const contenido = document.getElementById('toppingsContenido');
+    contenido.innerHTML = grupos.map(grupo => `
+        <div class="topping-grupo">
+            <h3 class="topping-grupo-titulo">${grupo.nombre}</h3>
+            <ul class="topping-opciones-lista">
+                ${grupo.opciones.filter(op => op.disponible !== false).map(op => `
+                    <li class="topping-opcion-item">
+                        <label class="topping-opcion-label">
+                            <input
+                                type="${grupo.esMultiselect ? 'checkbox' : 'radio'}"
+                                name="topping-${grupo._id}"
+                                value="${op.nombre}"
+                                data-grupo="${grupo.nombre}"
+                                data-precio="${op.precio || 0}"
+                            />
+                            <span class="topping-opcion-nombre">${op.nombre}</span>
+                            ${op.precio
+                                ? `<span class="topping-opcion-precio">+$${Number(op.precio).toLocaleString('es-AR')}</span>`
+                                : `<span class="topping-opcion-gratis">Gratis</span>`
+                            }
+                        </label>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `).join('');
+
+    document.getElementById('modalToppings').removeAttribute('hidden');
+}
+
+function cerrarModalToppings() {
+    document.getElementById('modalToppings').setAttribute('hidden', '');
+    document.getElementById('toppingsContenido').innerHTML = '';
+    platoPendiente = null;
+}
+
+document.getElementById('cerrarModalToppings').addEventListener('click', cerrarModalToppings);
+
+document.getElementById('modalToppings').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) cerrarModalToppings();
+});
+
+document.getElementById('btnConfirmarToppings').addEventListener('click', () => {
+    if (!platoPendiente) return;
+
+    const seleccionados = [...document.querySelectorAll('#toppingsContenido input:checked')]
+        .map(input => ({
+            grupoNombre:  input.dataset.grupo,
+            opcionNombre: input.value,
+            precio:       Number(input.dataset.precio)
+        }));
+
+    _sumarAlCarrito(platoPendiente, seleccionados);
+    cerrarModalToppings();
+});
 
 /**
  * PROPOSITO:
@@ -250,6 +471,22 @@ function quitarDelCarrito(nombrePlato) {
     }
 
     actualizarUI();
+}
+
+/**
+ * PROPOSITO:
+ *   Suma +1 a un item del carrito usando su clave compuesta completa
+ *   (ej: "Hamburguesa (Cheddar, Bacon)"). NO re-abre el popup ni busca
+ *   en el caché: solo incrementa la cantidad del item tal y como está.
+ *
+ * @param {string} claveItem - Clave compuesta con la que se guardó el item.
+ */
+function sumarUnoAlCarrito(claveItem) {
+    if (!carrito[claveItem]) return;
+
+    carrito[claveItem].cantidad += 1;
+    actualizarUI();
+    mostrarToast(`${claveItem} agregado al carrito 🛒`);
 }
 
 
@@ -274,6 +511,13 @@ function actualizarUI() {
     // Habilitar/deshabilitar el botón flotante según si hay items
     const fabBtn = document.getElementById('fabBtn');
     fabBtn.disabled = totalItems === 0;
+
+    // Actualizar contadores en las tarjetas del menú
+    document.querySelectorAll('.qty-value').forEach(el => {
+        const nombre = el.getAttribute('data-nombre');
+        const cantidad = carrito[nombre] ? carrito[nombre].cantidad : 0;
+        el.textContent = cantidad;
+    });
 
     // Actualizar la lista dentro del modal
     actualizarListaModal(items, totalPrecio);
@@ -300,15 +544,48 @@ function actualizarListaModal(items, totalPrecio) {
         <li class="cart-item">
             <div class="cart-item-info">
                 <span class="cart-item-name">${item.nombre}</span>
+                ${item.toppings && item.toppings.length ? `<span class="cart-item-toppings">➕ ${item.toppings.map(t => t.opcionNombre).join(', ')}</span>` : ''}
                 <span class="cart-item-price">$${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
             </div>
             <div class="cart-item-controls">
                 <button onclick="quitarDelCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Quitar uno">−</button>
                 <span>${item.cantidad}</span>
-                <button onclick="agregarAlCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Agregar uno">+</button>
+                <button onclick="sumarUnoAlCarrito('${item.nombre.replace(/'/g, "\\'")}')" aria-label="Agregar uno">+</button>
             </div>
         </li>
     `).join('');
+}
+
+
+/**
+ * PROPOSITO:
+ *   Filtra las tarjetas de productos que coincidan con el texto escrito
+ *   en la barra de búsqueda. Se ejecuta en tiempo real con el evento 'input'.
+ */
+function filtrarPlatosBuscador() {
+    const input = document.getElementById('buscadorPlatos');
+    if (!input) return;
+
+    const termino = input.value.toLowerCase().trim();
+
+    document.querySelectorAll('.product-card, .tarjeta-clasica').forEach(tarjeta => {
+        const nombre = (tarjeta.querySelector('.product-name, .clasica-nombre')?.textContent || '').toLowerCase();
+        const desc = (tarjeta.querySelector('.product-desc, .clasica-desc')?.textContent || '').toLowerCase();
+        const categoria = (tarjeta.dataset.categoria || '').toLowerCase();
+        const coincide = !termino || nombre.includes(termino) || desc.includes(termino) || categoria.includes(termino);
+        tarjeta.style.display = coincide ? '' : 'none';
+    });
+
+    // Ocultar las secciones de categoría que no tienen ninguna tarjeta visible
+    document.querySelectorAll('.category-section').forEach(seccion => {
+        const algunaVisible = [...seccion.querySelectorAll('.product-card, .tarjeta-clasica')].some(c => c.style.display !== 'none');
+        seccion.style.display = algunaVisible ? '' : 'none';
+    });
+
+    // Mensaje de "no hay resultados"
+    const hayResultados = [...document.querySelectorAll('.product-card, .tarjeta-clasica')].some(c => c.style.display !== 'none');
+    const mensaje = document.getElementById('searchNoResults');
+    if (mensaje) mensaje.hidden = hayResultados || !termino;
 }
 
 
@@ -320,46 +597,114 @@ function enviarPorWhatsapp() {
     const items = Object.values(carrito);
     if (items.length === 0) return;
 
-    // Armar el texto del pedido línea por línea
+    // 1. Leer los inputs de Dirección, Notas y Teléfono
+    const direccionInput = document.getElementById('direccionEntrega');
+    const notasInput     = document.getElementById('notasPedido');
+    const telefonoInput  = document.getElementById('telefonoEntrega') || document.getElementById('telefonoCliente');
+    const nombreClienteInput = document.getElementById('nombreCliente');
+
+    const direccion = direccionInput ? direccionInput.value.trim() : '';
+    const notas     = notasInput ? notasInput.value.trim() : '';
+    const telefonoCliente = telefonoInput ? telefonoInput.value.trim() : '';
+
+    // Validar que hayan puesto la dirección
+    if (!direccion) {
+        alert("Por favor, ingresá tu dirección para la entrega.");
+        if (direccionInput) direccionInput.focus();
+        return;
+    }
+
+    // Guardamos los datos en localStorage para la próxima visita
+    if (nombreClienteInput) localStorage.setItem('nombreCliente', nombreClienteInput.value.trim());
+    if (telefonoInput)      localStorage.setItem('telefonoCliente', telefonoCliente);
+    if (direccionInput)     localStorage.setItem('direccionCliente', direccion);
+
+    // 2. Leer el método de pago seleccionado
+    const metodoPagoInput = document.querySelector('input[name="metodo_pago"]:checked');
+    const valorMetodoPago = metodoPagoInput ? metodoPagoInput.value : 'efectivo';
+    const metodoPago = valorMetodoPago === 'transferencia' 
+        ? 'Transferencia 🏦' 
+        : valorMetodoPago === 'tarjeta' 
+            ? 'Tarjeta 💳' 
+            : 'Efectivo 💵';
+    const metodoPagoEnvio = valorMetodoPago === 'transferencia' 
+        ? 'Transferencia' 
+        : valorMetodoPago === 'tarjeta' 
+            ? 'Tarjeta' 
+            : 'Efectivo';
+
+    // 3. Armar las líneas del pedido
     const lineas = items.map(item =>
         `• ${item.cantidad}x ${item.nombre} — $${(item.precio * item.cantidad).toLocaleString('es-AR')}`
     );
 
     const total = items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
-    const mensaje = [
+
+    // 4. Estructurar el mensaje para WhatsApp
+    const mensajeArr = [
         '🛒 *Nuevo pedido*',
         '',
         ...lineas,
         '',
-        `*Total: $${total.toLocaleString('es-AR')}*`
-    ].join('\n');
+        `*Total: $${total.toLocaleString('es-AR')}*`,
+        '',
+        `📍 *Dirección:* ${direccion}`,
+        `💳 *Método de Pago:* ${metodoPago}`
+    ];
 
-    // 1. Leemos en qué local estamos parados
-    const nombreLocal = window.location.pathname.split('/').pop();
+    // Si el cliente escribió notas, las agregamos
+    if (notas) {
+        mensajeArr.push(`📝 *Notas:* ${notas}`);
+    }
 
-    // 2. ⚠️ ACÁ TENÉS QUE LLAMAR A UNA RUTA QUE TE DEVUELVA EL TELÉFONO DE ESE LOCAL
-    // Puse una de ejemplo, tenés que adaptarla a tu backend
-    fetch(`/api/publico/perfil/${nombreLocal}`)
-        .then(r => r.json())
-        .then(perfil => {
-            // Suponiendo que el backend devuelve { whatsappNumero: "54911..." }
+    const mensaje = mensajeArr.join('\n');
+
+    // 5. Guardar pedido en la base de datos y redirección dinámica
+    const slug = slugLocal;
+    const itemsParaGuardar = items.map(item => ({
+        nombrePlato: item.nombre,
+        cantidad: item.cantidad,
+        precio: item.precio,
+        toppings: item.toppings || []
+    }));
+
+    fetch(`/api/publico/perfil/${slug}`)
+        .then(resp => resp.json())
+        .then(async perfil => {
+            const localId = perfil._id || null;
+            const payloadPedido = {
+                localId,
+                slug,
+                items: itemsParaGuardar,
+                total,
+                cliente: '',
+                metodoPago: metodoPagoEnvio,
+                direccion,
+                notas,
+                telefonoCliente
+            };
+
+            try {
+                await fetch('/api/pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadPedido)
+                });
+            } catch (error) {
+                console.error('No se pudo guardar el pedido:', error);
+            }
+
             const numero = perfil.whatsappNumero || ''; 
             const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
-            
-            // 🔄 MAGIA ACÁ: Redirigimos a la URL exacta en la que estaba el cliente
             window.location.href = window.location.pathname;
         })
         .catch(() => {
-            // Si falla, abrimos WhatsApp sin número para que el cliente elija
             const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
-            
-            // 🔄 Redirigimos igual
             window.location.href = window.location.pathname;
         });
 }
-
 
 // ============================================================
 // TOAST (notificacion flotante temporal)
@@ -387,6 +732,7 @@ function mostrarToast(mensaje) {
 // Abrir el modal al clickear el botón flotante
 document.getElementById('fabBtn').addEventListener('click', () => {
     document.getElementById('modalOverlay').removeAttribute('hidden');
+    cargarMetodosPago();
 });
 
 // Cerrar el modal con el botón X
@@ -418,11 +764,295 @@ document.getElementById('btnClear').addEventListener('click', () => {
 
 
 
+
+// ==============================================================
+// MÉTODOS DE PAGO (dinámicos según lo que configuró el local)
+// ==============================================================
+
+// Guardamos los datos de transferencia para mostrarlos si el usuario elige esa opción
+let datosTransferencia = { alias: '', titular: '' };
+
+async function cargarMetodosPago() {
+    const contenedor = document.getElementById('contenedorMetodosPago');
+    if (!contenedor) return;
+
+    try {
+        const res  = await fetch(`/api/publico/perfil/${slugLocal}`);
+        const data = res.ok ? await res.json() : {};
+        const metodos = data.metodosPago || [];
+
+        // Si el local no configuró nada todavía, mostramos efectivo por defecto
+        const lista = metodos.length
+            ? metodos
+            : [{ tipo: 'efectivo' }];
+
+        // Guardamos los datos de transferencia por si los necesitamos luego
+        const transf = lista.find(m => m.tipo === 'transferencia');
+        if (transf) datosTransferencia = { alias: transf.alias, titular: transf.titular };
+
+        const iconos   = { efectivo: '💵 Efectivo', transferencia: '🏦 Transferencia', tarjeta: '💳 Tarjeta' };
+        const primero  = lista[0].tipo;
+
+        contenedor.innerHTML = `
+            <div class="payment-methods-container">
+                <span class="payment-title">Método de pago</span>
+                <div class="payment-segmented">
+                    ${lista.map((m, i) => `
+                        <label class="payment-chip ${i === 0 ? 'selected' : ''}">
+                            <input type="radio" name="metodo_pago" value="${m.tipo}"
+                                   ${i === 0 ? 'checked' : ''}
+                                   onchange="cambiarPago(this)" />
+                            ${iconos[m.tipo] || m.tipo}
+                        </label>`).join('')}
+                </div>
+            </div>`;
+
+        // Mostramos info de transferencia si es el primer método
+        if (primero === 'transferencia') mostrarInfoTransferencia(true);
+
+    } catch (e) {
+        console.error('Error al cargar métodos de pago:', e);
+    }
+}
+
+function cambiarPago(radioInput) {
+    document.querySelectorAll('.payment-chip').forEach(c => c.classList.remove('selected'));
+    radioInput.closest('.payment-chip').classList.add('selected');
+    mostrarInfoTransferencia(radioInput.value === 'transferencia');
+}
+
+function mostrarInfoTransferencia(mostrar) {
+    const div = document.getElementById('infoTransferencia');
+    if (!div) return;
+    if (mostrar) {
+        document.getElementById('transferenciaAlias').textContent   = datosTransferencia.alias   || '(sin configurar)';
+        document.getElementById('transferenciaTitular').textContent = datosTransferencia.titular || '(sin configurar)';
+        div.style.display = 'flex';
+    } else {
+        div.style.display = 'none';
+    }
+}
+
+// ============================================================
+// RESEÑAS COMUNITARIAS ANÓNIMAS
+// ============================================================
+
+let votoResena = {}; // clave ej. "acuerdo_1" => true
+
+async function abrirModalFeedResenas() {
+    const modal = document.getElementById('modal-feed-resenas');
+    if (!modal) return;
+    if (!configResenas.resenasPublicas) {
+        // Si no hay feed público, abrir directamente el formulario
+        abrirModalEscribirResena();
+        return;
+    }
+    try {
+        const res = await fetch(`/api/resenas/${slugLocal}`);
+        const resenas = res.ok ? await res.json() : [];
+        const contenedor = document.getElementById('lista-resenas-publicas');
+        if (contenedor) {
+            contenedor.innerHTML = renderListaResenas(resenas);
+        }
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Error al cargar reseñas:', error);
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarModalResenas(idModal) {
+    document.getElementById(idModal).style.display = 'none';
+}
+
+function abrirModalEscribirResena() {
+    document.getElementById('modal-feed-resenas').style.display = 'none';
+    document.getElementById('modal-escribir-resena').style.display = 'flex';
+}
+
+
+function renderListaResenas(resenas) {
+    if (!resenas || resenas.length === 0) {
+        return '<p style="text-align:center;color:#888;padding:20px;">Todavía no hay reseñas públicas.</p>';
+    }
+    return resenas.map(r => {
+        const fecha = new Date(r.fecha).toLocaleDateString('es-AR');
+        return `
+            <div class="tarjeta-resena">
+                <div class="resena-fecha">${fecha}</div>
+                <p class="resena-texto">${r.comentario || ''}</p>
+                ${configResenas.permitirVotosResenas ? `
+                <div class="resena-votos">
+                    <button class="btn-voto acuerdo" data-resena="${r._id}" onclick="votar(this)">👍 Estoy de acuerdo (${r.votosFavor || 0})</button>
+                    <button class="btn-voto desacuerdo" data-resena="${r._id}" onclick="votar(this)">👎 (${r.votosContra || 0})</button>
+                </div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+async function inicializarBannerResenas() {
+    const banner = document.getElementById('banner-resenas');
+    if (!banner) return;
+
+    // Cargar preferencias del local
+    try {
+        const res = await fetch(`/api/publico/perfil/${slugLocal}`);
+        const perfil = res.ok ? await res.json() : {};
+        configResenas.permitirResenas = perfil.permitirResenas ?? false;
+        configResenas.resenasPublicas = perfil.resenasPublicas ?? false;
+        configResenas.permitirVotosResenas = perfil.permitirVotosResenas ?? true;
+    } catch (error) {
+        console.error('Error al cargar config de reseñas:', error);
+        // Si falla la conexión, ocultamos el banner para no mostrar algo que no funciona
+        banner.style.display = 'none';
+        return;
+    }
+    console.log("es:", configResenas.permitirResenas);
+
+    if (!configResenas.permitirResenas) {
+        banner.style.display = 'none';
+        return;
+    }
+
+    // Si el local permite reseñas pero no las muestra públicamente, cambiamos el texto
+    if (!configResenas.resenasPublicas) {
+        banner.textContent = '💬 ¿Cómo fue tu experiencia? Dejá tu reseña anónima.';
+    } else {
+        banner.textContent = '💬 ¿Cómo fue tu experiencia? Leé y dejá tu reseña anónima.';
+    }
+
+    banner.style.display = '';
+    banner.addEventListener('click', () => abrirModalFeedResenas());
+
+    const overlayFeed = document.querySelector('#modal-feed-resenas .modal-resenas-overlay');
+    if (overlayFeed) overlayFeed.addEventListener('click', () => cerrarModalResenas('modal-feed-resenas'));
+
+    const btnEscribir = document.querySelector('.btn-escribir-resena');
+    if (btnEscribir) btnEscribir.addEventListener('click', () => abrirModalEscribirResena());
+
+
+    const btnEnviar = document.getElementById('enviar-resena');
+    if (btnEnviar) {
+        btnEnviar.addEventListener('click', enviarResena);
+    }
+}
+
+
+async function votar(boton) {
+    const resenaId = boton.dataset.resena;
+    const tipo = boton.classList.contains('acuerdo') ? 'acuerdo' : 'desacuerdo';
+    const key = `${tipo}_${resenaId}`;
+    const activo = boton.classList.contains('active');
+    if (!configResenas.permitirVotosResenas) return;
+
+    // Prevenir doble clic rápido
+    if (boton.disabled) return;
+    boton.disabled = true;
+
+    boton.classList.toggle('active', !activo);
+
+    // Actualizar visual local optimista
+    const match = boton.textContent.match(/(\d+)/);
+    if (match) {
+        let num = parseInt(match[1], 10);
+        if (!activo) num += 1;
+        else num -= 1;
+        boton.textContent = boton.textContent.replace(/\d+/, num);
+    }
+
+    if (!activo) {
+        localStorage.setItem(`voto_${key}`, 'true');
+    } else {
+        localStorage.removeItem(`voto_${key}`);
+    }
+
+    try {
+        const resp = await fetch(`/api/resenas/${resenaId}/voto`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ voto: tipo })
+        });
+        if (!resp.ok) {
+            console.error('Error al registrar voto');
+            // Revertir visual
+            boton.classList.toggle('active', activo);
+            if (match) {
+                let num = parseInt(match[1], 10);
+                if (activo) num -= 1;
+                else num += 1;
+                boton.textContent = boton.textContent.replace(/\d+/, num);
+            }
+        }
+    } catch (error) {
+        console.error('Error de red al votar:', error);
+        boton.disabled = false;
+    }
+    boton.disabled = false;
+}
+
+async function enviarResena() {
+    const texto = document.getElementById('texto-resena').value.trim();
+    const publica = document.getElementById('publica-resena').checked;
+
+    if (!texto) {
+        alert('Por favor escribí algún comentario.');
+        return;
+    }
+    const cartel = document.getElementById('texto-resena');
+    cartel.disabled = true;
+    const btn = document.getElementById('enviar-resena');
+    btn.disabled = true;
+    try {
+        const resp = await fetch('/api/resenas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                slug: slugLocal,
+                comentario: texto,
+                publica: publica
+            })
+        });
+        if (!resp.ok) {
+            throw new Error('No se pudo guardar');
+        }
+        alert('✅ ¡Gracias por tu reseña! Si el local la hace pública, aparecerá anónimamente.');
+        document.getElementById('modal-escribir-resena').style.display = 'none';
+        document.getElementById('texto-resena').value = '';
+        document.getElementById('publica-resena').checked = true;
+    } catch (error) {
+        console.error('Error al enviar reseña:', error);
+        alert('Hubo un problema al guardar tu reseña. Intentalo de nuevo.');
+    } finally {
+        cartel.disabled = false;
+        btn.disabled = false;
+    }
+}
+
 // ============================================================
 // ARRANCAR LA APP
 // ============================================================
 // Apenas carga la pantalla del cliente...
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    cargarMenu(); 
+    // Configurar la búsqueda en vivo
+    const buscador = document.getElementById('buscadorPlatos');
+    if (buscador) {
+        buscador.addEventListener('input', filtrarPlatosBuscador);
+    }
+
+    // Autocompletar datos del cliente guardados en localStorage
+    const llenarCampo = (id, key) => {
+        const el = document.getElementById(id);
+        const valor = localStorage.getItem(key);
+        if (el && valor) el.value = valor;
+    };
+    llenarCampo('nombreCliente', 'nombreCliente');
+    llenarCampo('telefonoCliente', 'telefonoCliente');
+    llenarCampo('telefonoEntrega', 'telefonoCliente');
+    llenarCampo('direccionCliente', 'direccionCliente');
+    llenarCampo('direccionEntrega', 'direccionCliente');
+
+    inicializarBannerResenas();
+
+    cargarMenu();
 });

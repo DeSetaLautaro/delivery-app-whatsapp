@@ -21,12 +21,35 @@ body {
     gap: 20px;
     align-items: start;
 }
-@media (max-width: 700px) {
-    .perfil-grid { grid-template-columns: 1fr; }
-}
 
 .perfil-col-izq,
 .perfil-col-der { display: flex; flex-direction: column; gap: 20px; }
+
+@media (max-width: 700px) {
+    .perfil-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Las columnas no aportan estructura en mobile */
+    .perfil-col-izq,
+    .perfil-col-der { display: contents; }
+
+    /* Aseguramos que cada tarjeta ocupe todo el ancho disponible */
+    .perfil-card { width: 100%; }
+
+    /* Orden deseado en mobile:
+       1. Foto de perfil
+       2. Datos del local
+       3. Suscripción mensual
+       4. Seguridad (última)
+    */
+    .perfil-col-izq .perfil-card-identidad { order: 1; }
+    .perfil-col-der .perfil-card           { order: 2; }
+    .perfil-col-izq .perfil-card.suscripcion-mensual { order: 3; }
+    .perfil-col-izq .perfil-card:not(.perfil-card-identidad):not(.suscripcion-mensual) { order: 4; }
+}
 
 /* ── Tarjeta base ──────────────────────────────────────── */
 .perfil-card {
@@ -152,6 +175,13 @@ body {
     flex: 1;
 }
 
+/* Select de código de país (perfil) */
+.input-con-prefijo select.input-prefijo {
+    max-width: 110px;
+    cursor: pointer;
+    background-color: #f5f5f5;
+}
+
 /* ── Botones ───────────────────────────────────────────── */
 .btn-guardar {
     background: #ff6b35;
@@ -243,6 +273,30 @@ body {
 .horario-fila input[type="time"]:focus { border-color: #ff6b35; }
 .separador { font-size: 0.8rem; color: #aaa; }
 
+/* Métodos de pago */
+.metodos-pago-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.metodo-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 999px;
+    font-size: 0.84rem; font-weight: 500;
+    cursor: pointer; user-select: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+.metodo-chip:has(input:checked) { border-color: #ff6b35; background: #fff3ee; color: #c94e1a; }
+.metodo-chip input { accent-color: #ff6b35; }
+
+#datosTransferencia {
+    display: flex; flex-direction: column; gap: 10px;
+    background: #f8faff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 14px;
+}
+#datosTransferencia.oculto { display: none; }
+
 .bienvenida-badge {
     background: rgba(255,255,255,0.2);
     border: 1px solid rgba(255,255,255,0.4);
@@ -255,4 +309,136 @@ body {
     opacity: 0.9; 
     margin-top: 4px;
     font-family: 'Inter', sans-serif;
+}
+
+/* ============================================================
+   MODAL CAMBIO DE PLAN
+   ============================================================ */
+#modal-planes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#modal-planes.visible {
+    display: flex;
+}
+
+.modal-planes-contenido {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    max-width: 1000px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.modal-planes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.modal-planes-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.btn-cerrar-modal {
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: #555;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+.btn-cerrar-modal:hover {
+    color: #c0392b;
+}
+
+.planes-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.plan-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.plan-card:hover {
+    border-color: #ff6b35;
+    box-shadow: 0 6px 15px rgba(255, 107, 53, 0.15);
+    transform: translateY(-2px);
+}
+.plan-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+}
+.plan-card ul {
+    padding-left: 18px;
+    margin: 0 0 10px;
+    font-size: 0.9rem;
+    color: #555;
+}
+.plan-card .btn-elegir-plan {
+    margin-top: auto;
+    background: #f5f5f5;
+    color: #333;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    text-align: center;
+}
+.plan-card .btn-elegir-plan:hover {
+    background: #ff6b35;
+    color: #fff;
+    border-color: #ff6b35;
+}
+
+/* Destacar Plan Pro */
+.plan-pro {
+    border-color: #ff6b35;
+    box-shadow: 0 6px 18px rgba(255, 107, 53, 0.2);
+    background: linear-gradient(135deg, #fff8f5, #ffffff);
+}
+.plan-pro h3 {
+    color: #c94e1a;
+}
+
+/* Responsive: móviles 1 columna */
+@media (max-width: 700px) {
+    .planes-container {
+        grid-template-columns: 1fr;
+    }
+    .modal-planes-contenido {
+        padding: 20px;
+    }
 }

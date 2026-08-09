@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis</title>
+    <link rel="stylesheet" href="analisis.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Layout principal según ui-theme.md -->
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h2>🍕 Mi Local</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="general">🌐 General</a>
+                <a href="#" class="nav-item" data-view="catalogo">🍔 Catálogo</a>
+                <a href="#" class="nav-item" data-view="clientes">👥 Clientes</a>
+                <a href="#" class="nav-item" data-view="resenas">💬 Reseñas</a>
+                <a href="#" class="nav-item" data-view="predicciones">🧠 Predicciones AI</a>
+                <a href="#" class="nav-item">📈 Analíticas</a>
+                <a href="#" class="nav-item">⚙️ Configuración</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div>
+                    <h1>Business Analytics</h1>
+                    <p class="subtitle">Monitoreá el rendimiento de tu negocio</p>
+                </div>
+                <div class="header-actions">
+                    <select id="select-periodo" class="neon-select">
+                        <optgroup label="Ventanas Móviles">
+                            <option value="7dias">Últimos 7 días</option>
+                            <option value="30dias" selected>Últimos 30 días</option>
+                            <option value="6meses">Últimos 6 meses</option>
+                            <option value="1ano">Último año</option>
+                        </optgroup>
+                        <optgroup label="Períodos de Calendario">
+                            <option value="hoy">Hoy</option>
+                            <option value="semana_actual">Esta semana</option>
+                            <option value="mes_actual">Mes calendario actual</option>
+                            <option value="ano_actual">Año calendario actual</option>
+                        </optgroup>
+                    </select>
+                    <button class="btn-export">⬇ Exportar CSV</button>
+                    <button class="btn-export" id="btn-generar-mock">🧪 Generar Datos de Prueba</button>
+                </div>
+            </header>
+
+            <section id="view-general">
+                <section class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>Visitas al Menú</h3>
+                        <div class="kpi-value" id="kpi-visitas">0</div>
+                        <span class="badge badge-positivo" id="badge-visitas">—</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Tasa de Conversión</h3>
+                        <div class="kpi-value" id="kpi-conversion">0%</div>
+                        <span class="badge badge-positivo" id="badge-conversion">—</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Pedidos Totales</h3>
+                        <div class="kpi-value" id="kpi-pedidos">0</div>
+                        <span class="badge badge-positivo" id="badge-pedidos">—</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Ingresos Totales</h3>
+                        <div class="kpi-value" id="kpi-ventas">$0</div>
+                        <span class="badge badge-positivo" id="badge-ingresos">—</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Ticket Promedio</h3>
+                        <div class="kpi-value" id="kpi-ticket">$0</div>
+                        <span class="badge badge-negativo" id="badge-ticket">—</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Plato Estrella</h3>
+                        <div class="kpi-value" id="kpi-plato-estrella">—</div>
+                        <span class="text-neon-green" id="kpi-plato-estrella-detalle">Sin datos todavía</span>
+                    </div>
+                </section>
+
+                <section class="charts-grid">
+                    <div class="chart-card main-chart">
+                        <div class="sales-chart-header">
+                            <h3>Sales Overview</h3>
+                            <div class="sales-chart-toggle">
+                                <button id="btn-ingresos" class="btn-chart-toggle active">Ingresos</button>
+                                <button id="btn-pedidos" class="btn-chart-toggle">Pedidos</button>
+                            </div>
+                        </div>
+                        <div class="chart-placeholder" style="position: relative; height: 300px;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card top-products">
+                        <h3>🔥 Tendencias</h3>
+                        <p class="subtitulo-tendencias">Mayor crecimiento vs. período anterior</p>
+                        <div id="contenedor-tendencias" class="tendencias-lista"></div>
+                    </div>
+                </section>
+            </section>
+
+            <section id="view-catalogo" class="hidden">
+                <div class="catalogo-grid-2col">
+                    <div class="catalogo-card top-products">
+                        <h3>🏆 Top 5 Platos Más Vendidos</h3>
+                        <div class="top-products-list">
+                            <div class="top-platos">
+                            <div class="top-item">
+                                <span class="rank">1</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍔 Triple Bacon</span>
+                                        <span class="top-stats">145 u · $145.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 95%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">2</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍕 Muzza XL</span>
+                                        <span class="top-stats">98 u · $98.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 78%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">3</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🥗 Ensalada César</span>
+                                        <span class="top-stats">72 u · $72.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 55%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">4</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🌮 Taco Mexicano</span>
+                                        <span class="top-stats">61 u · $61.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 48%"></div></div>
+                                </div>
+                            </div>
+                            <div class="top-item">
+                                <span class="rank">5</span>
+                                <div class="top-info">
+                                    <div class="top-header">
+                                        <span class="top-nombre">🍟 Papas Cheddar</span>
+                                        <span class="top-stats">55 u · $55.000</span>
+                                    </div>
+                                    <div class="barra-progreso"><div class="barra-fill" style="width: 40%"></div></div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        <button id="btn-toggle-top-products" class="btn-toggle-list">Ver todos</button>
+                    </div>
+
+                    <div class="catalogo-card catalogo-alerta">
+                        <h3>⚠️ Platos Muertos (últimos 30 días)</h3>
+                        <div id="lista-platos-muertos"></div>
+                    </div>
+                </div>
+
+                <div class="catalogo-card impacto-promo">
+                    <h3>📈 Impacto de Promociones</h3>
+                    <div class="impacto-metrica">Platos en Promo Activa: <strong id="kpi-platos-promo">6</strong></div>
+                    <div class="impacto-metrica">Aumento de Volumen Promedio: <strong class="text-neon-green" id="kpi-aumento-volumen">+35%</strong></div>
+                    <div class="comparativa-promo">
+                        <span class="comparativa-before" id="kpi-antes-promo">Antes: $45.000</span>
+                        <span class="comparativa-arrow">→</span>
+                        <span class="comparativa-after" id="kpi-despues-promo">Con Promo: $61.000</span>
+                    </div>
+                    <hr style="border-color: rgba(255,255,255,0.05); margin:16px 0;">
+                    <h4 style="color:#FFFFFF; font-size:13px; margin:0 0 8px;">Buscador de Rendimiento de Platos</h4>
+                    <input type="text" id="buscador-platos" class="search-input" placeholder="Buscar plato...">
+                    <div id="lista-explorador-platos" class="scrollable-list"></div>
+                </div>
+
+                <div class="combos-grid">
+                    <div class="combo-card" id="combo-card-1">
+                        <span class="combo-prod">🍕 Pizza Muzza</span>
+                        <span class="combo-mas">+</span>
+                        <span class="combo-prod">🥤 Coca-Cola</span>
+                        <div class="coincidencia">78% de coincidencia</div>
+                        <button class="btn-crear-combo">Crear Combo</button>
+                    </div>
+                    <div class="combo-card" id="combo-card-2">
+                        <span class="combo-prod">🍔 Triple Bacon</span>
+                        <span class="combo-mas">+</span>
+                        <span class="combo-prod">🍟 Papas Cheddar</span>
+                        <div class="coincidencia">65% de coincidencia</div>
+                        <button class="btn-crear-combo">Crear Combo</button>
+                    </div>
+                    <div class="combo-card" id="combo-card-3">
+                        <span class="combo-prod">🌮 Taco Mexicano</span>
+                        <span class="combo-mas">+</span>
+                        <span class="combo-prod">🥑 Guacamole</span>
+                        <div class="coincidencia">52% de coincidencia</div>
+                        <button class="btn-crear-combo">Crear Combo</button>
+                    </div>
+                </div>
+
+                <div class="catalogo-card heatmap-card">
+                    <div class="heatmap-card-header">
+                        <h3>🗓️ Días y Horarios Pico</h3>
+                        <div class="toggle-analisis">
+                            <button type="button" id="btnAnalisisPlato" class="toggle-option active">Analizar por Plato</button>
+                            <button type="button" id="btnAnalisisDia" class="toggle-option">Analizar por Día</button>
+                        </div>
+                    </div>
+                    <select class="neon-select" id="selectPlatoPico">
+                        <option>Todos los platos</option>
+                        <option>🍔 Triple Bacon</option>
+                        <option>🍕 Pizza Muzza</option>
+                        <option>🥗 Ensalada César</option>
+                    </select>
+                    <div id="heatmap-container"></div>
+                    <div id="day-ranking-container" class="hidden">
+                        <h4>Top 5 Platos del Día</h4>
+                        <div id="day-ranking-list" class="day-ranking-list"></div>
+                    </div>
+                </div>
+            </section>
+            <section id="view-clientes" class="hidden">
+                <div class="cliente-kpis-grid">
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Total Clientes Únicos</h3>
+                        <div class="cliente-kpi-value" id="kpi-total-clientes">0</div>
+                        <span class="cliente-kpi-badge">+12% este mes</span>
+                    </div>
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Tasa de Recompra / Retención</h3>
+                        <div class="cliente-kpi-value" id="kpi-recompra">0%</div>
+                        <span class="text-neon-green">vuelven en &lt; 14 días</span>
+                    </div>
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Clientes Fieles / VIPs</h3>
+                        <div class="cliente-kpi-value" id="kpi-clientes-fieles">0</div>
+                        <span class="text-neon-green">Top 20% de compradores en los últimos 30 días</span>
+                    </div>
+                    <div class="cliente-kpi-card">
+                        <h3 class="cliente-kpi-title">Clientes en Riesgo</h3>
+                        <div class="cliente-kpi-value" id="kpi-clientes-en-riesgo">0</div>
+                        <span class="text-neon-orange">Compraron +1 vez, pero no en los últimos 30 días</span>
+                    </div>
+                </div>
+
+                <div class="cliente-grid-2col">
+                    <div class="cliente-card">
+                        <h3>📍 Top Clientes Frecuentes</h3>
+                        <div class="cliente-tabla-wrapper">
+                            <table class="cliente-tabla">
+                                <thead>
+                                    <tr><th>Dirección / WhatsApp</th><th>Pedidos</th><th>Total</th><th>Último</th></tr>
+                                </thead>
+                                <tbody id="tbody-top-clientes"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="cliente-card">
+                        <h3>🔄 Retención y Segmentación</h3>
+                        <div class="retencion-bloques">
+                            <div class="retencion-adquisicion">
+                                <p class="retencion-label">Adquisición</p>
+                                <div class="retencion-nuevos">
+                                    <span class="retencion-cifra" id="retencion-nuevos">0</span>
+                                    <span class="retencion-desc">clientes nuevos</span>
+                                </div>
+                                <p class="retencion-activacion" id="retencion-activacion">0 de ellos ya volvieron a pedir</p>
+                            </div>
+                            <div class="retencion-comportamiento">
+                                <p class="retencion-label">Comportamiento</p>
+                                <div class="retencion-barra">
+                                    <span class="retencion-barra-nombre">Frecuentes (3+ pedidos)</span>
+                                    <div class="barra-progreso"><div class="barra-fill" id="retencion-frec-barra" style="width:0%"></div></div>
+                                    <span class="retencion-porcentaje" id="retencion-frec-pct">0%</span>
+                                </div>
+                                <div class="retencion-barra">
+                                    <span class="retencion-barra-nombre">Regulares (2 pedidos)</span>
+                                    <div class="barra-progreso"><div class="barra-fill" id="retencion-reg-barra" style="width:0%"></div></div>
+                                    <span class="retencion-porcentaje" id="retencion-reg-pct">0%</span>
+                                </div>
+                                <div class="retencion-barra">
+                                    <span class="retencion-barra-nombre">Ocasionales (1 pedido)</span>
+                                    <div class="barra-progreso"><div class="barra-fill" id="retencion-oca-barra" style="width:0%"></div></div>
+                                    <span class="retencion-porcentaje" id="retencion-oca-pct">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cliente-card cliente-inactivos">
+                    <h3>⚠️ Clientes En Riesgo</h3>
+                    <div class="cliente-inactivo-item">
+                        <span>📍 Av. Corrientes 1234 · 11-6666-7890</span>
+                        <span class="dias-inactivo">Hace 42 días sin pedir (&gt;14 días)</span>
+                        <button class="btn-action-promo">💬 Contactar Promo</button>
+                    </div>
+                    <div class="cliente-inactivo-item">
+                        <span>📍 Palermo 987 · 11-7777-2345</span>
+                        <span class="dias-inactivo">Hace 35 días sin pedir (&gt;14 días)</span>
+                        <button class="btn-action-promo">💬 Contactar Promo</button>
+                    </div>
+                    <div class="cliente-inactivo-item">
+                        <span>📍 Microcentro 222 · 11-8888-6789</span>
+                        <span class="dias-inactivo">Hace 31 días sin pedir (&gt;14 días)</span>
+                        <button class="btn-action-promo">💬 Contactar Promo</button>
+                    </div>
+                </div>
+            </section>
+            <section id="view-resenas" class="hidden">
+                <div class="resenas-kpis-grid">
+                    <div class="kpi-card">
+                        <h3>Puntuación Promedio</h3>
+                        <div class="kpi-value" id="kpi-puntuacion-promedio">aún no hay reseñas</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Total de Reseñas</h3>
+                        <div class="kpi-value" id="kpi-total-resenas">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Aprobación Comunitaria</h3>
+                        <div class="kpi-value" id="kpi-aprobacion-comunitaria">aún no hay reseñas</div>
+                        <span class="text-neon-green">de votos a favor</span>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Críticas Validadas</h3>
+                        <div class="kpi-value" id="kpi-criticas-validadas">0</div>
+                        <span class="text-neon-red">reseñas críticas confirmadas</span>
+                    </div>
+                </div>
+
+                <div class="resenas-filtros">
+                    <select id="orden-resenas" class="neon-select">
+                        <option value="cronologico">Cronológico</option>
+                        <option value="relevante">Más votadas</option>
+                    </select>
+                </div>
+
+                <div id="contenedor-resenas" class="resenas-feed">
+                    <!-- Acá se inyectan las reseñas dinámicamente -->
+                </div>
+
+                <div class="resenas-carousel-controls">
+                    <button id="prev-resenas" class="btn-carousel-resenas" disabled>← Anterior</button>
+                    <button id="next-resenas" class="btn-carousel-resenas">Siguiente →</button>
+                </div>
+            </section>
+            <section id="view-predicciones" class="hidden">
+                <div class="ai-block-wrapper">
+                    <div class="ai-background-blur">
+                        <div class="ai-features-grid">
+                            <div class="chart-card">
+                                <h3>Proyección de Demanda (Próximos 7 días)</h3>
+                                <div class="ai-recomendacion">
+                                    🌧️ Pronóstico de lluvia para el Viernes. Históricamente tus ventas de delivery suben un 40%. Sugerencia: Aumentar stock de muzzarella y cajas de pizza un 20%.
+                                </div>
+                                <div class="chart-placeholder">Gráfico de barras predictivo</div>
+                            </div>
+                            <div class="chart-card">
+                                <h3>Calendario de Marketing Automático</h3>
+                                <div class="calendar-events-list">
+                                    <div class="calendar-event-item">
+                                        <span>🍔 28 de Mayo - Día de la Hamburguesa</span>
+                                        <button class="btn-auto-promo">⚡ Auto-Programar Promo</button>
+                                    </div>
+                                    <div class="calendar-event-item">
+                                        <span>🍝 29 del mes - Día de los Ñoquis</span>
+                                        <button class="btn-auto-promo">⚡ Auto-Programar Promo</button>
+                                    </div>
+                                    <div class="calendar-event-item">
+                                        <span>🍻 Fin de semana - San Patricio</span>
+                                        <button class="btn-auto-promo">⚡ Auto-Programar Promo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-overlay">
+                        <div class="ai-overlay-content">
+                            <h3 class="ai-overlay-titulo">🧠 Modelo en Fase de Aprendizaje</h3>
+                            <p class="ai-overlay-descripcion">Nuestra Inteligencia Artificial necesita analizar al menos 30 días de historial de ventas de tu local para generar predicciones precisas y sugerencias de marketing automáticas.</p>
+                            <div class="ai-progress">
+                                <div class="ai-progress-bar" style="width: 15%"></div>
+                            </div>
+                            <p class="ai-progress-texto">Progreso de calibración: <strong>15%</strong> - Faltan <strong>26 días</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+<script>
+    // Navegación entre vistas General / Catálogo / Clientes
+    document.addEventListener('DOMContentLoaded', () => {
+        const navLinks = document.querySelectorAll('.sidebar-nav a[data-view]');
+        const views = {
+            general: document.getElementById('view-general'),
+            catalogo: document.getElementById('view-catalogo'),
+            clientes: document.getElementById('view-clientes'),
+            resenas: document.getElementById('view-resenas'),
+            predicciones: document.getElementById('view-predicciones')
+        };
+
+        if (!navLinks.length || !views.general || !views.catalogo || !views.clientes) return;
+
+        function setView(view) {
+            navLinks.forEach(link => link.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-nav a[data-view="${view}"]`);
+            if (link) link.classList.add('active');
+            Object.keys(views).forEach(key => {
+                if (key === view) {
+                    views[key].classList.remove('hidden');
+                } else {
+                    views[key].classList.add('hidden');
+                }
+            });
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                setView(link.dataset.view);
+            });
+        });
+    });
+</script>
+<script>
+    // Toggle para Top Productos en vista Catálogo
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnToggle = document.getElementById('btn-toggle-top-products');
+        if (!btnToggle) return;
+
+        const list = document.querySelector('.top-products-list .top-platos');
+        if (!list) return;
+
+        const items = list.querySelectorAll('.top-item');
+        const maxVisible = 5;
+        let expanded = false;
+
+        items.forEach((item, idx) => {
+            if (idx >= maxVisible) {
+                item.classList.add('hidden-row');
+            }
+        });
+
+        btnToggle.addEventListener('click', () => {
+            expanded = !expanded;
+            items.forEach((item, idx) => {
+                if (idx >= maxVisible) {
+                    item.classList.toggle('hidden-row', !expanded);
+                }
+            });
+            btnToggle.textContent = expanded ? 'Ver menos' : 'Ver todos';
+        });
+    });
+</script>
+<script>
+    // Lógica Días y Horarios Pico (interactiva con datos reales)
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnPlato = document.getElementById('btnAnalisisPlato');
+        const btnDia   = document.getElementById('btnAnalisisDia');
+        const select   = document.getElementById('selectPlatoPico');
+
+        if (btnPlato) btnPlato.addEventListener('click', modoPlatoHorarios);
+        if (btnDia)   btnDia.addEventListener('click', modoDiaHorarios);
+        if (select)   select.addEventListener('change', (e) => {
+            const diaActivo = btnDia && btnDia.classList.contains('active');
+            if (diaActivo) {
+                renderizarTopPorDia(e.target.value);
+            } else {
+                renderizarMapaCalor(e.target.value);
+            }
+        });
+    });
+</script>
+<script src="analisis.js"></script>
+</body>
+</html>

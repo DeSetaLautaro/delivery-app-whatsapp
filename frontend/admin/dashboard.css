@@ -127,6 +127,20 @@ body {
     white-space: nowrap;
 }
 
+a.btn-gestor-pedidos {
+    background: #25d366;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+    margin-right: 8px;
+}
+a.btn-gestor-pedidos:hover { background: #1ebe5a; }
+
 /* ============================================================
    MODAL
    ============================================================ */
@@ -219,7 +233,100 @@ body {
     margin-bottom: 8px;
 }
 
-.modal-plato input:focus { border-color: #ff6b35; }
+.modal-plato input:focus,
+.modal-plato select:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+}
+
+/* ── Zona de subida de foto ─────────────────────────────── */
+.foto-upload-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px dashed #d0d0d0;
+    border-radius: 9px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 8px;
+    position: relative;        /* para que el input ocupe todo el área */
+}
+.foto-upload-area:hover {
+    border-color: #ff6b35;
+    background: #fff6f2;
+}
+.foto-upload-icon { font-size: 1.3rem; flex-shrink: 0; }
+.foto-upload-texto {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #555;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* El input file real queda invisible pero cubre todo el área */
+#inputFotoPlato {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* ── Vista previa de la imagen subida ───────────────────── */
+.foto-preview {
+    margin: 4px 0 8px;
+    min-height: 0;
+}
+.foto-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    display: block;
+}
+
+/* ── Checkbox "aplicar a toda la categoría" ─────────────── */
+.foto-check-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #fff8f5;
+    border: 1.5px solid #ffd5c4;
+    border-radius: 9px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: background 0.15s, border-color 0.15s;
+}
+.foto-check-label:hover { background: #fff0ea; border-color: #ff6b35; }
+.foto-check-label input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    accent-color: #ff6b35;
+    margin: 1px 0 0;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    /* override del input genérico del modal */
+    position: static;
+    opacity: 1;
+    inset: auto;
+}
+.foto-check-texto {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #555;
+    line-height: 1.4;
+}
 
 .modal-plato button[type="submit"] {
     background: #ff6b35;
@@ -327,6 +434,20 @@ body {
 }
 .btn-limpiar:hover { background: #fff5f5; border-color: #dc2626; }
 
+.btn-borrar-todos {
+    padding: 7px 14px;
+    background: #dc2626;
+    border: 1.5px solid #b91c1c;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    align-self: flex-end;
+    margin-left: 12px;
+}
+.btn-borrar-todos:hover { background: #b91c1c; }
+
 /* Tabla */
 table { width: 100%; border-collapse: collapse; margin-top: 14px; }
 th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left; font-size: 0.9rem; }
@@ -340,7 +461,99 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
 /* ============================================================
    BOTONES ACCIONES (Desktop / Mobile)
    ============================================================ */
-.acciones-desktop { display: flex; gap: 6px; }
+.acciones-desktop {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.acciones-desktop .btn-editar {
+    padding: 7px 14px;
+    background: #f0f4ff;
+    color: #1a4f8b;
+    border: 1.5px solid #cdd8e8;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.acciones-desktop .btn-editar:hover {
+    background: #dbe7fb;
+    border-color: #aac4e0;
+}
+
+.acciones-desktop .btn-ocultar {
+    padding: 7px 14px;
+    background: #f8fafc;
+    color: #475569;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.acciones-desktop .btn-ocultar:hover {
+    background: #eef2f7;
+    border-color: #a0afc0;
+}
+
+.acciones-desktop .btn-borrar {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #dc2626;
+    padding: 7px 6px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s, text-decoration 0.2s;
+}
+.acciones-desktop .btn-borrar:hover {
+    color: #b91c1c;
+    text-decoration: underline;
+}
+
+/* Botones de la barra de acciones masivas: mismo estilo que los de cada fila */
+#bulkAcciones {
+    gap: 12px;
+}
+
+#bulkAcciones .btn-accion {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#btnBulkOcultar,
+#btnBulkMostrar {
+    background: #f8fafc;
+    color: #475569;
+    border: 1.5px solid #cbd5e1;
+}
+
+#btnBulkOcultar:hover,
+#btnBulkMostrar:hover {
+    background: #eef2f7;
+    border-color: #a0afc0;
+}
+
+#btnBulkBorrar {
+    background: none;
+    border: none;
+    color: #dc2626;
+    padding: 7px 6px;
+}
+
+#btnBulkBorrar:hover {
+    color: #b91c1c;
+    text-decoration: underline;
+}
 .acciones-mobile  { display: none; position: relative; }
 #spanAccionesMobile {display: none;}
 
@@ -595,6 +808,25 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
 }
 .btn-eliminar-fila:hover { background: #fee2e2; }
 
+.btn-toggle-disponibilidad-topping {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 4px 6px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    line-height: 1;
+}
+.btn-toggle-disponibilidad-topping:hover { background: #f0f0f0; }
+
+.fila-opcion.inactiva {
+    opacity: 0.6;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
 /* Botón “+ Sumar otra opción” */
 .btn-sumar-opcion {
     width: 100%;
@@ -626,3 +858,226 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     transition: background 0.2s;
 }
 .btn-guardar-topping:hover { background: #e55a26; }
+
+.text-muted {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.marketing-checkbox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+/* ── Tarjeta de marketing en modal ───────────── */
+.marketing-card {
+    margin: 12px 0 16px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+.marketing-title {
+    margin: 0 0 12px;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #334155;
+}
+.marketing-toggles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.marketing-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+    position: relative;
+}
+.marketing-toggle:hover {
+    border-color: #ff6b35;
+    background: #fff8f5;
+}
+.marketing-toggle input.toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.marketing-toggle .toggle-slider-custom {
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background: #cbd5e1;
+    border-radius: 999px;
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+}
+.marketing-toggle .toggle-slider-custom::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    left: 2px;
+    top: 2px;
+    transition: transform .2s;
+}
+.marketing-toggle input.toggle-checkbox:checked + .toggle-slider-custom {
+    background: #ff6b35;
+}
+.marketing-toggle input.toggle-checkbox:checked + .toggle-slider-custom::before {
+    transform: translateX(16px);
+}
+.marketing-toggle .toggle-label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+/* ── Badge de precio final calculado ─────────── */
+.precio-final-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 6px 12px;
+    background: #dcfce7;
+    color: #15803d;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .84rem;
+    border: 1px solid #86efac;
+}
+
+/* ── Badges en la lista de platos ────────────── */
+.badge-promo,
+.badge-especialidad,
+.badge-menu-dia {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 700;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+.badge-promo {
+    background: #ff4500;
+    color: #fff;
+}
+.badge-especialidad {
+    background: #fbbf24;
+    color: #1f2937;
+}
+.badge-menu-dia {
+    background: #38bdf8;
+    color: #fff;
+}
+
+/* ── Botones inferiores del modal ────────────── */
+.modal-footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+.btn-cancelar {
+    background: transparent;
+    color: #6b7280;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+.btn-cancelar:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+/* ====== GESTIÓN DE RESEÑAS ====== */
+#tarjeta-resenas,
+.config-card {
+    background: #1E233B;
+    border: 1px solid #2A2F45;
+    border-radius: 16px;
+    color: #FFFFFF;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    padding: 20px;
+}
+#tarjeta-resenas h3 {
+    color: #FFFFFF;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+#tarjeta-resenas .texto-descriptivo {
+    color: #8A8D9F;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+}
+.opcion-resena {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #2A2F45;
+}
+.opcion-resena:last-of-type {
+    border-bottom: none;
+}
+.resena-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.resena-info label {
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    margin: 0;
+}
+.resena-descripcion {
+    color: #8A8D9F;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+#tarjeta-resenas .toggle-switch input:checked + .toggle-slider {
+    background: #00E396;
+}
+#tarjeta-resenas .toggle-switch input:not(:checked) + .toggle-slider {
+    background: #3A3F55;
+}
+#tarjeta-resenas .toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 0 3px rgba(0,227,150,0.25);
+}
+.btn-guardar-resenas {
+    width: 100%;
+    margin-top: 16px;
+    background: #008FFB;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-guardar-resenas:hover {
+    background: #0074CB;
+}
