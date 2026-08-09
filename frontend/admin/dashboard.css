@@ -466,51 +466,9 @@ th, td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; text-align: left;
     gap: 8px;
     align-items: center;
 }
-.acciones-desktop .btn-editar {
-    padding: 7px 14px;
-    background: #f0f4ff;
-    color: #1a4f8b;
-    border: 1.5px solid #cdd8e8;
-    border-radius: 8px;
-    font-size: 0.84rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-.acciones-desktop .btn-editar:hover {
-    background: #dbe7fb;
-    border-color: #aac4e0;
-}
-.acciones-desktop .btn-ocultar {
-    padding: 7px 14px;
-    background: #f8fafc;
-    color: #475569;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.84rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-.acciones-desktop .btn-ocultar:hover {
-    background: #eef2f7;
-    border-color: #a0afc0;
-}
-.acciones-desktop .btn-borrar {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #dc2626;
-    padding: 7px 6px;
-    font-size: 0.84rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: color 0.2s, text-decoration 0.2s;
-}
-.acciones-desktop .btn-borrar:hover {
-    color: #b91c1c;
-    text-decoration: underline;
+/* Los botones de las filas usan el mismo estilo que los botones masivos */
+.acciones-desktop .btn-accion {
+    margin-top: 0;
 }
 .acciones-mobile  { display: none; position: relative; }
 #spanAccionesMobile {display: none;}
