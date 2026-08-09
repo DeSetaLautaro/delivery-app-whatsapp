@@ -243,6 +243,7 @@ async function cargarHTMLListaDePlatos(datosPlato){
     
         const bloqueHTML = `
     <tr class = ${claseFila}>
+        <td style="width:30px;"><input type="checkbox" class="check-plato" data-id="${datosPlato._id}" style="cursor:pointer;"></td>
         <td>
             ${datosPlato.nombre}
             ${datosPlato.enPromocion ? `<span class="badge-promo">🔥 ${datosPlato.porcentajeDescuento != null ? datosPlato.porcentajeDescuento + '% OFF' : 'En Promoción'}</span>` : ''}
@@ -1815,3 +1816,75 @@ if (selectFiltroCategoria) {
         renderizarToppingsPorCategoria(e.target.value);
     });
 }
+
+
+// ==========================================
+// SELECCIÓN MASIVA - EVENTOS
+// ==========================================
+document.addEventListener('change', (e) => {
+    // Checkbox individual
+    if (e.target.classList.contains('check-plato')) {
+        actualizarBulkAcciones();
+
+        // Actualizar el "seleccionar todos" si todos los visibles están marcados
+        const visibles = Array.from(document.querySelectorAll('#lista-platos tr'));
+        const checksVisibles = visibles
+            .filter(fila => fila.style.display !== 'none')
+            .map(fila => fila.querySelector('.check-plato'))
+            .filter(Boolean);
+
+        const todosMarcados = checksVisibles.length > 0 && checksVisibles.every(cb => cb.checked);
+        const checkTodos = document.getElementById('checkSeleccionarTodos');
+        if (checkTodos) checkTodos.checked = todosMarcados;
+    }
+
+    // Checkbox "seleccionar todos"
+    if (e.target.id === 'checkSeleccionarTodos') {
+        const marcar = e.target.checked;
+        document.querySelectorAll('#lista-platos tr').forEach(fila => {
+            if (fila.style.display !== 'none') {
+                const cb = fila.querySelector('.check-plato');
+                if (cb) cb.checked = marcar;
+            }
+        });
+        actualizarBulkAcciones();
+    }
+});
+
+document.addEventListener('click', async (e) => {
+    const btnOcultar = e.target.closest('#btnBulkOcultar');
+    const btnMostrar = e.target.closest('#btnBulkMostrar');
+    const btnBorrar = e.target.closest('#btnBulkBorrar');
+    const btnEditar = e.target.closest('#btnBulkEditar');
+
+    if (btnOcultar || btnMostrar) {
+        const ids = obtenerIdsSeleccionados();
+        if (ids.length === 0) return;
+        const disponible = btnOcultar ? false : true;
+        const ok = await bulkCambiarEstado(ids, disponible);
+        if (ok) {
+            cargarListaDePlatos();
+        } else {
+            alert('Error al cambiar estado');
+        }
+    }
+
+    if (btnBorrar) {
+        const ids = obtenerIdsSeleccionados();
+        if (ids.length === 0) return;
+        if (!confirm(`¿Borrar ${ids.length} plato(s) seleccionado(s)?`)) return;
+        const respuesta = await peticionAPI('/api/platos/masivo', 'DELETE', { ids });
+        if (respuesta && respuesta.ok) {
+            cargarListaDePlatos();
+        } else {
+            alert('Error al borrar los platos');
+        }
+    }
+
+    if (btnEditar) {
+        const ids = obtenerIdsSeleccionados();
+        if (ids.length !== 1) return;
+        const plato = listaPlatosGlobal.find(p => p._id === ids[0]);
+        if (plato) abrirModalEdicion(plato);
+    }
+});
