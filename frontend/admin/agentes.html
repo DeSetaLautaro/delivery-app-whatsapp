@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentes - Panel</title>
+    <link rel="stylesheet" href="/admin/dashboard.css">
+    <link rel="stylesheet" href="/admin/agentes.css">
+    <link rel="stylesheet" href="/features.css">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="contenedor-header"></div>
+
+    <main class="agentes-main">
+        <section class="agentes-header">
+            <div>
+                <h1>👥 Gestión de Agentes</h1>
+                <p>Creá agentes con acceso limitado a tus empresas.</p>
+            </div>
+            <button class="btn-accion" id="btnNuevoAgente">+ Crear Agente</button>
+        </section>
+
+        <!-- Tarjeta de creación (oculta por defecto) -->
+        <section class="agente-form-card" id="agenteFormCard" hidden>
+            <div class="agente-form-header">
+                <h2>Nuevo Agente</h2>
+                <button class="modal-close" id="btnCerrarFormAgente">✖</button>
+            </div>
+
+            <form id="formNuevoAgente">
+                <div class="form-grid">
+                    <div class="form-campo">
+                        <label for="inputNombreAgente">Nombre *</label>
+                        <input type="text" id="inputNombreAgente" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div class="form-campo">
+                        <label for="inputEmailAgente">Email *</label>
+                        <input type="email" id="inputEmailAgente" placeholder="ej@correo.com" required>
+                    </div>
+                    <div class="form-campo">
+                        <label for="inputPasswordAgente">Contraseña *</label>
+                        <input type="password" id="inputPasswordAgente" placeholder="Mínimo 6 caracteres" required minlength="6">
+                    </div>
+                    <div class="form-campo">
+                        <label for="inputTelefonoAgente">Teléfono</label>
+                        <input type="text" id="inputTelefonoAgente" placeholder="Ej: 1155551234">
+                    </div>
+                </div>
+
+                <div class="form-campo empresas-selector">
+                    <label>Empresas con acceso</label>
+                    <p class="topping-hint">Seleccioná qué empresas va a poder ver este agente.</p>
+                    <div id="listaEmpresasCheckbox" class="topping-checkboxes">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancelar" id="btnCancelarAgente">Cancelar</button>
+                    <button type="submit" class="btn-guardar-agente">Guardar Agente</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Listado de agentes -->
+        <section class="agentes-lista">
+            <h2>Agentes del local</h2>
+            <div id="contenedorAgentes" class="agentes-grid">
+                <!-- Se llena con JS -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Pasamos el id del local al JS global (si hace falta)
+        const token = localStorage.getItem('token');
+        const usuarioDataString = localStorage.getItem('user');
+        if (!token || !usuarioDataString) {
+            window.location.href = '/admin/login.html';
+        }
+    </script>
+    <script src="/api.js"></script>
+    <script src="/ui.js"></script>
+    <script src="/admin/agentes.js"></script>
+</body>
+</html>

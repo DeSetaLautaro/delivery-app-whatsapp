@@ -1,0 +1,267 @@
+/* ============================================================
+   PÁGINA DE AGENTES
+   ============================================================ */
+
+.agentes-main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ── Header de la página ─────────────────────────────── */
+.agentes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.agentes-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.agentes-header p {
+    color: #666;
+    font-size: 0.88rem;
+    margin-top: 4px;
+}
+
+/* ── Tarjeta del formulario ──────────────────────────── */
+.agente-form-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.agente-form-card[hidden] {
+    display: none;
+}
+
+.agente-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.agente-form-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* ── Grilla del formulario ───────────────────────────── */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-campo label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #444;
+}
+
+.form-campo input {
+    padding: 10px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-campo input:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+}
+
+/* ── Selector de empresas ────────────────────────────── */
+.empresas-selector {
+    margin-bottom: 20px;
+}
+
+.empresas-selector .topping-checkboxes {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 9px;
+    padding: 12px;
+    background: #fafafa;
+}
+
+/* ── Botones del formulario ──────────────────────────── */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.btn-guardar-agente {
+    background: #ff6b35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 22px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-guardar-agente:hover {
+    background: #e55a26;
+}
+
+/* ── Grilla de agentes ───────────────────────────────── */
+.agentes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.agente-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.agente-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border-color: #ff6b35;
+}
+
+.agente-inactivo {
+    opacity: 0.6;
+    background: #fafafa;
+}
+
+.agente-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.agente-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.agente-info h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.agente-email {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.agente-telefono {
+    font-size: 0.78rem;
+    color: #999;
+}
+
+.badge-empresas {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 10px;
+    background: #f0f4ff;
+    color: #1a4f8b;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.agente-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.agente-acciones .btn-accion {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.agente-acciones .btn-toggle-agente {
+    background: #f8fafc;
+    color: #475569;
+    border: 1.5px solid #cbd5e1;
+}
+
+.agente-acciones .btn-borrar-agente {
+    background: none;
+    border: none;
+    color: #dc2626;
+    padding: 6px;
+}
+
+.agente-vacio {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border: 2px dashed #e0e0e0;
+    border-radius: 14px;
+    color: #888;
+}
+
+.agente-vacio .btn-accion {
+    margin-top: 12px;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 600px) {
+    .agentes-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .agente-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .agente-acciones {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+    }
+}

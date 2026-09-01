@@ -123,4 +123,19 @@ router.patch('/:id', verificarToken, verificarAdmin, async (req, res) => {
   }
 });
 
+// DELETE /api/agentes/:id
+router.delete('/:id', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const agente = await Usuario.findOne({ _id: req.params.id, adminId: req.usuario._id, rol: 'agente' });
+    if (!agente) {
+      return res.status(404).json({ error: 'Agente no encontrado' });
+    }
+    await Usuario.findByIdAndDelete(agente._id);
+    res.json({ message: 'Agente eliminado correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

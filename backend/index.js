@@ -177,6 +177,11 @@ app.get('/admin/analisis', (req,res) =>{
     res.sendFile(archivoAnalisis);
 });
 
+app.get('/admin/agentes', (req, res) => {
+    const archivoAgentes = path.join(__dirname, '../frontend/admin/agentes.html');
+    res.sendFile(archivoAgentes);
+});
+
 
 // Multer: guarda los archivos recibidos en la carpeta /uploads
 const upload = multer({ dest: 'uploads/' });
