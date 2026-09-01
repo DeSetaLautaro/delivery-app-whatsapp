@@ -20,6 +20,7 @@ const analisisRoutes = require('./routes/analisis');
 const estadisticasRouter = require('./routes/estadisticas');
 const deliveryRoutes = require('./routes/delivery');
 const pagosRoutes = require('./routes/pagos');
+const agentesRouter = require('./routes/agentes');
 const DeliveryToken = require('./models/DeliveryToken');
 const Resena = require('./models/Resena');
 const Visita = require('./models/Visita');
@@ -44,6 +45,7 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/analisis', analisisRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/pagos', pagosRoutes);
+app.use('/api/agentes', agentesRouter);
 
 // ============================================================
 // RUTAS PARA GESTIÓN DEL TOKEN DE DELIVERY (PROTEGIDAS)

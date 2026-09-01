@@ -72,7 +72,9 @@ router.post('/login', async (req, res) => {
                     slug: usuario.slug,
                     plan: usuario.plan || 'web',
                     direccion : usuario.direccion,
-                    fotoPerfil : usuario.fotoPerfil || ''
+                    fotoPerfil : usuario.fotoPerfil || '',
+                    rol: usuario.rol || 'admin',
+                    empresasAcceso: usuario.empresasAcceso || []
             }
          });
 
@@ -127,10 +129,27 @@ router.post('/registro', async (req, res) => {
         // Hashear la contraseña (10 = nivel de complejidad del hash)
         const hash = await bcrypt.hash(password, 10);
 
-        // Guardar el usuario nuevo
-        await Usuario.create({ nombre, email, password: hash, telefono, codigoPais, nombreDelLocal, slug: slugFinal });
+        // Generar un PIN temporal para el CRM
+        const pinGenerado = Math.random().toString(36).slice(2, 8).toUpperCase();
 
-        res.status(201).json({ message: 'Usuario creado con exito' });
+        // Guardar el usuario nuevo (rol por defecto: admin)
+        await Usuario.create({ 
+            nombre, 
+            email, 
+            password: hash, 
+            telefono, 
+            codigoPais, 
+            nombreDelLocal, 
+            slug: slugFinal,
+            rol: 'admin',
+            activo: true,
+            pinCrm: pinGenerado
+        });
+
+        res.status(201).json({ 
+            message: 'Usuario creado con exito',
+            pinCrm: pinGenerado 
+        });
 
     } catch (error) {
         console.error('[ERROR] Registro:', error.message);
