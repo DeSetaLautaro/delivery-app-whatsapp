@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 // ---------------------------------------------------------
 // 1. SUBDOCUMENTOS (Estructuras hijas)
@@ -47,6 +48,7 @@ const usuarioSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     nombre: { type: String, required: true },
     password: { type: String, required: true },
+    pinCrm: { type: String, required: true },
     fechaRegistro: { type: Date, default: Date.now },
     
     // Perfil
@@ -81,7 +83,35 @@ const usuarioSchema = new mongoose.Schema({
     platos: [platoSchema],
     
     // 👇 ¡LO NUEVO! La lista de grupos de toppings
-    gruposToppings: [grupoToppingSchema]
+    gruposToppings: [grupoToppingSchema],
+
+    // ===== Roles / Agentes =====
+    rol: { type: String, enum: ['admin', 'agente'], default: 'admin' },
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
+    empresasAcceso: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Empresa', default: [] }],
+    activo: { type: Boolean, default: true },
+
+    // ===== Monedero / Sistema de pagos =====
+    saldoUsd: { type: Number, default: 0 },
+    deudaToleradaUsd: { type: Number, default: 5 },
+    deudaPendienteUsd: { type: Number, default: 0 },
+    costoCicloActualUsd: { type: Number, default: 0 },
+    fechaCicloFacturacion: { type: Date, default: Date.now },
+    costoPorConversacion: { type: Number, default: 0.035 },
+    monederoBloqueado: { type: Boolean, default: false },
+    avisoEnviado: { type: Boolean, default: false }
+});
+
+// Hashear el PIN antes de guardar
+usuarioSchema.pre('save', async function (next) {
+  if (!this.isModified('pinCrm')) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.pinCrm = await bcrypt.hash(this.pinCrm, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // PONÉ ESTA LÍNEA:
